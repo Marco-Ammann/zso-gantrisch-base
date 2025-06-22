@@ -1,0 +1,222 @@
+[
+  {
+    "id": "CijkwXPse3aPCBNfgrXw",
+    "titel": "GEÜ",
+    "erstelltAm": {
+      "seconds": 1746600323,
+      "nanoseconds": 240000000
+    },
+    "endDatum": {
+      "seconds": 1748642400,
+      "nanoseconds": 0
+    },
+    "erforderlich": false,
+    "startDatum": {
+      "seconds": 1747778400,
+      "nanoseconds": 0
+    },
+    "startZeit": "08:00",
+    "beschreibung": "asasa",
+    "endZeit": "17:00",
+    "datum": {
+      "seconds": 1747778400,
+      "nanoseconds": 0
+    },
+    "jahr": 2026,
+    "typ": "Übung"
+  },
+  {
+    "id": "nU1onoZ4loHnu0GbZTeI",
+    "aktualisiertAm": {
+      "seconds": 1746540476,
+      "nanoseconds": 446000000
+    },
+    "startDatum": {
+      "seconds": 1746449860,
+      "nanoseconds": 631000000
+    },
+    "endDatum": {
+      "seconds": 1746741600,
+      "nanoseconds": 0
+    },
+    "jahr": 2025,
+    "titel": "WK Schlossgarten Riggisberg",
+    "endZeit": "17:00",
+    "erstelltAm": {
+      "seconds": 1746449927,
+      "nanoseconds": 453000000
+    },
+    "datum": {
+      "seconds": 1746449860,
+      "nanoseconds": 631000000
+    },
+    "startZeit": "07:45",
+    "erforderlich": false,
+    "typ": "WK",
+    "beschreibung": "Erster WK im Schlossgarten Riggisberg"
+  },
+  {
+    "id": "g1tbdzqdP8oN86AkRkEh",
+    "erstelltAm": {
+      "seconds": 1742039889,
+      "nanoseconds": 731000000
+    },
+    "typ": "LG",
+    "startZeit": "08:00",
+    "datum": {
+      "seconds": 1741820400,
+      "nanoseconds": 0
+    },
+    "endZeit": "17:00",
+    "beschreibung": "Alexandra Rohrer (Stiftung Bernaville) hält ein Referat ",
+    "titel": "Deeskalation und Agogik",
+    "erforderlich": true,
+    "endDatum": {
+      "seconds": 1741820400,
+      "nanoseconds": 0
+    },
+    "jahr": 2025,
+    "aktualisiertAm": {
+      "seconds": 1742040845,
+      "nanoseconds": 679000000
+    },
+    "startDatum": {
+      "seconds": 1741820400,
+      "nanoseconds": 0
+    }
+  },
+  {
+    "id": "f1U5B1nyDN565uFBRSP5",
+    "startZeit": "07:45",
+    "jahr": 2025,
+    "titel": "WK Riggishof",
+    "startDatum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    },
+    "erstelltAm": {
+      "seconds": 1746518810,
+      "nanoseconds": 467000000
+    },
+    "typ": "WK",
+    "endZeit": "17:00",
+    "datum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    },
+    "erforderlich": false,
+    "beschreibung": "Wiederholungskurs Im Pflegeheim Riggishof",
+    "endDatum": {
+      "seconds": 1746741600,
+      "nanoseconds": 0
+    }
+  },
+  {
+    "id": "b6zKV9BDEPAPtcbP5oGI",
+    "endZeit": "17:00",
+    "erstelltAm": {
+      "seconds": 1746518698,
+      "nanoseconds": 723000000
+    },
+    "erforderlich": false,
+    "beschreibung": "Wiederholungskurs im Pflegezentrum Schwarzenburg",
+    "jahr": 2025,
+    "titel": "WK Pflegezentrum",
+    "datum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    },
+    "startDatum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    },
+    "typ": "WK",
+    "endDatum": {
+      "seconds": 1746741600,
+      "nanoseconds": 0
+    },
+    "startZeit": "07:45"
+  },
+  {
+    "id": "OSCirRSiLVsv0OLsJXl3",
+    "endZeit": "17:00",
+    "typ": "WK",
+    "endDatum": {
+      "seconds": 1746741600,
+      "nanoseconds": 0
+    },
+    "jahr": 2025,
+    "beschreibung": "Wiederholungskurs im Altenheim \"Ar Sunnsyte\"",
+    "erforderlich": false,
+    "startDatum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    },
+    "erstelltAm": {
+      "seconds": 1746518501,
+      "nanoseconds": 572000000
+    },
+    "titel": "WK Ar Sunnsyte",
+    "startZeit": "07:45",
+    "datum": {
+      "seconds": 1746396000,
+      "nanoseconds": 0
+    }
+  },
+  {
+    "id": "MDtNNouIjgTt3QRfS2CS",
+    "datum": {
+      "seconds": 1741042800,
+      "nanoseconds": 0
+    },
+    "startDatum": {
+      "seconds": 1741042800,
+      "nanoseconds": 0
+    },
+    "jahr": 2025,
+    "endDatum": {
+      "seconds": 1741042800,
+      "nanoseconds": 0
+    },
+    "beschreibung": "Besprechung aufgaben für LG",
+    "startZeit": "19:00",
+    "erstelltAm": {
+      "seconds": 1742041524,
+      "nanoseconds": 224000000
+    },
+    "typ": "KVK",
+    "erforderlich": true,
+    "titel": "Abendrapport",
+    "endZeit": "21:00"
+  },
+  {
+    "id": "IYQGT78A2RsHHfehQW7s",
+    "erforderlich": true,
+    "startZeit": "08:00",
+    "aktualisiertAm": {
+      "seconds": 1742040892,
+      "nanoseconds": 178000000
+    },
+    "startDatum": {
+      "seconds": 1741906800,
+      "nanoseconds": 0
+    },
+    "titel": "Oberirdische Sammelstelle",
+    "jahr": 2025,
+    "erstelltAm": {
+      "seconds": 1741883875,
+      "nanoseconds": 913000000
+    },
+    "beschreibung": "Aufbau Oberirdischer Sammelstelle in Turnhalle Riggisberg",
+    "typ": "LG",
+    "endZeit": "17:00",
+    "endDatum": {
+      "seconds": 1741906800,
+      "nanoseconds": 0
+    },
+    "datum": {
+      "seconds": 1741906800,
+      "nanoseconds": 0
+    }
+  }
+]

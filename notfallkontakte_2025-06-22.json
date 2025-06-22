@@ -1,0 +1,1221 @@
+[
+  {
+    "id": "4jL6dztQknXZK488swXm",
+    "berufliches": {
+      "zivileSpezialausbildung": "",
+      "ausgeubterBeruf": "Psychologe (Stundent)",
+      "arbeitgeber": "Universitäre Psychiatrische Dienste (UPD)",
+      "erlernterBeruf": "Psychologe",
+      "führerausweisKategorie": []
+    },
+    "persoenliches": {
+      "sprachkenntnisse": [],
+      "allergien": [],
+      "besonderheiten": [],
+      "essgewohnheiten": [],
+      "blutgruppe": ""
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 900626400,
+        "nanoseconds": 0
+      },
+      "funktion": "Betreuer",
+      "vorname": "Oliver",
+      "nachname": "Affentranger",
+      "grad": "Soldat"
+    },
+    "kontaktdaten": {
+      "strasse": "Weissensteinstrasse 42",
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "079 663 69 08",
+      "plz": "3007",
+      "email": "olver.affentranger@gmail.com",
+      "ort": "Bern",
+      "telefonFestnetz": ""
+    },
+    "metadaten": {
+      "aktualisiert_von": "Sandro Bürki",
+      "letzteAktualisierung": {
+        "seconds": 1750186890,
+        "nanoseconds": 719000000
+      }
+    },
+    "aktualisiertAm": {
+      "seconds": 1750186890,
+      "nanoseconds": 845000000
+    },
+    "erstelltAm": {
+      "seconds": 1741849917,
+      "nanoseconds": 893000000
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "B"
+      },
+      "grundausbildung": "2018",
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    }
+  },
+  {
+    "id": "qvCJQu0c8vUu9QBVPYXi",
+    "aktualisiertAm": {
+      "seconds": 1741953982,
+      "nanoseconds": 54000000
+    },
+    "berufliches": {
+      "führerausweisKategorie": [],
+      "arbeitgeber": "Stiftung Bernaville",
+      "erlernterBeruf": "Produktionsmechaniker",
+      "ausgeubterBeruf": "Betreuung Werkstatt",
+      "zivileSpezialausbildung": "Drohnenführerschein"
+    },
+    "persoenliches": {
+      "sprachkenntnisse": [
+        "Englisch"
+      ],
+      "blutgruppe": "B+",
+      "allergien": [],
+      "essgewohnheiten": [],
+      "besonderheiten": []
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1741953981,
+        "nanoseconds": 391000000
+      },
+      "aktualisiert_von": "Marco Ammann"
+    },
+    "erstelltAm": {
+      "seconds": 1741825496,
+      "nanoseconds": 434000000
+    },
+    "kontaktdaten": {
+      "ort": "Lanzenhäusern",
+      "telefonFestnetz": "031 732 86 51",
+      "email": "marco-ammann@outlook.com",
+      "plz": "3148",
+      "telefonGeschaeftlich": "031 734 21 72",
+      "telefonMobil": "079 576 31 12",
+      "strasse": "Bernstrasse 154"
+    },
+    "grunddaten": {
+      "funktion": "Betreuer",
+      "vorname": "Marco",
+      "grad": "Leutnant",
+      "geburtsdatum": {
+        "seconds": 701564400,
+        "nanoseconds": 0
+      },
+      "nachname": "Ammann"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2013",
+      "status": "aktiv",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "zusatzausbildungen": []
+    }
+  },
+  {
+    "id": "lEGoRNMmWl5bU4suDGC1",
+    "metadaten": {
+      "aktualisiert_von": "Marco Ammann",
+      "letzteAktualisierung": {
+        "seconds": 1741850632,
+        "nanoseconds": 128000000
+      }
+    },
+    "berufliches": {
+      "arbeitgeber": "Denner AG",
+      "ausgeubterBeruf": "Filialleiter",
+      "zivileSpezialausbildung": "",
+      "führerausweisKategorie": [
+        "A",
+        "B"
+      ],
+      "erlernterBeruf": "Detailhandelsfachmann"
+    },
+    "zivilschutz": {
+      "zusatzausbildungen": [],
+      "einteilung": {
+        "gruppe": "",
+        "zug": 1
+      },
+      "status": "aktiv",
+      "grundausbildung": "2008"
+    },
+    "erstelltAm": {
+      "seconds": 1741850632,
+      "nanoseconds": 248000000
+    },
+    "grunddaten": {
+      "nachname": "Bürki",
+      "geburtsdatum": {
+        "seconds": 623545200,
+        "nanoseconds": 0
+      },
+      "grad": "Oberleutnant",
+      "funktion": "C-Betreuer",
+      "vorname": "Sandro"
+    },
+    "kontaktdaten": {
+      "telefonFestnetz": "",
+      "plz": "3123",
+      "telefonMobil": "079 763 05 28",
+      "email": "buerki.sandro@gmail.com",
+      "ort": "Belp BE",
+      "strasse": "Sonneggstrasse 34",
+      "telefonGeschaeftlich": ""
+    },
+    "persoenliches": {
+      "essgewohnheiten": [],
+      "allergien": [],
+      "blutgruppe": "B+",
+      "sprachkenntnisse": [
+        "Englisch"
+      ],
+      "besonderheiten": []
+    }
+  },
+  {
+    "id": "xxe84VAJMhr270TfdNF6",
+    "kontaktdaten": {
+      "plz": "3150",
+      "strasse": "Buhnenstock 8",
+      "email": "fabioteanochr@gmail.com",
+      "telefonMobil": "077 400 04 83",
+      "telefonGeschaeftlich": "",
+      "ort": "Schwarzenburg",
+      "telefonFestnetz": ""
+    },
+    "grunddaten": {
+      "nachname": "Christinet",
+      "funktion": "Betreuer",
+      "vorname": "Fabio",
+      "grad": "Korporal",
+      "geburtsdatum": {
+        "seconds": 989532000,
+        "nanoseconds": 0
+      }
+    },
+    "berufliches": {
+      "ausgeubterBeruf": "Logistiker",
+      "zivileSpezialausbildung": "",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "erlernterBeruf": "Logistiker",
+      "arbeitgeber": "Gilgen Door Systems AG"
+    },
+    "erstelltAm": {
+      "seconds": 1741852349,
+      "nanoseconds": 155000000
+    },
+    "persoenliches": {
+      "sprachkenntnisse": [],
+      "blutgruppe": "0+",
+      "besonderheiten": [],
+      "allergien": [
+        "Hausstaub"
+      ],
+      "essgewohnheiten": []
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco Ammann",
+      "letzteAktualisierung": {
+        "seconds": 1741852349,
+        "nanoseconds": 29000000
+      }
+    },
+    "zivilschutz": {
+      "grundausbildung": "2022",
+      "status": "aktiv",
+      "zusatzausbildungen": [],
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "C"
+      }
+    }
+  },
+  {
+    "id": "lJdTB33GkyCU8UNpwJOc",
+    "zivilschutz": {
+      "einteilung": {
+        "gruppe": "B",
+        "zug": 1
+      },
+      "grundausbildung": "0000",
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    },
+    "erstelltAm": {
+      "seconds": 1741854601,
+      "nanoseconds": 352000000
+    },
+    "berufliches": {
+      "ausgeubterBeruf": "Student",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "arbeitgeber": "",
+      "zivileSpezialausbildung": "",
+      "erlernterBeruf": ""
+    },
+    "grunddaten": {
+      "vorname": "Léon",
+      "grad": "Soldat",
+      "funktion": "Betreuer",
+      "geburtsdatum": {
+        "seconds": 1694815200,
+        "nanoseconds": 0
+      },
+      "nachname": "Diserens"
+    },
+    "persoenliches": {
+      "essgewohnheiten": [],
+      "sprachkenntnisse": [
+        "Englisch",
+        "Französisch"
+      ],
+      "allergien": [],
+      "besonderheiten": [],
+      "blutgruppe": ""
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco Ammann",
+      "letzteAktualisierung": {
+        "seconds": 1741854601,
+        "nanoseconds": 153000000
+      }
+    },
+    "kontaktdaten": {
+      "telefonMobil": "076 529 65 92",
+      "telefonFestnetz": "",
+      "plz": "3150",
+      "strasse": "Mäuseboden 1",
+      "ort": "Schwarzenburg",
+      "email": "leledis2003@gmail.com",
+      "telefonGeschaeftlich": ""
+    }
+  },
+  {
+    "id": "BVasLdzx06Bcsuj0jJ2E",
+    "persoenliches": {
+      "sprachkenntnisse": [
+        "Englisch"
+      ],
+      "besonderheiten": [],
+      "allergien": [
+        "Belastungsastmah"
+      ],
+      "blutgruppe": "A+",
+      "essgewohnheiten": []
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "grundausbildung": "2020",
+      "zusatzausbildungen": [],
+      "status": "aktiv"
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco",
+      "letzteAktualisierung": {
+        "seconds": 1742038512,
+        "nanoseconds": 822000000
+      }
+    },
+    "kontaktdaten": {
+      "telefonFestnetz": "",
+      "strasse": "Plerweg 1D",
+      "telefonMobil": "077 419 25 81",
+      "ort": "Burgdorf ",
+      "plz": "3400",
+      "email": "joshua.gonseth@gmx.ch",
+      "telefonGeschaeftlich": ""
+    },
+    "erstelltAm": {
+      "seconds": 1742038356,
+      "nanoseconds": 197000000
+    },
+    "aktualisiertAm": {
+      "seconds": 1742038513,
+      "nanoseconds": 324000000
+    },
+    "berufliches": {
+      "arbeitgeber": "Spital Emmental Standord Burgdorf Intensivstation",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "zivileSpezialausbildung": "",
+      "erlernterBeruf": "Fachangestellter Gesundheit EFZ",
+      "ausgeubterBeruf": "Fachangestellter Gesundheit"
+    },
+    "grunddaten": {
+      "funktion": "Betreuer ",
+      "vorname": "Joshua",
+      "nachname": "Gonseth",
+      "geburtsdatum": {
+        "seconds": 956786400,
+        "nanoseconds": 0
+      },
+      "grad": "Soldat"
+    }
+  },
+  {
+    "id": "oHnW0EIOs6nfEOz6ev0D",
+    "berufliches": {
+      "zivileSpezialausbildung": "",
+      "erlernterBeruf": "Fachmann Gesundheit",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "arbeitgeber": "SOS Oxygene",
+      "ausgeubterBeruf": "Schlafspezialist, Aussendienst"
+    },
+    "persoenliches": {
+      "essgewohnheiten": [],
+      "sprachkenntnisse": [
+        "Englisch",
+        "Spanisch"
+      ],
+      "allergien": [],
+      "besonderheiten": [],
+      "blutgruppe": ""
+    },
+    "grunddaten": {
+      "vorname": "Leander",
+      "geburtsdatum": {
+        "seconds": 933631200,
+        "nanoseconds": 0
+      },
+      "funktion": "Betreuer",
+      "nachname": "Heinzmann",
+      "grad": "Soldat"
+    },
+    "kontaktdaten": {
+      "plz": "3127",
+      "telefonFestnetz": "",
+      "strasse": "Hauptstrasse 36",
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "078 223 66 38",
+      "email": "leanderIheinzmann@gmail.com",
+      "ort": "Lohnstdorf"
+    },
+    "erstelltAm": {
+      "seconds": 1742039036,
+      "nanoseconds": 140000000
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1742039035,
+        "nanoseconds": 345000000
+      },
+      "aktualisiert_von": "Marco"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2023",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    }
+  },
+  {
+    "id": "MDONXPgUyw3d4JXdw8Ok",
+    "erstelltAm": {
+      "seconds": 1742039252,
+      "nanoseconds": 529000000
+    },
+    "persoenliches": {
+      "essgewohnheiten": [],
+      "sprachkenntnisse": [
+        "Englisch"
+      ],
+      "blutgruppe": "",
+      "besonderheiten": [],
+      "allergien": []
+    },
+    "kontaktdaten": {
+      "telefonMobil": "079 886 19 50",
+      "plz": "3123",
+      "email": "oliverhorst97@gmail.com",
+      "telefonFestnetz": "031 819 39 92",
+      "telefonGeschaeftlich": "",
+      "strasse": "Blüemlisalpweg 38",
+      "ort": "Belp BE"
+    },
+    "berufliches": {
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "ausgeubterBeruf": "",
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "",
+      "erlernterBeruf": "Logistiker"
+    },
+    "grunddaten": {
+      "funktion": "Betreuer",
+      "geburtsdatum": {
+        "seconds": 857775600,
+        "nanoseconds": 0
+      },
+      "grad": "Soldat",
+      "vorname": "Oliver",
+      "nachname": "Horst"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2018",
+      "status": "aktiv",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "zusatzausbildungen": []
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco",
+      "letzteAktualisierung": {
+        "seconds": 1742039251,
+        "nanoseconds": 837000000
+      }
+    }
+  },
+  {
+    "id": "AttiamAuWyGPW34m97El",
+    "persoenliches": {
+      "blutgruppe": "B+",
+      "essgewohnheiten": [],
+      "allergien": [
+        "Heuschnupfen"
+      ],
+      "sprachkenntnisse": [],
+      "besonderheiten": []
+    },
+    "kontaktdaten": {
+      "email": "lars.mikael@gmx.ch",
+      "ort": "Toffen",
+      "plz": "3115",
+      "telefonGeschaeftlich": "",
+      "strasse": "Hangweg 22",
+      "telefonMobil": "079 763 48 07",
+      "telefonFestnetz": ""
+    },
+    "zivilschutz": {
+      "grundausbildung": "2018",
+      "status": "aktiv",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "zusatzausbildungen": []
+    },
+    "erstelltAm": {
+      "seconds": 1742039516,
+      "nanoseconds": 156000000
+    },
+    "berufliches": {
+      "erlernterBeruf": "Detailhandelsfachmann",
+      "arbeitgeber": "Die Mobiliar",
+      "zivileSpezialausbildung": "",
+      "ausgeubterBeruf": "Versicherungsberater",
+      "führerausweisKategorie": [
+        "B"
+      ]
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1742039515,
+        "nanoseconds": 697000000
+      },
+      "aktualisiert_von": "Marco"
+    },
+    "grunddaten": {
+      "funktion": "Betreuer",
+      "nachname": "Lüthi",
+      "grad": "Soldat",
+      "geburtsdatum": {
+        "seconds": 899330400,
+        "nanoseconds": 0
+      },
+      "vorname": "Lars"
+    }
+  },
+  {
+    "id": "a4pMyXsrVqbllwqUihJL",
+    "kontaktdaten": {
+      "telefonMobil": "079 921 86 67",
+      "plz": "3132",
+      "telefonGeschaeftlich": "",
+      "strasse": "Hintere Gasse 19",
+      "ort": "Riggisberg",
+      "email": "markus.pfahrer1997@gmail.com",
+      "telefonFestnetz": ""
+    },
+    "grunddaten": {
+      "funktion": "Betreuer Uof",
+      "vorname": "Markus",
+      "nachname": "Pfahrer",
+      "geburtsdatum": {
+        "seconds": 873928800,
+        "nanoseconds": 0
+      },
+      "grad": "Korporal"
+    },
+    "persoenliches": {
+      "sprachkenntnisse": [],
+      "essgewohnheiten": [],
+      "blutgruppe": "",
+      "besonderheiten": [],
+      "allergien": [
+        "Astmah"
+      ]
+    },
+    "berufliches": {
+      "führerausweisKategorie": [
+        "A",
+        "B"
+      ],
+      "erlernterBeruf": "Fachmann Gesundheit",
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "",
+      "ausgeubterBeruf": "Fachmann Gesundheit"
+    },
+    "erstelltAm": {
+      "seconds": 1742039754,
+      "nanoseconds": 138000000
+    },
+    "zivilschutz": {
+      "status": "aktiv",
+      "zusatzausbildungen": [],
+      "grundausbildung": "2018",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      }
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco",
+      "letzteAktualisierung": {
+        "seconds": 1742039753,
+        "nanoseconds": 417000000
+      }
+    }
+  },
+  {
+    "id": "lsH8tpyraspmfA7Ueick",
+    "kontaktdaten": {
+      "plz": "3073",
+      "strasse": "Hühnliwaldweg 7",
+      "telefonGeschaeftlich": "",
+      "email": "morris_rieen@yahoo.com",
+      "telefonFestnetz": "",
+      "ort": "Gümligen BE",
+      "telefonMobil": "076 465 07 28"
+    },
+    "metadaten": {
+      "aktualisiert_von": "MarcoH",
+      "letzteAktualisierung": {
+        "seconds": 1746428203,
+        "nanoseconds": 146000000
+      }
+    },
+    "persoenliches": {
+      "besonderheiten": [],
+      "essgewohnheiten": [],
+      "blutgruppe": "A+",
+      "sprachkenntnisse": [
+        "Französisch",
+        "Englisch",
+        "Griechisch"
+      ],
+      "allergien": []
+    },
+    "berufliches": {
+      "führerausweisKategorie": [],
+      "ausgeubterBeruf": "Student",
+      "erlernterBeruf": "Student",
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "Uni Bern"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2020",
+      "status": "aktiv",
+      "zusatzausbildungen": [],
+      "einteilung": {
+        "gruppe": "(noch eintragen)",
+        "zug": 1
+      }
+    },
+    "grunddaten": {
+      "grad": "Soldat",
+      "nachname": "Riesen",
+      "geburtsdatum": {
+        "seconds": 964735200,
+        "nanoseconds": 0
+      },
+      "vorname": "Morris Jannis",
+      "funktion": "Betreuer"
+    },
+    "erstelltAm": {
+      "seconds": 1746428207,
+      "nanoseconds": 80000000
+    }
+  },
+  {
+    "id": "r7wrI5N6aU2vttgMLEKd",
+    "zivilschutz": {
+      "grundausbildung": "2017",
+      "zusatzausbildungen": [],
+      "einteilung": {
+        "gruppe": "",
+        "zug": 1
+      },
+      "status": "aktiv"
+    },
+    "kontaktdaten": {
+      "telefonFestnetz": "031 809 05 88",
+      "ort": "Oberbütschel BE",
+      "plz": "3088",
+      "email": "rohrbachkim@gmail.com",
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "079 896 54 64",
+      "strasse": "Tavelweg 3"
+    },
+    "erstelltAm": {
+      "seconds": 1746429194,
+      "nanoseconds": 378000000
+    },
+    "persoenliches": {
+      "sprachkenntnisse": [],
+      "blutgruppe": "",
+      "besonderheiten": [],
+      "essgewohnheiten": [],
+      "allergien": []
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746429190,
+        "nanoseconds": 439000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 826326000,
+        "nanoseconds": 0
+      },
+      "vorname": "Kim",
+      "nachname": "Rohrbach",
+      "funktion": "Betreuer",
+      "grad": "Soldat"
+    },
+    "berufliches": {
+      "arbeitgeber": "Bellwag AG Bern",
+      "ausgeubterBeruf": "Automobil-Diagnostiker",
+      "zivileSpezialausbildung": "",
+      "erlernterBeruf": "Automobil Fachmann EFZ",
+      "führerausweisKategorie": [
+        "B",
+        "A1",
+        "A",
+        "BE",
+        "F"
+      ]
+    }
+  },
+  {
+    "id": "d2rzimZqZFzMQ24Ct2NR",
+    "aktualisiertAm": {
+      "seconds": 1746432461,
+      "nanoseconds": 221000000
+    },
+    "berufliches": {
+      "erlernterBeruf": "Fachmann Betreuung",
+      "ausgeubterBeruf": "Fachmann Betreuung",
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "",
+      "führerausweisKategorie": []
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746432457,
+        "nanoseconds": 419000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2018",
+      "einteilung": {
+        "gruppe": "(noch eintragen)",
+        "zug": 2
+      },
+      "zusatzausbildungen": [],
+      "status": "aktiv"
+    },
+    "erstelltAm": {
+      "seconds": 1746429621,
+      "nanoseconds": 428000000
+    },
+    "persoenliches": {
+      "allergien": [
+        "Zölliakie"
+      ],
+      "sprachkenntnisse": [],
+      "essgewohnheiten": [],
+      "blutgruppe": "0+",
+      "besonderheiten": []
+    },
+    "kontaktdaten": {
+      "ort": "Münsingen",
+      "plz": "3110",
+      "email": "steffrupp@hotmail.com",
+      "telefonFestnetz": "",
+      "strasse": "Lerchenweg 3",
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "079 266 07 18"
+    },
+    "grunddaten": {
+      "nachname": "Rupp",
+      "grad": "Korporal",
+      "geburtsdatum": {
+        "seconds": 824252400,
+        "nanoseconds": 0
+      },
+      "funktion": "Betreuer Uof",
+      "vorname": "Stefan"
+    }
+  },
+  {
+    "id": "BiRLdCcyJVARkegiwHSK",
+    "persoenliches": {
+      "besonderheiten": [],
+      "blutgruppe": "",
+      "essgewohnheiten": [],
+      "allergien": [
+        "Heuschnupfen"
+      ],
+      "sprachkenntnisse": [
+        "Französisch A1",
+        "Englisch A2"
+      ]
+    },
+    "berufliches": {
+      "arbeitgeber": "FiechterStuder AG",
+      "ausgeubterBeruf": "Bauarbeiter",
+      "führerausweisKategorie": [],
+      "erlernterBeruf": "Koch",
+      "zivileSpezialausbildung": ""
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 662252400,
+        "nanoseconds": 0
+      },
+      "vorname": "Manuel",
+      "grad": "Oberleutnant",
+      "nachname": "Schneuwly",
+      "funktion": "C-Betreuer"
+    },
+    "kontaktdaten": {
+      "plz": "3150",
+      "email": "schneuwly.manuel@bluewin.ch",
+      "ort": "Schwarzenburg",
+      "telefonGeschaeftlich": "",
+      "strasse": "Käppeligässli 4",
+      "telefonMobil": "079 458 74 57",
+      "telefonFestnetz": ""
+    },
+    "erstelltAm": {
+      "seconds": 1746432842,
+      "nanoseconds": 32000000
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "zug": 1,
+        "gruppe": ""
+      },
+      "grundausbildung": "2010",
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    },
+    "metadaten": {
+      "aktualisiert_von": "Marco",
+      "letzteAktualisierung": {
+        "seconds": 1746432838,
+        "nanoseconds": 96000000
+      }
+    }
+  },
+  {
+    "id": "q9Zx2xNyUA9xvHgZFX26",
+    "grunddaten": {
+      "funktion": "Betreuer",
+      "vorname": "Raphael",
+      "geburtsdatum": {
+        "seconds": 872892000,
+        "nanoseconds": 0
+      },
+      "nachname": "Stöckli",
+      "grad": "Soldat"
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746433998,
+        "nanoseconds": 731000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "kontaktdaten": {
+      "ort": "Köniz",
+      "email": "raphael.st71@bluewin.ch",
+      "telefonFestnetz": "",
+      "telefonGeschaeftlich": "",
+      "plz": "3098",
+      "telefonMobil": "079 799 50 69",
+      "strasse": "Lilienweg 44"
+    },
+    "persoenliches": {
+      "besonderheiten": [],
+      "essgewohnheiten": [
+        "kein Fisch"
+      ],
+      "sprachkenntnisse": [
+        "Deutsch",
+        "Englisch",
+        "Spanisch"
+      ],
+      "blutgruppe": "",
+      "allergien": []
+    },
+    "erstelltAm": {
+      "seconds": 1746434002,
+      "nanoseconds": 660000000
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "gruppe": "(noch eintragen)",
+        "zug": 1
+      },
+      "grundausbildung": "2018",
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    },
+    "berufliches": {
+      "erlernterBeruf": "Fachmann Betreuung",
+      "arbeitgeber": "Schweizerische Post",
+      "führerausweisKategorie": [
+        "A1",
+        "B"
+      ],
+      "zivileSpezialausbildung": "",
+      "ausgeubterBeruf": "Logistiker Briiefzustellung"
+    }
+  },
+  {
+    "id": "ioVCdX4ovY2lSZfTar6e",
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746434339,
+        "nanoseconds": 397000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 769212000,
+        "nanoseconds": 0
+      },
+      "vorname": "Christoph",
+      "funktion": "Betreuer",
+      "nachname": "Tschanz",
+      "grad": "Soldat"
+    },
+    "zivilschutz": {
+      "status": "aktiv",
+      "zusatzausbildungen": [],
+      "grundausbildung": "2018",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "(noch eintragen)"
+      }
+    },
+    "persoenliches": {
+      "besonderheiten": [],
+      "sprachkenntnisse": [],
+      "essgewohnheiten": [],
+      "blutgruppe": "",
+      "allergien": []
+    },
+    "kontaktdaten": {
+      "email": "christoph.tschanz@bmw.ch",
+      "ort": "Biel",
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "079 265 65 58",
+      "strasse": "Schützengasse 134",
+      "plz": "2502",
+      "telefonFestnetz": "058 269 10 69"
+    },
+    "berufliches": {
+      "ausgeubterBeruf": "Betriebswirtschafter",
+      "erlernterBeruf": "",
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "",
+      "führerausweisKategorie": [
+        "B",
+        "B1",
+        "F"
+      ]
+    },
+    "erstelltAm": {
+      "seconds": 1746434343,
+      "nanoseconds": 408000000
+    }
+  },
+  {
+    "id": "kKZo5H56ehidkru3IGU7",
+    "kontaktdaten": {
+      "email": "noah.tschirren98@gmail.com",
+      "plz": "3148",
+      "telefonFestnetz": "",
+      "strasse": "Obere Hellstätt 1",
+      "ort": "Lanzenhäusern",
+      "telefonMobil": "078 600 15 96",
+      "telefonGeschaeftlich": ""
+    },
+    "berufliches": {
+      "zivileSpezialausbildung": "",
+      "ausgeubterBeruf": "Student",
+      "erlernterBeruf": "",
+      "führerausweisKategorie": [],
+      "arbeitgeber": ""
+    },
+    "erstelltAm": {
+      "seconds": 1746434525,
+      "nanoseconds": 802000000
+    },
+    "persoenliches": {
+      "besonderheiten": [],
+      "allergien": [],
+      "sprachkenntnisse": [],
+      "essgewohnheiten": [
+        "Vegetarisch"
+      ],
+      "blutgruppe": "0+"
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 910393200,
+        "nanoseconds": 0
+      },
+      "grad": "Soldat",
+      "vorname": "Noah",
+      "nachname": "Tschirren",
+      "funktion": "Betreuer"
+    },
+    "metadaten": {
+      "aktualisiert_von": "MarcoH",
+      "letzteAktualisierung": {
+        "seconds": 1746434521,
+        "nanoseconds": 818000000
+      }
+    },
+    "zivilschutz": {
+      "status": "aktiv",
+      "zusatzausbildungen": [],
+      "einteilung": {
+        "gruppe": "(noch eintragen)",
+        "zug": 1
+      },
+      "grundausbildung": "2018"
+    }
+  },
+  {
+    "id": "7bCGsaF2R9qjhvvKAQRG",
+    "erstelltAm": {
+      "seconds": 1746434971,
+      "nanoseconds": 590000000
+    },
+    "kontaktdaten": {
+      "telefonGeschaeftlich": "",
+      "telefonMobil": "079 688 63 11",
+      "telefonFestnetz": "",
+      "email": "elischa.weibel@gmail.com",
+      "plz": "3084",
+      "ort": "Wabern",
+      "strasse": "Funkstrasse 124"
+    },
+    "persoenliches": {
+      "allergien": [],
+      "blutgruppe": "",
+      "besonderheiten": [],
+      "essgewohnheiten": [],
+      "sprachkenntnisse": [
+        "Englisch"
+      ]
+    },
+    "berufliches": {
+      "führerausweisKategorie": [
+        "A",
+        "B"
+      ],
+      "ausgeubterBeruf": "Sozialpädagoge",
+      "arbeitgeber": "Christopherusschule Bern",
+      "erlernterBeruf": "Versandtechnologe",
+      "zivileSpezialausbildung": ""
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746434967,
+        "nanoseconds": 656000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "(noch eintragen)"
+      },
+      "zusatzausbildungen": [],
+      "status": "aktiv",
+      "grundausbildung": "2016"
+    },
+    "grunddaten": {
+      "geburtsdatum": {
+        "seconds": 717721200,
+        "nanoseconds": 0
+      },
+      "funktion": "Betreuer",
+      "vorname": "Elischa",
+      "nachname": "Weibel",
+      "grad": "Soldat"
+    }
+  },
+  {
+    "id": "oQhjO3UsKeYQmJoYlLVi",
+    "erstelltAm": {
+      "seconds": 1746435117,
+      "nanoseconds": 127000000
+    },
+    "grunddaten": {
+      "grad": "Soldat",
+      "nachname": "Werren",
+      "vorname": "Damian",
+      "funktion": "Betreuer",
+      "geburtsdatum": {
+        "seconds": 933372000,
+        "nanoseconds": 0
+      }
+    },
+    "zivilschutz": {
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "(noch nachtragen)"
+      },
+      "grundausbildung": "2020",
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    },
+    "kontaktdaten": {
+      "plz": "3150",
+      "email": "damian.werren@bluewin.ch",
+      "telefonFestnetz": "",
+      "telefonMobil": "079 369 04 68",
+      "telefonGeschaeftlich": "",
+      "ort": "Schwarzenburg",
+      "strasse": "Pöschenweg 16"
+    },
+    "berufliches": {
+      "zivileSpezialausbildung": "",
+      "erlernterBeruf": "Logistiker",
+      "arbeitgeber": "",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "ausgeubterBeruf": "Logistiker"
+    },
+    "persoenliches": {
+      "blutgruppe": "",
+      "allergien": [],
+      "besonderheiten": [],
+      "essgewohnheiten": [],
+      "sprachkenntnisse": []
+    },
+    "metadaten": {
+      "aktualisiert_von": "MarcoH",
+      "letzteAktualisierung": {
+        "seconds": 1746435113,
+        "nanoseconds": 178000000
+      }
+    }
+  },
+  {
+    "id": "uR4ixAjrKOVfHhkON9Sp",
+    "kontaktdaten": {
+      "plz": "3084",
+      "telefonMobil": "079 250 53 07",
+      "email": "patric.wyss@gmx.ch",
+      "telefonGeschaeftlich": "",
+      "ort": "Wabern",
+      "telefonFestnetz": "",
+      "strasse": "Nesslerweg 16"
+    },
+    "metadaten": {
+      "letzteAktualisierung": {
+        "seconds": 1746435399,
+        "nanoseconds": 140000000
+      },
+      "aktualisiert_von": "MarcoH"
+    },
+    "grunddaten": {
+      "vorname": "Patric",
+      "geburtsdatum": {
+        "seconds": 958946400,
+        "nanoseconds": 0
+      },
+      "funktion": "Betreuer",
+      "grad": "Soldat",
+      "nachname": "Wyss"
+    },
+    "zivilschutz": {
+      "grundausbildung": "2021",
+      "einteilung": {
+        "zug": 1,
+        "gruppe": "(noch eintragen)"
+      },
+      "status": "aktiv",
+      "zusatzausbildungen": []
+    },
+    "persoenliches": {
+      "blutgruppe": "0+",
+      "besonderheiten": [
+        "trägt Höhrgeräte"
+      ],
+      "sprachkenntnisse": [],
+      "allergien": [],
+      "essgewohnheiten": []
+    },
+    "erstelltAm": {
+      "seconds": 1746435403,
+      "nanoseconds": 97000000
+    },
+    "berufliches": {
+      "zivileSpezialausbildung": "",
+      "arbeitgeber": "",
+      "ausgeubterBeruf": "Logistiker",
+      "führerausweisKategorie": [
+        "B"
+      ],
+      "erlernterBeruf": "Logistiker"
+    }
+  }
+]

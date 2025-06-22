@@ -1,0 +1,52 @@
+/* Reset default margins and paddings */
+:host {
+  display: block;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure html and body take full height */
+:host-context(html),
+:host-context(body) {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove focus outline for mouse users but keep for keyboard navigation */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Animation for page transitions */
+.router-outlet-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.router-outlet-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+  .auth-content {
+    padding: 2rem 1rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

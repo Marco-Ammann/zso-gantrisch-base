@@ -1,0 +1,50 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6 animate-slide-in-up">
+  <h1 class="text-2xl font-bold text-white text-center mb-6">Anmelden</h1>
+
+  <zso-input-field formControlName="email" label="E-Mail Adresse" type="email"></zso-input-field>
+
+  <zso-input-field
+   
+    formControlName="password"
+    label="Passwort"
+    type="password"
+    [toggleVisibility]="true"
+  ></zso-input-field>
+
+  <label class="flex items-center cursor-pointer hover:text-white">
+    <input type="checkbox" formControlName="rememberMe" class="checkbox-hidden peer" />
+    <span class="checkbox-box peer-checked:bg-cp-orange peer-checked:border-cp-orange"></span>
+    <span class="ml-2 text-sm text-white/90">Angemeldet bleiben</span>
+  </label>
+
+  <button
+    type="submit"
+    class="btn btn-primary w-full py-3 text-lg font-semibold uppercase shadow-md hover:shadow-lg transition-shadow flex justify-center items-center gap-2"
+  >
+    <svg
+      *ngIf="isLoading"
+      class="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+      <path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8v8H4z"></path>
+    </svg>
+    <span *ngIf="!isLoading">Anmelden</span>
+  </button>
+
+  <p *ngIf="errorMsg" class="text-center text-sm text-rose-400">{{ errorMsg }}</p>
+
+  <!--seperatorline-->
+  <div class="flex items-center my-6">
+    <div class="flex-grow border-t border-gray-500"></div>
+    <div class="px-4 text-gray-500">oder</div>
+    <div class="flex-grow border-t border-gray-500"></div>
+  </div>
+
+  <p class="text-center text-sm text-white/70">
+    Noch kein Konto?
+    <a routerLink="/auth/register" class="font-medium text-cp-orange hover:underline">Jetzt registrieren</a>
+  </p>
+</form>
