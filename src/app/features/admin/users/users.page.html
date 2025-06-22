@@ -1,0 +1,38 @@
+<h1 class="text-2xl font-bold mb-6">Benutzerverwaltung</h1>
+
+<table class="min-w-full bg-white rounded shadow-md overflow-hidden">
+  <thead>
+    <tr class="bg-gray-100 text-left text-sm uppercase tracking-wider">
+      <th class="px-4 py-3">Name</th>
+      <th class="px-4 py-3">E-Mail</th>
+      <th class="px-4 py-3">Status</th>
+      <th class="px-4 py-3">Rollen</th>
+      <th class="px-4 py-3 text-right">Aktionen</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let u of users$ | async" class="border-b last:border-0">
+      <td class="px-4 py-2">{{ u.firstName }} {{ u.lastName }}</td>
+      <td class="px-4 py-2">{{ u.email }}</td>
+      <td class="px-4 py-2">
+        <span
+          class="px-2 py-1 rounded text-xs font-semibold"
+          [ngClass]="{
+            'bg-green-100 text-green-700': u.approved && !u.blocked,
+            'bg-yellow-100 text-yellow-700': !u.approved,
+            'bg-red-100 text-red-700': u.blocked
+          }"
+        >
+          {{ u.blocked ? 'Gesperrt' : u.approved ? 'Aktiv' : 'Ausstehend' }}
+        </span>
+      </td>
+      <td class="px-4 py-2">{{ u.roles.join(', ') || '—' }}</td>
+      <td class="px-4 py-2 text-right space-x-2">
+        <button *ngIf="!u.approved" (click)="approve(u)" class="btn btn-sm btn-primary">Bestätigen</button>
+        <button (click)="toggleBlock(u)" class="btn btn-sm" [ngClass]="u.blocked ? 'btn-secondary' : 'btn-warning'">
+          {{ u.blocked ? 'Entsperren' : 'Sperren' }}
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { FirestoreService } from '@core/services/firestore.service';
-import { setDoc } from '@angular/fire/firestore';
+import { setDoc, docData } from '@angular/fire/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
-import { Observable, from } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
 import { switchMap, map, shareReplay } from 'rxjs/operators';
 
 export interface RegisterData {
@@ -13,13 +13,32 @@ export interface RegisterData {
   password: string;
 }
 
+export interface AppUserCombined {
+  auth: firebase.User;
+  doc: import('@core/models/user-doc').UserDoc;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   // Typ auf firebase.User korrigiert, entspricht dem Rückgabetyp von AngularFireAuth (compat)
   user$: Observable<firebase.User | null>;
 
+  appUser$: Observable<AppUserCombined | null>;
+
   constructor(private afAuth: AngularFireAuth, private fs: FirestoreService) {
     this.user$ = this.afAuth.authState.pipe(
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+
+    // Combine Firebase auth user with Firestore user document
+    this.appUser$ = this.user$.pipe(
+      switchMap(user => {
+        if (!user) return of(null);
+        const docRef = this.fs.doc<import('@core/models/user-doc').UserDoc>(`users/${user.uid}`);
+        return docData(docRef).pipe(
+          map(doc => (doc ? { auth: user, doc } as AppUserCombined : null))
+        );
+      }),
       shareReplay({ bufferSize: 1, refCount: false })
     );
   }
@@ -33,7 +52,10 @@ export class AuthService {
     const persistence: 'local' | 'session' = rememberMe ? 'local' : 'session';
     return from(this.afAuth.setPersistence(persistence)).pipe(
       switchMap(() =>
-        from(this.afAuth.signInWithEmailAndPassword(email, password))
+        from(this.afAuth.signInWithEmailAndPassword(email, password)).pipe(
+          switchMap(() => from(this.afAuth.currentUser)),
+          switchMap(user => user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0))
+        )
       ),
       map(() => void 0)
     );
@@ -55,12 +77,20 @@ export class AuthService {
         }));
         // Create user profile document in Firestore (named DB)
         const profileDoc = this.fs.doc(`users/${uid}`);
-        const createProfile$ = from(setDoc(profileDoc, {
+        const now = Date.now();
+        const userData = {
+          uid,
+          email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
-          email: data.email,
-          createdAt: Date.now()
-        }));
+          roles: ['user'],
+          approved: false,
+          blocked: false,
+          createdAt: now,
+          updatedAt: now
+        } as const;
+        const createProfile$ = from(setDoc(profileDoc, userData));
+        console.log('[AuthService] register: created profile', userData);
         // Send email verification
         const actionCodeSettings = {
           url: `${location.origin}/auth/verify-email-success`,

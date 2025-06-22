@@ -29,15 +29,17 @@ export class AuthGuard implements CanActivate {
     _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.auth.user$.pipe(
+    return this.auth.appUser$.pipe(
       take(1),
-      map(user =>
-        user
+      map(u => {
+        const isLoggedIn = !!u && !u.doc.blocked;
+        console.log('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, isLoggedIn });
+        return isLoggedIn
           ? true
           : this.router.createUrlTree(['/auth/login'], {
               queryParams: { returnUrl: state.url }
-            })
-      )
+            });
+      })
     );
   }
 }

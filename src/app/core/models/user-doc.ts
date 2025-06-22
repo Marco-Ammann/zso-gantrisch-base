@@ -1,0 +1,31 @@
+export interface UserDoc {
+  uid: string;
+  email: string;
+  // Email verification is obtained from Firebase Auth, no need to store duplicate flag
+  firstName: string;
+  lastName: string;
+
+  roles: string[]; // e.g. ['user'] | ['admin']
+  approved: boolean;
+  blocked: boolean;
+
+  createdAt: number; // Date.now()
+  updatedAt: number;
+}
+
+export class User {
+  constructor(public data: UserDoc) {}
+
+  get fullName() {
+    return `${this.data.firstName} ${this.data.lastName}`.trim();
+  }
+
+  // convenience getters
+  get isAdmin() {
+    return this.data.roles.includes('admin');
+  }
+
+  get isActive() {
+    return this.data.approved && !this.data.blocked;
+  }
+}

@@ -23,10 +23,12 @@ export class EmailVerifiedGuard implements CanActivate {
     _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.auth.user$.pipe(
+    return this.auth.appUser$.pipe(
       take(1),
-      map(user => {
-        if (user && user.emailVerified) {
+      map(u => {
+        const verified = !!u && u.auth.emailVerified;
+        console.log('[EmailVerifiedGuard]', { uid: u?.auth.uid, verified });
+        if (verified) {
           return true;
         }
         // Not verified – store original URL so we can come back after verification

@@ -64,6 +64,14 @@ export class ZsoLogin implements OnInit {
             user?.emailVerified
               ? this.router.navigateByUrl(this.returnUrl)
               : this.router.navigate(['/auth/verify-email']);
+            if (user?.emailVerified) {
+              console.log('User logged in successfully');
+            }
+            if (!user?.emailVerified) {
+              console.log('User not verified');
+            }
+            console.log('User: ', user);
+
           });
         },
         error: err => {

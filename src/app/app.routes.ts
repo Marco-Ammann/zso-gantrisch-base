@@ -3,9 +3,11 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/guards/auth.guard';
 import { EmailVerifiedGuard } from './core/auth/guards/email-verified.guard';
+import { AdminGuard } from './core/auth/guards/admin.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { usersRoutes } from './features/users/users.routes';
+import { adminRoutes } from './features/admin/admin.routes';
 
 export const appRoutes: Routes = [
   // 1. Wenn der Benutzer nur "/" aufruft, direkt auf /auth/login weiterleiten
@@ -29,6 +31,7 @@ export const appRoutes: Routes = [
       // Kein leerer Redirect mehr hier
       { path: 'dashboard', children: dashboardRoutes },
       { path: 'users', children: usersRoutes },
+      { path: 'admin', canActivate: [AdminGuard], children: adminRoutes }
     ],
   },
 
