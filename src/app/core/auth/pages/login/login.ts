@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ZsoInputField } from '@shared/ui/input-field/input-field';
 import { AuthService } from '../../services/auth.service';
+import { finalize, take } from 'rxjs/operators';
 
 @Component({
   selector: 'zso-login',
@@ -31,7 +32,7 @@ export class ZsoLogin implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   }
 
   ngOnInit() {
@@ -52,14 +53,23 @@ export class ZsoLogin implements OnInit {
     this.form.disable();
 
     const { email, password, rememberMe } = this.form.getRawValue();
-    this.auth.login(email, password, rememberMe).subscribe({
-      next: () => this.router.navigateByUrl(this.returnUrl),
-      error: err => {
-        this.errorMsg = this.mapError(err.code);
+    this.auth.login(email, password, rememberMe)
+      .pipe(finalize(() => {
         this.isLoading = false;
         this.form.enable();
-      }
-    });
+      }))
+      .subscribe({
+        next: () => {
+          this.auth.user$.pipe(take(1)).subscribe(user => {
+            user?.emailVerified
+              ? this.router.navigateByUrl(this.returnUrl)
+              : this.router.navigate(['/auth/verify-email']);
+          });
+        },
+        error: err => {
+          this.errorMsg = this.mapError(err.code);
+        }
+      });
   }
 
   private mapError(code: string) {

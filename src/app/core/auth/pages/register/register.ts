@@ -57,7 +57,7 @@ export class ZsoRegister implements OnInit {
     const data: RegisterData = { firstName, lastName, email, password };
 
     this.auth.register(data).subscribe({
-      next: () => this.router.navigate(['/auth/pending-approval']),
+      next: () => this.router.navigate(['/auth/verify-email']),
       error: err => {
         this.errorMsg = err.message || 'Registrierung fehlgeschlagen.';
         this.isLoading = false;

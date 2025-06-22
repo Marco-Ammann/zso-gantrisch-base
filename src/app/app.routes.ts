@@ -2,6 +2,7 @@
 
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/guards/auth.guard';
+import { EmailVerifiedGuard } from './core/auth/guards/email-verified.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { usersRoutes } from './features/users/users.routes';
@@ -23,7 +24,7 @@ export const appRoutes: Routes = [
     path: '',
     loadComponent: () =>
       import('./core/layout/shell/main-shell/main-shell').then(m => m.MainShell),
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, EmailVerifiedGuard], // added EmailVerifiedGuard
     children: [
       // Kein leerer Redirect mehr hier
       { path: 'dashboard', children: dashboardRoutes },

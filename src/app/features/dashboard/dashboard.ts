@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
   styleUrl: './dashboard.scss'
 })
 export class Dashboard implements OnInit {
-  autologout = true;
+  autologout = false;
   constructor(private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
@@ -28,5 +28,9 @@ export class Dashboard implements OnInit {
         console.log('User is not logged in');
       }
     });
+  }
+
+  logout() {
+    this.auth.logout().subscribe(() => this.router.navigate(['/auth/login']));
   }
 }
