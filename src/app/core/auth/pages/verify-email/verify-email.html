@@ -1,16 +1,20 @@
 <div class="max-w-md mx-auto mt-16 text-center space-y-6 animate-fade-in-up">
+
   <h1 class="text-2xl font-bold text-white">E-Mail bestätigen</h1>
+
   <p class="text-white/80">
     Wir haben dir eine Bestätigungs-E-Mail geschickt. Öffne den Link, um dein Konto zu aktivieren.
   </p>
 
-  <button type="button" (click)="check()" class="btn btn-primary w-full py-3 flex justify-center items-center gap-2">
+  <zso-button type="primary" htmlType="button" (click)="check()" [fullWidth]="true">
     Ich habe bestätigt
-  </button>
+  </zso-button>
 
-  <button type="button" (click)="resend()" class="btn btn-secondary w-full py-3 flex justify-center items-center gap-2">
+  <zso-button type="neutral" htmlType="button" (click)="resend()" [fullWidth]="true">
     E-Mail erneut senden
-  </button>
+  </zso-button>
 
-  <p *ngIf="info" class="text-sm text-cp-orange">{{ info }}</p>
+  @if (info) {
+    <p class="text-sm text-cp-orange">{{ info }}</p>
+  }
 </div>

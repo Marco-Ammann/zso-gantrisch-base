@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { take } from 'rxjs/operators';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 
 @Component({
   selector: 'zso-verify-email',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ZsoButton],
   templateUrl: './verify-email.html',
   styleUrls: ['./verify-email.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

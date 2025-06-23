@@ -3,9 +3,11 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { ZsoInputField } from '@shared/ui/input-field/input-field';
+import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { AuthService } from '../../services/auth.service';
 import { finalize, take } from 'rxjs/operators';
+import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
 
 @Component({
   selector: 'zso-login',
@@ -14,7 +16,9 @@ import { finalize, take } from 'rxjs/operators';
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
-    ZsoInputField
+    ZsoInputField,
+    ZsoButton,
+    ZsoCheckbox
   ],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],

@@ -1,10 +1,11 @@
-<div
-  class="relative min-h-screen bg-cover bg-center bg-fixed
-         bg-[url('assets/images/background_mountains.jpg')]"
->
+<div class="relative min-h-screen bg-fixed bg-cover bg-center
+            bg-[url('assets/images/background_mountains.jpg')]">
+
   <div class="absolute inset-0 bg-[#0e1628]/80"></div>
-  <div class="relative flex items-center justify-center min-h-screen p-4">
-    <div class="glass-card w-full max-w-md p-8">
+
+  <div class="relative flex items-center justify-center min-h-screen p-4 md:p-8">
+    <!-- Eine gemeinsame Glass-Card für alle Auth-Seiten -->
+    <div class="glass-card w-full max-w-md p-8 animate-pop-in">
       <router-outlet></router-outlet>
     </div>
   </div>

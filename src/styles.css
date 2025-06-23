@@ -2,115 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Styles */
+/* ═════ BASE ═════ */
 @layer base {
-  html, body {
-    @apply h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100;
-  }
-  *, *::before, *::after {
-    @apply box-border;
-  }
-  a {
-    @apply text-cp-orange hover:text-cp-orange/80 transition-colors;
-  }
+  html, body { @apply h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100; }
+  *, *::before, *::after { @apply box-border; }
+  a { @apply text-cp-orange hover:text-cp-orange/80 transition-colors; }
 }
 
+/* ═════ COMPONENTS ═════ */
 @layer components {
-  /* Container */
-  .container {
-    @apply mx-auto px-4 sm:px-6 lg:px-8;
+
+  /* Layout */
+  .container  { @apply mx-auto px-4 sm:px-6 lg:px-8; }
+  .glass-card { @apply backdrop-blur-lg bg-white/20 dark:bg-gray-800/20 border border-white/10 dark:border-gray-700/40 rounded-2xl shadow-lg; }
+
+  /* ── BUTTON (unverändert) ───────────────────────────── */
+
+  .glass-btn{ @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold backdrop-blur-md
+                      bg-gradient-to-r from-white/0 to-white/10 text-white/90 border border-white/20
+                      transition-all duration-200 active:scale-95
+                      focus-visible:ring-2 focus-visible:ring-cp-orange hover:shadow-[0_0_12px_theme('colors.cp-orange')]; }
+  .glass-btn-glow    { @apply shadow-[0_0_10px_theme('colors.cp-orange')]; }
+  .glass-btn-primary { @apply glass-btn border-cp-orange/50 text-cp-orange hover:text-white hover:bg-cp-orange/20; }
+  .glass-btn-danger  { @apply glass-btn border-rose-500/50 text-rose-400  hover:text-white hover:bg-rose-500/20; }
+  .glass-btn-neutral { @apply glass-btn border-white/20  text-white/80   hover:text-white hover:border-white/40; }
+
+  /* ── INPUTS ─────────────────────────────────────────── */
+  .input-wrapper { @apply mb-6 animate-pop-in; }
+  .input-label   { @apply block mb-1 text-sm text-white font-medium leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,.7)] opacity-0 animate-[fadeLabel_300ms_ease-out_150ms_forwards]; }
+
+  .form-input{
+    @apply w-full rounded-lg backdrop-blur-sm
+           bg-white/15 dark:bg-gray-800/25
+           ring-1 ring-white/60 dark:ring-gray-600/60
+           border border-white/30 dark:border-gray-600/60
+           py-3 px-4 text-base text-gray-200 dark:text-gray-100
+           placeholder-white/40 dark:placeholder-gray-500
+           transition-all duration-200 ease-out
+           hover:bg-white/25 dark:hover:bg-gray-800/35
+           focus:bg-white/35 dark:focus:bg-gray-800/45
+           focus:ring-2 focus:ring-cp-orange
+           focus:border-cp-orange/60
+           animate-[mountGlow_900ms_ease-out_80ms_both];
   }
 
-  /* Glassmorphism card */
-  .glass-card {
-    @apply backdrop-blur-lg bg-white/20 dark:bg-gray-800/20 border border-gray-200/20 dark:border-gray-700/40 rounded-2xl shadow-lg;
+  .form-input:disabled { @apply opacity-40 cursor-not-allowed; }
+
+  /* Ungültig */
+  .form-input[aria-invalid='true']{
+    @apply ring-2 ring-rose-500 border-rose-500/60 bg-white/20 dark:bg-gray-800/20 text-rose-100 placeholder-rose-300;
   }
 
-  /* Base button with interactive states */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-lg px-5 py-3 transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-  .btn:hover {
-    @apply scale-105;
-  }
-  .btn:active {
-    @apply scale-95;
-  }
-  .btn:focus {
-    @apply ring-2 ring-cp-orange;
+  /* Gültig */
+  .form-input[aria-invalid='false']{
+    @apply ring-2 ring-cp-orange/60 border-cp-orange/60;
   }
 
-  /* Primary & Secondary Buttons */
-  .btn-primary {
-    @apply btn bg-cp-orange text-white hover:bg-cp-orange/90 active:bg-cp-orange/80;
-  }
-  .btn-secondary {
-    @apply btn bg-gray-600 text-white hover:bg-gray-700 active:bg-gray-800;
-  }
-
-  /* Form Input */
-  .form-input {
-    @apply bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm ring-1 ring-white/20 dark:ring-gray-700/40 border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-lg w-full text-base py-3 px-4 transition-all duration-200;
-  }
-  .form-input:hover {
-    @apply bg-white/40 dark:bg-gray-800/40;
-  }
-  .form-input:focus {
-    @apply ring-2 ring-cp-orange bg-white/50 dark:bg-gray-800/50;
-  }
-
-  /* Custom Checkbox */
-  .checkbox-hidden {
-    @apply sr-only;
-  }
-  .checkbox-box {
-    @apply h-5 w-5 rounded border-2 border-gray-300 dark:border-gray-600 bg-transparent flex items-center justify-center transition-colors duration-150;
-  }
-  .checkbox-box:hover {
-    @apply bg-gray-200 dark:bg-gray-700;
-  }
-  .peer-checked ~ .checkbox-box {
-    @apply bg-cp-orange border-cp-orange;
-  }
-  .checkbox-box svg {
-    @apply h-4 w-4 text-white;
-  }
-
-  /* Form Error Text */
-  .form-error {
-    @apply mt-1 text-sm text-rose-500;
-  }
+  /* ── CHECKBOX (unverändert) ─────────────────────────── */
+  .checkbox-wrapper { @apply flex items-center gap-3 mb-4 cursor-pointer select-none; }
+  .checkbox-hidden  { @apply sr-only; }
+  .checkbox-box{
+    @apply h-5 w-5 flex items-center justify-center rounded border-2 border-white/30 transition-all duration-150
+           peer-focus-visible:ring-2 peer-focus-visible:ring-offset-1 peer-focus-visible:ring-cp-orange
+           peer-checked:bg-cp-orange peer-checked:border-cp-orange
+           group-hover:shadow-[0_0_6px_theme('colors.cp-orange')] group-hover:border-cp-orange/60; }
+  .checkbox-box svg{ @apply h-3.5 w-3.5 text-white; }
+  .checkbox-label  { @apply text-sm text-white/90 leading-tight; }
 }
 
+/* ═════ UTILITIES ═════ */
 @layer utilities {
-  /* simple slide without opacity for container */
-  @keyframes slide-in-up {
-    0% { transform:translateY(1rem); }
-    100% { transform:translateY(0); }
+
+  @keyframes slide-in-up{0%{transform:translateY(1rem);opacity:0;}100%{transform:translateY(0);opacity:1;}}
+  .animate-slide-in-up{ @apply animate-[slide-in-up_500ms_ease-out_forwards]; }
+
+  @keyframes pop-in{0%{transform:scale(.9);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .animate-pop-in{ @apply animate-[pop-in_300ms_ease-out_forwards]; }
+
+  @keyframes mountGlow{
+    0%  { box-shadow:0 0 0 0 rgba(255,121,0,.65); }
+    80% { box-shadow:0 0 0 6px rgba(255,121,0,0); }
+    100%{ box-shadow:0 0 0 0 transparent; }
   }
-  .animate-slide-in-up {
-    @apply animate-[slide-in-up_500ms_ease-out_forwards];
-  }
-  /* entrance animations */
-  @keyframes fade-in-up {
-    0% { opacity:0; transform:translateY(1rem); }
-    100% { opacity:1; transform:translateY(0); }
-  }
-  .animate-fade-in-up {
-    @apply animate-[fade-in-up_500ms_ease-out_forwards];
-  }
-  @keyframes zoom-pop {
-    0% { transform:scale(.9); opacity:0; }
-    100% { transform:scale(1); opacity:1; }
-  }
-  .animate-zoom-pop {
-    @apply animate-[zoom-pop_400ms_ease-out_forwards];
-  }
-  /* Utility classes */
-  .backdrop-blur-lg {
-    backdrop-filter: blur(20px);
-  }
-  .rounded-2xl {
-    border-radius: 1rem;
+
+  @keyframes fadeLabel{
+    0%{ opacity:0; }
+    100%{ opacity:1; }
   }
 }

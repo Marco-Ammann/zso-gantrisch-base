@@ -1,26 +1,32 @@
-// src/app/core/auth/pages/register/register.ts
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { ZsoInputField } from '@shared/ui/input-field/input-field';
+
+import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { ZsoCheckbox   } from '@shared/ui/zso-checkbox/zso-checkbox';
+import { ZsoButton     } from '@shared/ui/zso-button/zso-button';
+
 import { AuthService, RegisterData } from '../../services/auth.service';
 
 @Component({
   selector: 'zso-register',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
-    ZsoInputField
+    ZsoInputField,
+    ZsoCheckbox,
+    ZsoButton
   ],
   templateUrl: './register.html',
   styleUrls: ['./register.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ZsoRegister implements OnInit {
-  form!: FormGroup;
+export class ZsoRegister {
+
+  /** Reaktives Formular */
+  readonly form: FormGroup;
+
   isLoading = false;
   errorMsg: string | null = null;
 
@@ -28,51 +34,49 @@ export class ZsoRegister implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router
-  ) {}
+  ) {
 
-  ngOnInit() {
-    this.form = this.fb.group(
-      {
-        firstName: [{ value: '', disabled: false }, Validators.required],
-        lastName: [{ value: '', disabled: false }, Validators.required],
-        email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
-        password: [{ value: '', disabled: false }, [Validators.required, Validators.minLength(6)]],
-        confirmPassword: [{ value: '', disabled: false }, Validators.required],
-        acceptTos: [{ value: false, disabled: false }, Validators.requiredTrue]
-      },
-      { validators: this.passwordsMatch }
-    );
+    /* → FormBuilder darf erst hier verwendet werden */
+    this.form = this.fb.group({
+      firstName:        ['', Validators.required],
+      lastName:         ['', Validators.required],
+      email:            ['', [Validators.required, Validators.email]],
+      password:         ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword:  ['', Validators.required],
+      acceptTos:        [false, Validators.requiredTrue]
+    }, { validators: ZsoRegister.passwordsMatch });
   }
 
-  submit() {
+  /* ---------- Submit ---------- */
+  submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
     this.errorMsg = null;
     this.isLoading = true;
     this.form.disable();
 
-    const { firstName, lastName, email, password } = this.form.getRawValue();
-    const data: RegisterData = { firstName, lastName, email, password };
+    const { firstName, lastName, email, password } = this.form.getRawValue() as RegisterData;
 
-    this.auth.register(data).subscribe({
+    this.auth.register({ firstName, lastName, email, password }).subscribe({
       next: () => this.router.navigate(['/auth/verify-email']),
       error: err => {
-        this.errorMsg = err.message || 'Registrierung fehlgeschlagen.';
+        this.errorMsg = err.message ?? 'Registrierung fehlgeschlagen.';
         this.isLoading = false;
         this.form.enable();
       }
     });
   }
 
-  private passwordsMatch(group: FormGroup) {
+  /* ---------- Validator ---------- */
+  private static passwordsMatch(group: FormGroup) {
     return group.get('password')!.value === group.get('confirmPassword')!.value
-      ? null
-      : { mismatch: true };
+      ? null : { mismatch: true };
   }
 
-  get passwordMismatch() {
+  get passwordMismatch(): boolean {
     return this.form.touched && this.form.hasError('mismatch');
   }
 }
