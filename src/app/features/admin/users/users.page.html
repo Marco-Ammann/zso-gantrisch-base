@@ -31,11 +31,13 @@
             </span>
           </td>
           <td class="px-4 py-3">
+
             <zso-role-select
             [roleOptions]="roleOptions"
             [selected]="u.roles"
             (selectedChange)="onRolesChange(u, $event)">
           </zso-role-select>
+
           </td>
           <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
             <button *ngIf="!u.approved" (click)="approve(u)" class="btn btn-xs btn-primary">Bestätigen</button>

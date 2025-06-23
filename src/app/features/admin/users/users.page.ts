@@ -1,15 +1,15 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RoleSelectComponent } from '@shared/components/role-select/role-select';
 import { LoggerService } from '@core/services/logger.service';
 import { UserService, AppUser } from '@core/services/user.service';
 import { Observable } from 'rxjs';
 import { RouterModule } from '@angular/router';
+import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
 
 @Component({
   selector: 'zso-admin-users',
   standalone: true,
-  imports: [CommonModule, RouterModule, RoleSelectComponent],
+  imports: [CommonModule, RouterModule, ZsoRoleSelect],
   templateUrl: './users.page.html',
   styleUrls: ['./users.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
