@@ -1,33 +1,36 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoCheckbox   } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoButton     } from '@shared/ui/zso-button/zso-button';
+import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
 
 import { AuthService, RegisterData } from '../../services/auth.service';
+import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
 
 @Component({
   selector: 'zso-register',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     ZsoInputField,
     ZsoCheckbox,
-    ZsoButton
+    ZsoButton,
+    GlowSeqDirective,
+    SweepSeqDirective
   ],
   templateUrl: './register.html',
   styleUrls: ['./register.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ZsoRegister {
-
-  /** Reaktives Formular */
   readonly form: FormGroup;
-
-  isLoading = false;
+  isLoading    = false;
   errorMsg: string | null = null;
 
   constructor(
@@ -35,30 +38,27 @@ export class ZsoRegister {
     private auth: AuthService,
     private router: Router
   ) {
-
-    /* → FormBuilder darf erst hier verwendet werden */
     this.form = this.fb.group({
-      firstName:        ['', Validators.required],
-      lastName:         ['', Validators.required],
-      email:            ['', [Validators.required, Validators.email]],
-      password:         ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword:  ['', Validators.required],
-      acceptTos:        [false, Validators.requiredTrue]
+      firstName:       ['', Validators.required],
+      lastName:        ['', Validators.required],
+      email:           ['', [Validators.required, Validators.email]],
+      password:        ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
+      acceptTos:       [false, Validators.requiredTrue]
     }, { validators: ZsoRegister.passwordsMatch });
   }
 
-  /* ---------- Submit ---------- */
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
     this.errorMsg = null;
     this.isLoading = true;
     this.form.disable();
 
-    const { firstName, lastName, email, password } = this.form.getRawValue() as RegisterData;
+    const { firstName, lastName, email, password } =
+      this.form.getRawValue() as RegisterData;
 
     this.auth.register({ firstName, lastName, email, password }).subscribe({
       next: () => this.router.navigate(['/auth/verify-email']),
@@ -70,7 +70,6 @@ export class ZsoRegister {
     });
   }
 
-  /* ---------- Validator ---------- */
   private static passwordsMatch(group: FormGroup) {
     return group.get('password')!.value === group.get('confirmPassword')!.value
       ? null : { mismatch: true };

@@ -1,22 +1,22 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { AuthService } from '../../services/auth.service';
-import { ZsoButton   } from '@shared/ui/zso-button/zso-button';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
+  selector: 'app-pending-approval',
   standalone: true,
-  selector: 'zso-pending-approval',
-  imports: [CommonModule, ZsoButton],
+  imports: [CommonModule, RouterModule, ZsoButton],
   templateUrl: './pending-approval.html',
   styleUrls: ['./pending-approval.scss']
 })
 export class PendingApproval {
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(public auth: AuthService, private router: Router) {}
 
-  logout(): void {
-    this.auth.logout();
-    this.router.navigate(['/auth/login']);
+  logout() {
+    this.auth.logout().subscribe(() => {
+      this.router.navigate(['/auth/login']);
+    });
   }
 }

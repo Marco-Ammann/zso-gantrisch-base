@@ -1,32 +1,38 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6 animate-slide-in-up">
+<form [formGroup]="form" (ngSubmit)="submit()" class="field-stack w-full" zsoGlowSeq zsoSweepSeq>
 
-  <!-- Kopfbereich mit Icon -->
-  <div class="flex flex-col items-center gap-4">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-16 w-16 text-cp-orange drop-shadow-[0_2px_4px_rgba(0,0,0,.5)]"
-         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M12 5v14m7-7H5"/>
-    </svg>
-
-    <h1 class="text-2xl font-bold text-cp-orange">Registrieren</h1>
+  <div class="flex flex-col items-center gap-6 animate-fadeUp">
+    <div class="auth-icon-wrapper">
+      <!-- Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-8 w-8 text-cp-orange"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M20 8v6m3-3h-6"/>
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-cp-orange">Konto erstellen</h1>
   </div>
 
-  <!-- Eingabefelder -->
-  <zso-input-field formControlName="firstName"       label="Vorname"/>
-  <zso-input-field formControlName="lastName"        label="Nachname"/>
-  <zso-input-field formControlName="email"           label="E-Mail"   type="email"/>
-  <zso-input-field formControlName="password"        label="Passwort" type="password"  [toggleVisibility]="true"/>
-  <zso-input-field formControlName="confirmPassword" label="Passwort bestätigen" type="password" [toggleVisibility]="true"/>
+  <div class="field-stack--tight">
+    <p class="section-title">Persönliche Angaben</p>
+    <zso-input-field formControlName="firstName" label="Vorname"/>
+    <zso-input-field formControlName="lastName"  label="Nachname"/>
+  </div>
 
-  <!-- AGB-Checkbox -->
-  <zso-checkbox formControlName="acceptTos" label="Ich akzeptiere die Nutzungs­bedingungen"></zso-checkbox>
+  <div class="field-stack--tight">
+    <p class="section-title">Zugangsdaten</p>
+    <zso-input-field formControlName="email"            label="E-Mail" type="email"/>
+    <zso-input-field formControlName="password"         label="Passwort" type="password" [toggleVisibility]="true"/>
+    <zso-input-field formControlName="confirmPassword"  label="Passwort bestätigen" type="password" [toggleVisibility]="true"/>
+  </div>
 
-  <!-- Button -->
-  <zso-button type="primary" htmlType="submit" [loading]="isLoading" [fullWidth]="true">
-    Konto erstellen
+  <zso-checkbox formControlName="acceptTos" label="Ich akzeptiere die Nutzungsbedingungen"/>
+
+  <zso-button type="primary" [loading]="isLoading" [fullWidth]="true" htmlType="submit">
+    Registrieren
   </zso-button>
 
-  <!-- Validierungs­hinweise -->
   @if (passwordMismatch) {
     <p class="text-center text-sm text-rose-400">Passwörter stimmen nicht überein.</p>
   }
@@ -34,11 +40,8 @@
     <p class="text-center text-sm text-rose-400">{{ errorMsg }}</p>
   }
 
-  <!-- Link zum Login -->
-  <p class="text-center text-sm text-white/70">
-    Bereits registriert?
-    <a routerLink="/auth/login" class="font-medium text-cp-orange hover:underline">
-      Jetzt anmelden
-    </a>
+  <p class="text-center text-sm">
+    Schon Mitglied?
+    <a routerLink="/auth/login" class="font-medium hover:underline text-cp-orange">Jetzt anmelden</a>
   </p>
 </form>

@@ -1,46 +1,42 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6 animate-slide-in-up">
+<form [formGroup]="form" (ngSubmit)="submit()" class="field-stack w-full" zsoGlowSeq zsoSweepSeq>
 
-  <!-- Kopfbereich mit Icon -->
-  <div class="flex flex-col items-center gap-4">
-    <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-16 w-16 text-cp-orange drop-shadow-[0_2px_4px_rgba(0,0,0,.5)]"
-         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-
-    <h1 class="text-2xl font-bold text-cp-orange">Anmelden</h1>
+  <div class="flex flex-col items-center gap-6 animate-fadeUp">
+    <div class="auth-icon-wrapper">
+      <!-- Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-8 w-8 text-cp-orange"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 12h13m-4-4 4 4-4 4"/>
+        <path d="M17 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-cp-orange">Willkommen zurück</h1>
   </div>
 
-  <!-- Eingabefelder -->
-  <zso-input-field formControlName="email"    label="E-Mail"   type="email"/>
-  <zso-input-field formControlName="password" label="Passwort" type="password" [toggleVisibility]="true"/>
+  <div class="field-stack--tight">
+    <zso-input-field formControlName="email"    label="E-Mail"   type="email"/>
+    <zso-input-field formControlName="password" label="Passwort" type="password" [toggleVisibility]="true"/>
+  </div>
 
-  <!-- Checkbox -->
-  <zso-checkbox formControlName="rememberMe" label="Angemeldet bleiben"></zso-checkbox>
+  <zso-checkbox formControlName="rememberMe" label="Angemeldet bleiben"/>
 
-  <!-- Button -->
-  <zso-button type="primary" htmlType="submit" [loading]="isLoading" [fullWidth]="true">
+  <zso-button type="primary" [loading]="isLoading" [fullWidth]="true" htmlType="submit">
     Anmelden
   </zso-button>
 
-  <!-- Fehler -->
   @if (errorMsg) {
     <p class="text-center text-sm text-rose-400">{{ errorMsg }}</p>
   }
 
-  <!-- Divider -->
-  <div class="flex items-center">
-    <div class="flex-grow border-t border-white/20"></div>
-    <span class="px-3 text-sm text-gray-400">oder</span>
-    <div class="flex-grow border-t border-white/20"></div>
-  </div>
+  <p class="text-center text-xs">
+    Passwort vergessen?
+    <a routerLink="/auth/forgot-password" class="underline text-cp-orange">Link anfordern</a>
+  </p>
 
-  <!-- Link zur Registrierung -->
-  <p class="text-center text-sm text-white/70">
-    Noch kein Konto?
-    <a routerLink="/auth/register" class="font-medium text-cp-orange hover:underline">
-      Jetzt registrieren
-    </a>
+  <div class="divider-labeled">oder</div>
+
+  <p class="text-center text-sm">
+    Neu hier?
+    <a routerLink="/auth/register" class="font-medium hover:underline text-cp-orange">Konto erstellen</a>
   </p>
 </form>

@@ -1,16 +1,27 @@
-<div class="max-w-md mx-auto mt-16 text-center space-y-6 animate-fade-in-up">
+<div class="max-w-md mx-auto mt-12 text-center space-y-6 animate-fadeUp">
 
   <h1 class="text-2xl font-bold text-white">E-Mail bestätigen</h1>
 
   <p class="text-white/80">
-    Wir haben dir eine Bestätigungs-E-Mail geschickt. Öffne den Link, um dein Konto zu aktivieren.
+    Wir haben dir eine Bestätigungs-E-Mail geschickt.
+    Klicke auf den Link in deinem Postfach, um dein Konto zu aktivieren.
   </p>
 
-  <zso-button type="primary" htmlType="button" (click)="check()" [fullWidth]="true">
+  <zso-button
+    type="primary"
+    htmlType="button"
+    (click)="check()"
+    [fullWidth]="true"
+  >
     Ich habe bestätigt
   </zso-button>
 
-  <zso-button type="neutral" htmlType="button" (click)="resend()" [fullWidth]="true">
+  <zso-button
+    type="neutral"
+    htmlType="button"
+    (click)="resend()"
+    [fullWidth]="true"
+  >
     E-Mail erneut senden
   </zso-button>
 

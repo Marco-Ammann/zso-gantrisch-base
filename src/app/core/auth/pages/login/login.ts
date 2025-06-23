@@ -1,13 +1,16 @@
-// src/app/core/auth/pages/login/login.ts
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
-import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { ZsoCheckbox   } from '@shared/ui/zso-checkbox/zso-checkbox';
+import { ZsoButton     } from '@shared/ui/zso-button/zso-button';
+import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
+
 import { AuthService } from '../../services/auth.service';
 import { finalize, take } from 'rxjs/operators';
-import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
+import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
 
 @Component({
   selector: 'zso-login',
@@ -17,8 +20,10 @@ import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
     ReactiveFormsModule,
     RouterModule,
     ZsoInputField,
+    ZsoCheckbox,
     ZsoButton,
-    ZsoCheckbox
+    GlowSeqDirective,
+    SweepSeqDirective
   ],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
@@ -41,9 +46,9 @@ export class ZsoLogin implements OnInit {
 
   ngOnInit() {
     this.form = this.fb.group({
-      email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
-      password: [{ value: '', disabled: false }, [Validators.required, Validators.minLength(6)]],
-      rememberMe: [{ value: false, disabled: false }]
+      email:      ['', [Validators.required, Validators.email]],
+      password:   ['', [Validators.required, Validators.minLength(6)]],
+      rememberMe: [false]
     });
   }
 
@@ -57,7 +62,8 @@ export class ZsoLogin implements OnInit {
     this.form.disable();
 
     const { email, password, rememberMe } = this.form.getRawValue();
-    this.auth.login(email, password, rememberMe)
+    this.auth
+      .login(email, password, rememberMe)
       .pipe(finalize(() => {
         this.isLoading = false;
         this.form.enable();
@@ -65,22 +71,14 @@ export class ZsoLogin implements OnInit {
       .subscribe({
         next: () => {
           this.auth.user$.pipe(take(1)).subscribe(user => {
-            user?.emailVerified 
-              ? this.router.navigateByUrl(this.returnUrl)
-              : this.router.navigate(['/auth/verify-email']);
             if (user?.emailVerified) {
-              console.log('User logged in successfully');
+              this.router.navigateByUrl(this.returnUrl);
+            } else {
+              this.router.navigate(['/auth/verify-email']);
             }
-            if (!user?.emailVerified) {
-              console.log('User not verified');
-            }
-            console.log('User: ', user);
-
           });
         },
-        error: err => {
-          this.errorMsg = this.mapError(err.code);
-        }
+        error: err => (this.errorMsg = this.mapError(err.code))
       });
   }
 

@@ -1,12 +1,21 @@
-// Centralised application settings
-// Update values here to alter behaviour across the app in one place.
+import { InjectionToken } from '@angular/core';
 
+/** Struktur der globalen Konfiguration */
 export interface AppSettings {
-  /** Named Firestore database ID */
-  firestoreDbId: string;
+  firestoreDbId : string;
+  verifyRedirect: string;
+  resetRedirect : string;
 }
 
-export const APP_SETTINGS: AppSettings = {
-  // 🔧 change this once and every service using APP_SETTINGS picks it up
-  firestoreDbId: 'zso-base'
-} as const;
+/** Injection-Token mit Default-Factory  */
+export const APP_SETTINGS = new InjectionToken<AppSettings>(
+  'APP_SETTINGS',
+  {
+    providedIn: 'root',
+    factory: (): AppSettings => ({
+      firestoreDbId : 'zso-base',
+      verifyRedirect: `${location.origin}/auth/verify-email-success`,
+      resetRedirect : `${location.origin}/auth/login?reset=1`
+    })
+  }
+);

@@ -1,49 +1,25 @@
-<!-- Inhalt – Shell liefert bereits die Glass-Card -->
-<div class="flex flex-col items-center text-center animate-pop-in space-y-6">
+<div class="field-stack items-center text-center animate-fadeUp w-full">
 
-    <!-- Icon & Headline -->
     <div class="flex flex-col items-center gap-4">
-      <!-- Uhr-Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-16 w-16 text-cp-orange drop-shadow-[0_2px_4px_rgba(0,0,0,.5)]"
-           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <circle cx="12" cy="12" r="9" />
-        <polyline points="12 7 12 12 15 14" />
-      </svg>
-  
-      <h1 class="text-2xl font-bold text-cp-orange">
-        Konto wartet auf Freigabe
-      </h1>
+      <div class="auth-icon-wrapper">
+        <!-- Clock Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-8 w-8 text-cp-orange"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9"/>
+          <polyline points="12 7 12 12 15 15"/>
+        </svg>
+      </div>
+      <h1 class="text-xl font-semibold text-cp-orange">Wir prüfen dein Konto</h1>
     </div>
   
-    <!-- Info-Text -->
-    <p class="text-gray-200">
-      Vielen Dank für deine Registrierung!
-      <br />
-      Ein Administrator muss dein Konto noch bestätigen,
-      bevor du alle Funktionen nutzen kannst.
+    <p class="text-gray-200 text-sm max-w-xs mx-auto">
+      Vielen Dank für deine Registrierung! Wir informieren dich per E-Mail,
+      sobald dein Zugang freigeschaltet ist.
     </p>
   
-    <!-- Kontakt -->
-    <p class="text-sm text-gray-400">
-      Fragen? Schreib uns an
-      <a href="mailto:marco-ammann&#64;outlook.com"
-         class="underline hover:text-cp-orange">
-        marco-ammann&#64;outlook.com
-      </a>.
-    </p>
-  
-    <!-- Divider -->
-    <div class="w-full border-t border-white/20"></div>
-  
-    <!-- Logout-Button -->
-    <zso-button
-      type="danger"
-      htmlType="button"
-      [fullWidth]="true"
-      (click)="logout()">
+    <zso-button type="danger" htmlType="button" [fullWidth]="true" (click)="logout()">
       Abmelden
     </zso-button>
-  
   </div>
   

@@ -1,25 +1,32 @@
-import { Injectable } from '@angular/core';
-import { FirebaseApp } from '@angular/fire/app';
-import { Firestore, getFirestore, collection, doc, CollectionReference, DocumentReference } from '@angular/fire/firestore';
-import { APP_SETTINGS } from '../config/app-settings';
+import { Injectable, inject } from '@angular/core';
+import { FirebaseApp }        from '@angular/fire/app';
+import {
+  Firestore, getFirestore,
+  collection, doc,
+  CollectionReference, DocumentReference
+} from '@angular/fire/firestore';
+
+import { APP_SETTINGS, AppSettings } from '@config/app-settings';
 
 /**
- * Thin wrapper that exposes a **named** Firestore DB instance (e.g. `zso-base`).
- * Keeps all Firestore access in one place so we can adjust the database ID
- * from `app-settings.ts` without touching multiple files.
+ * Wrapper um eine **benannte** Firestore-Instanz.
+ * Datenbank-ID stammt zentral aus `APP_SETTINGS`.
  */
 @Injectable({ providedIn: 'root' })
 export class FirestoreService {
-  /** Handle to the named Firestore database */
+
+  /** Handle auf die konfigurierte Firestore-DB */
   readonly db: Firestore;
 
-  constructor(app: FirebaseApp) {
-    this.db = getFirestore(app, APP_SETTINGS.firestoreDbId);
-    // eslint-disable-next-line no-console
-    console.info(`Connected to '${APP_SETTINGS.firestoreDbId}' Firestore database.`);
+  private readonly settings: AppSettings = inject(APP_SETTINGS);
+
+  constructor(firebaseApp: FirebaseApp) {
+    this.db = getFirestore(firebaseApp, this.settings.firestoreDbId);
+    console.info(`[Firestore] verbunden mit „${this.settings.firestoreDbId}“`);
   }
 
-  /** Convenience helpers */
+  /* ---------- Convenience ---------- */
+
   col<T = unknown>(path: string): CollectionReference<T> {
     return collection(this.db, path) as CollectionReference<T>;
   }
