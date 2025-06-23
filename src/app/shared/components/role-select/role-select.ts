@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'zso-role-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, OverlayModule],
   template: `
     <div class="relative inline-block text-left select-none">
       <!-- Trigger -->
-      <button type="button" (click)="toggle()" class="btn btn-xs bg-gray-700/60 hover:bg-gray-600/60 text-white rounded-md">
+      <button #trigger="cdkOverlayOrigin" cdkOverlayOrigin type="button" (click)="toggle()" class="btn btn-xs bg-gray-700/60 hover:bg-gray-600/60 text-white rounded-md">
         <ng-container *ngIf="selected?.length; else ph">
           <span *ngFor="let r of selected" class="badge badge-secondary mr-1">{{ r }}</span>
         </ng-container>
@@ -19,22 +21,37 @@ import { Component, EventEmitter, HostListener, Input, Output } from '@angular/c
       </button>
 
       <!-- Dropdown -->
-      <div *ngIf="open" class="absolute right-0 mt-2 w-44 origin-top-right rounded-md glass-card p-2 z-20">
-        <label *ngFor="let opt of roleOptions" class="flex items-center gap-2 py-1 cursor-pointer text-sm">
-          <input type="checkbox" class="accent-orange-500" [checked]="isSelected(opt)" (change)="toggleOpt(opt)" />
-          <span>{{ opt }}</span>
-        </label>
-      </div>
+      <ng-template cdkConnectedOverlay
+                 [cdkConnectedOverlayOrigin]="trigger"
+                 [cdkConnectedOverlayOpen]="open"
+                 [cdkConnectedOverlayPositions]="positions"
+                 cdkConnectedOverlayHasBackdrop
+                 cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+                 (backdropClick)="open=false"
+                 (detach)="open=false">
+        <div class="w-44 rounded-md glass-card p-2 z-30">
+          <label *ngFor="let opt of roleOptions" class="flex items-center gap-2 py-1 cursor-pointer text-sm">
+            <input type="checkbox" class="accent-orange-500" [checked]="isSelected(opt)" (change)="toggleOpt(opt)" />
+            <span>{{ opt }}</span>
+          </label>
+        </div>
+      </ng-template>
     </div>
   `,
   styles: []
 })
 export class RoleSelectComponent {
+  @ViewChild(CdkConnectedOverlay) overlay?: CdkConnectedOverlay;
+
   @Input() roleOptions: string[] = [];
   @Input() selected: string[] = [];
   @Output() selectedChange = new EventEmitter<string[]>();
 
   open = false;
+  positions: ConnectedPosition[] = [
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -4 }
+  ];
 
   toggle() { this.open = !this.open; }
   isSelected(opt: string) { return this.selected?.includes(opt) ?? false; }
@@ -46,10 +63,5 @@ export class RoleSelectComponent {
     if (!sel.length) return;               // verhindert leeres Array
     this.selected = sel;
     this.selectedChange.emit(sel);
-  }
-
-  @HostListener('document:click', ['$event'])
-  close(ev: MouseEvent) {
-    if (!(ev.target as HTMLElement).closest('zso-role-select')) this.open = false;
   }
 }
