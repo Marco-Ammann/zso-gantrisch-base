@@ -34,13 +34,21 @@ export class AuthGuard implements CanActivate {
     return this.auth.appUser$.pipe(
       take(1),
       map(u => {
-        const isLoggedIn = !!u && !u.doc.blocked;
-        this.logger.info('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, isLoggedIn });
-        return isLoggedIn
-          ? true
-          : this.router.createUrlTree(['/auth/login'], {
-              queryParams: { returnUrl: state.url }
-            });
+        const isLoggedIn = !!u && !u.doc.blocked && u.doc.approved; // used only for logging
+        this.logger.info('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, approved: u?.doc.approved, isLoggedIn });
+        if (!u) {
+          // not logged in at all
+          return this.router.createUrlTree(['/auth/login'], {
+            queryParams: { returnUrl: state.url }
+          });
+        }
+        if (u.doc.blocked) {
+          return this.router.createUrlTree(['/auth/login']);
+        }
+        if (!u.doc.approved) {
+          return this.router.createUrlTree(['/auth/pending-approval']);
+        }
+        return true;
       })
     );
   }
