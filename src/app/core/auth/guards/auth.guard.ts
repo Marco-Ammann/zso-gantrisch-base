@@ -9,6 +9,7 @@ import {
   UrlTree
 } from '@angular/router';
 import { Observable } from 'rxjs';
+import { LoggerService } from '@core/services/logger.service';
 import { map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
@@ -18,7 +19,8 @@ import { AuthService } from '../services/auth.service';
 export class AuthGuard implements CanActivate {
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private logger: LoggerService
   ) {}
 
   /**
@@ -33,7 +35,7 @@ export class AuthGuard implements CanActivate {
       take(1),
       map(u => {
         const isLoggedIn = !!u && !u.doc.blocked;
-        console.log('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, isLoggedIn });
+        this.logger.info('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, isLoggedIn });
         return isLoggedIn
           ? true
           : this.router.createUrlTree(['/auth/login'], {

@@ -1,3 +1,16 @@
-<p>dashboard works!</p>
+<h1 class="text-2xl font-bold mb-4">Willkommen, {{ (appUser$ | async)?.doc.firstName }}!</h1>
 
-<button (click)="logout()" class="btn btn-primary">Abmelden</button>
+<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="bg-gray-800 text-white rounded shadow p-6 text-center">
+    <h2 class="text-lg font-semibold mb-2">Aktive Benutzer</h2>
+    <p class="text-3xl">—</p>
+  </div>
+  <div class="bg-gray-800 text-white rounded shadow p-6 text-center">
+    <h2 class="text-lg font-semibold mb-2">Ausstehende Anträge</h2>
+    <p class="text-3xl">—</p>
+  </div>
+  <div class="bg-gray-800 text-white rounded shadow p-6 text-center lg:col-span-1 sm:col-span-2">
+    <h2 class="text-lg font-semibold mb-2">Letzte Aktivitäten</h2>
+    <p class="text-sm text-gray-400">Demnächst verfügbar…</p>
+  </div>
+</div>

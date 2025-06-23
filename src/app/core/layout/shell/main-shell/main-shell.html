@@ -1,6 +1,21 @@
 <!--main shell for the main pages like dashboard, etc.-->
 <!--only accessible if user is authenticated-->
 
-<main class="flex">
-    <router-outlet></router-outlet>
+<header class="flex items-center justify-between px-4 py-2 bg-gray-900 text-white">
+  <a routerLink="/dashboard" class="font-bold text-lg">ZSO</a>
+  <button class="sm:hidden" (click)="open = !open">
+    <span class="icon-[heroicons-outline--menu] text-2xl"></span>
+  </button>
+  <nav class="gap-6 items-center sm:flex" [ngClass]="{ 'hidden': !open, 'flex': open }">
+    <a routerLink="/dashboard" routerLinkActive="text-orange-400" class="hover:text-orange-400">Dashboard</a>
+    <a routerLink="/users" routerLinkActive="text-orange-400" class="hover:text-orange-400">Users</a>
+    <a *ngIf="(appUser$ | async)?.doc.roles?.includes('admin')" routerLink="/admin" routerLinkActive="text-orange-400" class="hover:text-orange-400">Admin</a>
+  </nav>
+  <div class="hidden sm:flex items-center gap-3">
+    <span class="text-sm">{{ (appUser$ | async)?.doc.firstName }}</span>
+    <button (click)="logout()" class="btn btn-sm btn-primary">Logout</button>
+  </div>
+</header>
+<main class="p-4">
+  <router-outlet></router-outlet>
 </main>

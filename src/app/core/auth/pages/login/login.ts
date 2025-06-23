@@ -61,7 +61,7 @@ export class ZsoLogin implements OnInit {
       .subscribe({
         next: () => {
           this.auth.user$.pipe(take(1)).subscribe(user => {
-            user?.emailVerified
+            user?.emailVerified 
               ? this.router.navigateByUrl(this.returnUrl)
               : this.router.navigate(['/auth/verify-email']);
             if (user?.emailVerified) {
