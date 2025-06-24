@@ -1,10 +1,9 @@
 import { Component, inject, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
-import { AsyncPipe, NgIf, NgClass } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { AuthService } from '@core/auth/services/auth.service';
 import { map, take } from 'rxjs/operators';
-import { CardShimmerDirective } from '@shared/directives/card-shimmer.directive';
 
 interface AppUser {
   doc: {
@@ -21,8 +20,6 @@ interface AppUser {
     RouterOutlet, 
     RouterLink,
     AsyncPipe, 
-    NgIf,
-    CardShimmerDirective
   ],
   templateUrl: './main-shell.html',
 })
