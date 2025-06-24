@@ -1,3 +1,4 @@
+// src/app/core/services/user.service.ts
 import { Injectable } from '@angular/core';
 import { collection, collectionData, doc, updateDoc } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';

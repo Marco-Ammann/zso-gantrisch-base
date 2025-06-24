@@ -1,3 +1,4 @@
+// src/app/shared/ui/zso-button/zso-button.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { NgClass } from '@angular/common';
 
@@ -30,7 +31,7 @@ export class ZsoButton {
   @Input() type: 'primary' | 'danger' | 'neutral' = 'primary';
   @Input() htmlType: 'button' | 'submit' | 'reset' = 'button';
   @Input() fullWidth = false;
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() size: 'xs' | 'sm' | 'md' | 'lg' = 'md';
   @Input() loading = false;
   @Input() disabled = false;
   @Input() icon?: string;
@@ -46,6 +47,7 @@ export class ZsoButton {
     if (this.fullWidth) c.push('w-full');
     if (this.disabled || this.loading) c.push('opacity-50', 'cursor-not-allowed');
     switch (this.size) {
+      case 'xs': c.push('text-xs py-1.5 px-3'); break;
       case 'sm': c.push('text-sm py-2 px-4'); break;
       case 'md': c.push('text-base py-3 px-5'); break;
       case 'lg': c.push('text-lg py-4 px-6'); break;

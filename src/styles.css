@@ -1,3 +1,5 @@
+/* src/styles.css: */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
@@ -34,6 +36,14 @@
   }
   .glass-btn-danger {
     @apply glass-btn border-rose-500/50 text-rose-400 hover:text-white hover:bg-rose-500/25;
+  }
+
+  .glass-btn-neutral {
+    @apply glass-btn border-white/20 text-gray-200 hover:bg-white/10;
+  }
+  
+  .glass-btn-glow {
+    box-shadow: 0 0 10px rgba(255,121,0,.55), inset 0 0 6px rgba(255,121,0,.35);
   }
 
   /* Input / Label */

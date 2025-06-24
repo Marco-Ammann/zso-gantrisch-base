@@ -1,3 +1,4 @@
+// src/app/shared/ui/zso-checkbox/zso-checkbox.ts
 import { Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 

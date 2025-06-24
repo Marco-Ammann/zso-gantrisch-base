@@ -1,3 +1,4 @@
+// src/app/core/services/firestore.service.ts
 import { Injectable, inject } from '@angular/core';
 import { FirebaseApp }        from '@angular/fire/app';
 import {

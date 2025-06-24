@@ -1,67 +1,92 @@
-<div class="max-w-7xl mx-auto px-4 py-10 space-y-10">
+<div class="max-w-7xl mx-auto px-4 py-10 space-y-8">
 
-  <!-- Kopf & Filter ---------------------------------------------------- -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-white">Benutzerverwaltung</h1>
-      <p class="text-sm text-gray-400">Konten, Rollen &amp; Freigaben verwalten</p>
+  <!-- Toolbar --------------------------------------------------------- -->
+  <div class="glass-card flex flex-wrap gap-4 items-center p-4 sm:p-5">
+
+    <zso-input-field type="text" label="Suche" class="flex-grow sm:flex-none sm:w-72" [(ngModel)]="search"
+      (ngModelChange)="refresh$.next()"></zso-input-field>
+
+    <zso-checkbox label="Nur Pending" [(ngModel)]="showPending" (ngModelChange)="refresh$.next()"></zso-checkbox>
+
+    <div *ngIf="stats$ | async as s" class="ml-auto text-sm text-white/80 flex gap-3 items-center">
+      <span>{{ s.total }} gesamt</span>
+      <span class="text-amber-300" title="Pending">● {{ s.pending }}</span>
+      <span class="text-rose-400" title="Gesperrt">● {{ s.blocked }}</span>
     </div>
-    <zso-button variant="ghost" size="sm" (click)="refresh()"
-                class="text-gray-300 hover:text-white hover:bg-white/5">
-      Aktualisieren
-    </zso-button>
+
+    <zso-button variant="ghost" size="sm" title="Aktualisieren" (click)="refresh$.next()">↻</zso-button>
   </div>
 
-  <div class="glass-card p-6">
-    <zso-checkbox [(ngModel)]="showPending"
-                  (ngModelChange)="onTogglePending($event)"
-                  label="Nur **nicht** genehmigte Benutzer anzeigen"
-                  class="text-gray-200">
-    </zso-checkbox>
-  </div>
+  <!-- User-Liste ------------------------------------------------------ -->
+  <div *ngIf="users$ | async as users; else loading" class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
 
-  <!-- Liste ------------------------------------------------------------ -->
-  <div *ngIf="users$ | async as users" class="space-y-4">
+    <div *ngIf="!users.length" class="col-span-full text-center text-sm text-gray-400">
+      Keine passenden Benutzer gefunden.
+    </div>
 
-    <p *ngIf="!users.length" class="text-center text-sm text-gray-400">
-      Keine Benutzer gefunden.
-    </p>
+    <div *ngFor="let u of users" class="glass-card shimmer-once p-6 flex flex-col gap-4" zsoCardShimmer>
 
-    <div *ngFor="let user of users"
-         class="glass-card shimmer-once p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-         zsoCardShimmer>
+      <!-- Kopf (Name + Rolle) -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-semibold text-white">
+            {{ u.firstName }} {{ u.lastName }}
+            <span *ngIf="!u.approved" class="badge badge--pending">Pending</span>
+            <span *ngIf="u.blocked" class="badge badge--suspended">Gesperrt</span>
+          </h2>
+          <p class="text-sm text-gray-300">{{ u.email }}</p>
+        </div>
 
-      <!-- Person -->
-      <div class="flex-1">
-        <h2 class="text-lg font-semibold text-white">
-          {{ user.firstName }} {{ user.lastName }}
-          <span *ngIf="!user.approved" class="badge bg-amber-500/20 text-amber-300">Pending</span>
-          <span *ngIf="user.blocked"  class="badge bg-rose-500/20  text-rose-300">Gesperrt</span>
-        </h2>
-        <p class="text-sm text-gray-300">{{ user.email }}</p>
-        <p class="text-xs text-gray-400">Rolle: {{ user.roles?.[0] || 'user' }}</p>
+        <!-- Rollenauswahl -->
+        <zso-role-select [roleOptions]="['user','admin']" [selected]="u.roles"
+          (selectedChange)="setRoles(u,$event)"></zso-role-select>
       </div>
 
-      <!-- Actions -->
-      <div class="flex flex-wrap gap-2">
-        <zso-button size="sm" variant="primary" *ngIf="!user.approved"
-                    (click)="approve(user)">Approve</zso-button>
+      <!-- Aktion-Buttons --------------------------------------------- -->
+      <div class="flex gap-7">
 
-        <zso-button size="sm" variant="warn" *ngIf="user.blocked"
-                    (click)="suspend(user)">Entsperren</zso-button>
-        <zso-button size="sm" variant="warn" *ngIf="!user.blocked"
-                    (click)="suspend(user)">Sperren</zso-button>
-
-        <zso-button size="sm" variant="ghost"
-                    (click)="toggleRole(user)">
-          Rolle wechseln
+        <!-- Genehmigen -->
+        <zso-button size="xs" type="neutral" class="icon-btn text-lime-300" *ngIf="!u.approved" title="Genehmigen"
+          (click)="approve(u)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </zso-button>
 
-        <zso-button size="sm" variant="ghost"
-                    (click)="editUser(user)">
-          Details
+        <!-- Block / Entsperren -->
+        <zso-button size="xs" type="neutral" class="icon-btn" [ngClass]="u.blocked ? 'text-lime-400' : 'text-rose-500'"
+          [title]="u.blocked ? 'Entsperren' : 'Blockieren'" (click)="toggleActive(u)">
+
+          <!-- Block-Icon -->
+          <svg *ngIf="!u.blocked" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 5l14 14" />
+          </svg>
+
+          <!-- Entsperren-Icon -->
+          <svg *ngIf="u.blocked" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 11V7a3 3 0 00-6 0v4M5 11h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2z" />
+          </svg>
+        </zso-button>
+
+        <!-- Details -->
+        <zso-button size="xs" type="neutral" class="icon-btn text-slate-300" title="Details" (click)="details(u)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
         </zso-button>
       </div>
     </div>
   </div>
+
+  <ng-template #loading>
+    <p class="text-center text-sm text-gray-400">Lade Benutzer…</p>
+  </ng-template>
+
+  <zso-confirmation-dialog></zso-confirmation-dialog>
 </div>

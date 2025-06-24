@@ -1,68 +1,75 @@
-<!-- Vollbild-Hintergrund & Overlay -->
+<!-- Vollbild-Hintergrund + blaues Overlay -->
 <div class="relative min-h-screen bg-fixed bg-cover bg-center
             bg-[url('assets/images/background_mountains.jpg')]">
-  <div class="absolute inset-0 bg-[#0e1628]/80"></div>
+  <div class="absolute inset-0 bg-[#0e1628]/90"></div>
 
-  <!-- Shell-Navigation & Inhalt -->
-  <div class="relative z-10 flex flex-col min-h-screen">
+  <!-- NAVBAR --------------------------------------------------------- -->
+  <nav class="relative z-20 glass-card navbar-glass backdrop-blur-md bg-[#0e1628]/70 border-b border-white/10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
-    <!-- NAVBAR ----------------------------------------------------------- -->
-    <nav class="glass-card backdrop-blur-sm bg-gray-900/80 border-b border-white/10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-end gap-1 font-bold text-white">
+        <span class="text-xl text-cp-orange">ZSO&nbsp;GANTRISCH</span>
+        <span class="text-sm leading-none tracking-tight">base</span>
+      </a>
 
-        <!-- Logo -->
-        <a routerLink="/" class="flex items-end space-x-1 text-white">
-          <span class="text-2xl font-bold text-orange-500">ZSO GANTRISCH</span>
-          <span class="text-sm leading-none">base</span>
-        </a>
-
-        <!-- Desktop-Links -->
-        <div class="hidden md:flex items-center space-x-8">
+      <!-- Desktop-Links -->
+      <ul class="hidden md:flex gap-6">
+        <li>
           <a routerLink="/dashboard"
-             [class.text-orange-500]="isLinkActive('/dashboard')"
-             class="link">Dashboard</a>
+             routerLinkActive="pill-active underline-sweep"
+             [routerLinkActiveOptions]="{exact:true}"
+             class="pill">Dashboard</a>
+        </li>
+        <li *ngIf="isAdmin$ | async">
+          <a routerLink="/admin/users"
+             routerLinkActive="pill-active underline-sweep"
+             class="pill">Benutzer</a>
+        </li>
+      </ul>
 
-          @if (isAdmin$ | async) {
-            <a routerLink="/admin/users"
-               [class.text-orange-500]="isLinkActive('/admin/users')"
-               class="link">Benutzer</a>
-          }
-
-          <!-- Profil-Dropdown -->
-          <div class="relative" #profileDropdown>
-            <button (click)="isProfileOpen = !isProfileOpen"
-                    class="avatar">{{ userInitials$ | async }}</button>
-            @if (isProfileOpen) {
-              <div class="dropdown">
-                <a class="item">Mein Profil</a>
-                <a class="item text-red-600" (click)="logout()">Abmelden</a>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Mobile-Toggle -->
-        <button class="md:hidden p-2 text-gray-300" (click)="toggleMobile()">
-          <svg *ngIf="!isMobileMenuOpen" class="h-6 w-6" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          <svg *ngIf="isMobileMenuOpen"  class="h-6 w-6" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <!-- Avatar + Dropdown -->
+      <div class="relative" #profileDrop>
+        <button class="avatar"
+                (click)="showProfile=!showProfile"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="showProfile">
+          {{ initials$ | async }}
         </button>
+
+        <ul *ngIf="showProfile"
+            class="dropdown-menu"
+            (keydown.escape)="showProfile=false">
+          <li><a class="dropdown-item">Mein Profil</a></li>
+          <li><button (click)="logout()" class="dropdown-item text-rose-600">Abmelden</button></li>
+        </ul>
       </div>
 
-      <!-- Mobile-Menu -->
-      @if (isMobileMenuOpen) {
-        <div class="md:hidden bg-gray-900/95 backdrop-blur-sm border-t border-gray-800">
-          <a routerLink="/dashboard" class="mobile-link" (click)="toggleMobile()">Dashboard</a>
-          @if (isAdmin$ | async) {
-            <a routerLink="/admin/users" class="mobile-link" (click)="toggleMobile()">Benutzer</a>
-          }
-          <a (click)="logout()" class="mobile-link text-red-400">Abmelden</a>
-        </div>
-      }
-    </nav>
+      <!-- Burger -->
+      <button class="md:hidden ml-2 text-gray-300"
+              (click)="toggleMobile()"
+              aria-label="Menü umschalten">
+        <svg [class.rotate-90]="showLinks"
+             class="h-7 w-7 transition-transform duration-300"
+             viewBox="0 0 24 24" stroke="currentColor" fill="none">
+          <path *ngIf="!showLinks" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          <path *ngIf="showLinks"  stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
 
-    <!-- Router-Outlet ---------------------------------------------------- -->
-    <main class="flex-1 overflow-auto">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
+    <!-- Mobile-Links -->
+    <ul *ngIf="showLinks"
+        class="md:hidden bg-[#0e1628]/95 backdrop-blur-sm border-t border-white/5">
+      <li><a routerLink="/dashboard"  (click)="toggleMobile()" class="mobile-link">Dashboard</a></li>
+      <li *ngIf="isAdmin$ | async">
+        <a routerLink="/admin/users" (click)="toggleMobile()" class="mobile-link">Benutzer</a></li>
+      <li><button (click)="logout()" class="mobile-link text-rose-400">Abmelden</button></li>
+    </ul>
+  </nav>
+
+  <!-- ROUTER-CONTENT -->
+  <main class="relative z-10 flex-1">
+    <router-outlet></router-outlet>
+  </main>
 </div>

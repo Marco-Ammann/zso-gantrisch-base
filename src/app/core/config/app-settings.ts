@@ -1,3 +1,4 @@
+// src/app/core/config/app-settings.ts
 import { InjectionToken } from '@angular/core';
 
 /** Struktur der globalen Konfiguration */
