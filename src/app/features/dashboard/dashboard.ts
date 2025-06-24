@@ -3,10 +3,12 @@ import { AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
 import { AuthService } from '@core/auth/services/auth.service';
 import { Router } from '@angular/router';
+import { CardShimmerDirective } from '@shared/directives/card-shimmer.directive';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [AsyncPipe],
+  standalone: true,
+  imports: [AsyncPipe, CardShimmerDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })

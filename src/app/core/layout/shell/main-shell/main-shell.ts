@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/rou
 import { AsyncPipe, NgIf, NgClass } from '@angular/common';
 import { AuthService } from '@core/auth/services/auth.service';
 import { map, take } from 'rxjs/operators';
+import { CardShimmerDirective } from '@shared/directives/card-shimmer.directive';
 
 interface AppUser {
   doc: {
@@ -18,10 +19,10 @@ interface AppUser {
   imports: [
     CommonModule, 
     RouterOutlet, 
-    RouterLink, 
-    RouterLinkActive,
+    RouterLink,
     AsyncPipe, 
-    NgIf
+    NgIf,
+    CardShimmerDirective
   ],
   templateUrl: './main-shell.html',
 })

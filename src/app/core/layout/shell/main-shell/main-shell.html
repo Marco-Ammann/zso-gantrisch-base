@@ -1,7 +1,6 @@
-<!-- Main Shell -->
-<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+<div class="relative min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
   <!-- Navigation -->
-  <nav class="bg-gray-900/80 backdrop-blur-sm shadow-lg">
+  <nav class="glass-card bg-gray-900/80 backdrop-blur-sm shadow-lg border-b border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-20">
         <div class="flex items-center">
@@ -86,7 +85,7 @@
     <!-- Mobile menu button remains in nav -->
   </nav>
 
-  <!-- Mobile Menu Backdrop -->
+  <!-- Mobile menu -->
   <div *ngIf="isMobileMenuOpen" 
        (click)="isMobileMenuOpen = false"
        class="fixed inset-0 bg-black/70 z-30 transition-opacity duration-300 md:hidden">
@@ -141,7 +140,7 @@
   </div>
   
   <!-- Main Content -->
-  <main class="py-8">
+  <main class="flex-1 router-outlet-container">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <router-outlet></router-outlet>
     </div>
