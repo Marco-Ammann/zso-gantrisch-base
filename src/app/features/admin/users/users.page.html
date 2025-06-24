@@ -1,334 +1,67 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="mb-8">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div class="space-y-1">
-          <h1 class="text-2xl md:text-3xl font-bold text-white">Benutzerverwaltung</h1>
-          <p class="text-gray-400 text-sm">Verwalten Sie Benutzerkonten und Berechtigungen</p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <zso-button 
-            (click)="refreshUsers()" 
-            [disabled]="isLoading"
-            [icon]="'refresh'"
-            [title]="'Aktualisieren'"
-            variant="ghost"
-            size="sm"
-            class="text-gray-300 hover:text-white hover:bg-white/5"
-          >
-            <span class="sr-only">Aktualisieren</span>
-          </zso-button>
-        </div>
-      </div>
+<div class="max-w-7xl mx-auto px-4 py-10 space-y-10">
 
-      <!-- Filter -->
-      <div class="bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 mb-8 border border-white/5 shadow-lg">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div class="flex-1">
-            <zso-checkbox 
-              [(ngModel)]="showPending"
-              (ngModelChange)="onShowPendingChange($event)"
-              label="Nur ausstehende Benutzer anzeigen"
-              class="text-gray-200"
-            ></zso-checkbox>
-          </div>
-          <div class="text-sm text-gray-300 bg-gray-700/50 px-3 py-1.5 rounded-lg">
-            <span class="font-medium text-white">{{ (filteredUsers$ | async)?.length || 0 }}</span> Benutzer gefunden
-          </div>
-        </div>
-      </div>
+  <!-- Kopf & Filter ---------------------------------------------------- -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-white">Benutzerverwaltung</h1>
+      <p class="text-sm text-gray-400">Konten, Rollen &amp; Freigaben verwalten</p>
     </div>
-
-    <!-- Error Message -->
-    @if (error) {
-      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6 flex items-start gap-3">
-        <svg class="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-        </svg>
-        <div>
-          <p class="text-sm font-medium text-red-300">{{ error }}</p>
-        </div>
-      </div>
-    }
-
-    <!-- Loading State -->
-    @if (isLoading) {
-      <div class="flex justify-center items-center p-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cp-orange"></div>
-      </div>
-    } @else {
-    <!-- Users List -->
-  <div class="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-white/5 shadow-lg overflow-hidden">
-    <!-- Desktop Header -->
-    <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-3.5 text-xs font-medium text-gray-400 uppercase tracking-wider border-b border-white/5 bg-gray-800/50">
-      <div class="col-span-4">BENUTZER</div>
-      <div class="col-span-2">STATUS</div>
-      <div class="col-span-3">BERECHTIGUNGEN</div>
-      <div class="col-span-3 text-right">AKTIONEN</div>
-    </div>
-      
-      <!-- Users List -->
-      <ul class="divide-y divide-white/10">
-        @if (filteredUsers$ | async; as users) {
-          @if (users.length > 0) {
-            @for (user of users; track trackByUserId($index, user)) {
-              <li class="p-3 md:p-4 hover:bg-white/5 border-b border-white/5 last:border-0">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-center py-3 px-4 md:px-6 hover:bg-white/2.5 transition-colors">
-                  <!-- Name & Email -->
-                  <div class="col-span-4">
-                    <div class="flex items-center space-x-3">
-                      <div class="relative">
-                        <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center text-orange-400 font-medium text-sm">
-                          {{ getInitials(user) }}
-                        </div>
-                        <span class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-gray-800/80" 
-                              [ngClass]="{
-                                'bg-green-500': user.approved && !user.blocked,
-                                'bg-yellow-500': !user.approved && !user.blocked,
-                                'bg-red-500': user.blocked
-                              }">
-                        </span>
-                      </div>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                          <span class="font-medium text-white truncate">
-                            {{ getDisplayName(user) }}
-                          </span>
-                          @if (user.emailVerified) {
-                            <span class="text-green-400" title="E-Mail verifiziert">
-                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                              </svg>
-                            </span>
-                          }
-                        </div>
-                        <div class="text-sm text-white/60 truncate" [title]="user.email">
-                          {{ user.email }}
-                        </div>
-                        <div class="flex items-center gap-2 text-xs text-white/50 mt-0.5">
-                          @if (user.createdAt) {
-                            <span [title]="'Registriert am ' + formatDate(user.createdAt)">
-                              <svg class="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              {{ formatDate(user.createdAt) }}
-                            </span>
-                          }
-                          @if (user.lastSignInTime) {
-                            <span class="hidden sm:inline" [title]="'Letzte Anmeldung: ' + formatDate(user.lastSignInTime)">
-                              <svg class="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              {{ formatDate(user.lastSignInTime) }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Status -->
-                  <div class="col-span-2">
-                    <div class="flex flex-col space-y-2">
-                      <span 
-                        class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium w-fit border"
-                        [ngClass]="{
-                          'bg-green-500/5 border-green-500/20 text-green-400': user.approved && !user.blocked,
-                          'bg-yellow-500/5 border-yellow-500/20 text-yellow-400': !user.approved && !user.blocked,
-                          'bg-red-500/5 border-red-500/20 text-red-400': user.blocked
-                        }"
-                      >
-                        <span class="w-2 h-2 rounded-full mr-2" 
-                              [ngClass]="{
-                                'bg-green-500': user.approved && !user.blocked,
-                                'bg-yellow-500': !user.approved && !user.blocked,
-                                'bg-red-500': user.blocked
-                              }">
-                        </span>
-                        {{ getStatusText(user) }}
-                      </span>
-                      <div class="flex items-center text-xs text-gray-400">
-                        <svg class="w-3.5 h-3.5 mr-1 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span [title]="'Registriert am ' + formatDate(user.createdAt)">
-                          {{ formatDate(user.createdAt) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Roles -->
-                  <div class="col-span-3">
-                    <div class="flex flex-wrap gap-2">
-                      @for (role of user.roles || []; track role) {
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border" 
-                              [ngClass]="getRoleBadgeClass(role)">
-                          <span class="w-2 h-2 rounded-full mr-2" [ngClass]="role === 'admin' ? 'bg-blue-500' : 'bg-gray-500'"></span>
-                          {{ role === 'admin' ? 'Administrator' : 'Benutzer' }}
-                        </span>
-                      }
-                      @if (!user.roles || user.roles.length === 0) {
-                        <span class="text-xs text-gray-500 italic">Keine Rollen</span>
-                      }
-                    </div>
-                    <div class="mt-1">
-                      <zso-role-select 
-                        [roleOptions]="roleOptions"
-                        [selected]="user.roles || []"
-                        (selectedChange)="onRolesChange(user, $event)"
-                        class="w-full"
-                      ></zso-role-select>
-                    </div>
-                  </div>
-                  
-                  <!-- Actions -->
-                  <div class="col-span-3 flex flex-wrap justify-end gap-2">
-                    @if (user.approved) {
-                      <div class="relative">
-                        <zso-button 
-                          size="sm" 
-                          variant="ghost"
-                          (click)="confirmActionDialog(user, 'unapprove')"
-                          [disabled]="isActionInProgress(user.uid)"
-                          class="text-red-400 hover:bg-red-500/10 hover:text-red-300 border border-red-500/20"
-                          title="Benutzer wieder ablehnen"
-                        >
-                          <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span class="hidden sm:inline">Ablehnen</span>
-                        </zso-button>
-                      </div>
-                    } @else {
-                      <div class="relative">
-                        <zso-button 
-                          size="sm" 
-                          variant="ghost"
-                          (click)="confirmActionDialog(user, 'approve')"
-                          [disabled]="isActionInProgress(user.uid)"
-                          class="text-green-400 hover:bg-green-500/10 hover:text-green-300 border border-green-500/20"
-                          title="Benutzer genehmigen"
-                        >
-                          <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span class="hidden sm:inline">Genehmigen</span>
-                        </zso-button>
-                      </div>
-                    }
-                    @if (user.blocked) {
-                      <div class="relative">
-                        <zso-button 
-                          size="sm" 
-                          variant="ghost"
-                          (click)="confirmActionDialog(user, 'unblock')"
-                          [disabled]="isActionInProgress(user.uid)"
-                          class="text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 border border-blue-500/20"
-                          title="Benutzer entsperren"
-                        >
-                          <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                          </svg>
-                          <span class="hidden sm:inline">Entsperren</span>
-                        </zso-button>
-                      </div>
-                    } @else if (!user.approved) {
-                      <div class="relative">
-                        <zso-button 
-                          size="sm" 
-                          variant="ghost"
-                          (click)="confirmActionDialog(user, 'block')"
-                          [disabled]="isActionInProgress(user.uid)"
-                          class="text-red-400 hover:bg-red-500/10 hover:text-red-300 border border-red-500/20"
-                          title="Benutzer sperren"
-                        >
-                          <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          <span class="hidden sm:inline">Sperren</span>
-                        </zso-button>
-                      </div>
-                    }
-                    
-                    <div class="relative group">
-                      <zso-button 
-                      size="sm" 
-                      type="neutral"
-                      (click)="confirmActionDialog(user, 'resetPassword')"
-                      [disabled]="isActionInProgress(user.uid)"
-                      class="whitespace-nowrap"
-                      title="Passwort zurücksetzen"
-                    >
-                      Passwort zurücksetzen
-                    </zso-button>
-                      </div>
-                    
-                    <div class="relative group">
-                      <zso-button 
-                        size="sm" 
-                        [type]="user.blocked ? 'primary' : 'danger'" 
-                        (click)="confirmActionDialog(user, user.blocked ? 'unblock' : 'block')"
-                        [disabled]="isActionInProgress(user.uid)"
-                        class="whitespace-nowrap"
-                        [title]="user.blocked ? 'Benutzer entsperren' : 'Benutzer sperren'"
-                      >
-                        <span class="sr-only">{{ user.blocked ? 'Entsperren' : 'Sperren' }}</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span class="hidden sm:inline">{{ user.blocked ? 'Entsperren' : 'Sperren' }}</span>
-                      </zso-button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            }
-          } @else {
-            <div class="p-8 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-700/50 mb-4">
-              <svg class="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-medium text-gray-200 mb-1">Keine Benutzer gefunden</h3>
-            <p class="text-gray-400 mb-4">Es wurden keine Benutzer mit den aktuellen Filtern gefunden.</p>
-            <button 
-              (click)="refreshUsers()" 
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Erneut versuchen
-            </button>
-          </div>
-          }
-        } @else {
-          <div class="p-8 text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-700/50 mb-3">
-              <svg class="w-6 h-6 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <p class="text-gray-400">Lade Benutzer...</p>
-          </div>
-        }
-      </ul>
-    </div>
-    }
-    </div>
+    <zso-button variant="ghost" size="sm" (click)="refresh()"
+                class="text-gray-300 hover:text-white hover:bg-white/5">
+      Aktualisieren
+    </zso-button>
   </div>
 
-<!-- Confirmation Dialog -->
-@if (showConfirmDialog) {
-  <zso-confirmation-dialog
-    [visible]="showConfirmDialog"
-    [title]="confirmTitle"
-    [message]="confirmMessage"
-    [confirmText]="confirmButtonText"
-    [confirmType]="confirmButtonType"
-    (confirmed)="onConfirm($event)">
-  </zso-confirmation-dialog>
-}
+  <div class="glass-card p-6">
+    <zso-checkbox [(ngModel)]="showPending"
+                  (ngModelChange)="onTogglePending($event)"
+                  label="Nur **nicht** genehmigte Benutzer anzeigen"
+                  class="text-gray-200">
+    </zso-checkbox>
+  </div>
+
+  <!-- Liste ------------------------------------------------------------ -->
+  <div *ngIf="users$ | async as users" class="space-y-4">
+
+    <p *ngIf="!users.length" class="text-center text-sm text-gray-400">
+      Keine Benutzer gefunden.
+    </p>
+
+    <div *ngFor="let user of users"
+         class="glass-card shimmer-once p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+         zsoCardShimmer>
+
+      <!-- Person -->
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold text-white">
+          {{ user.firstName }} {{ user.lastName }}
+          <span *ngIf="!user.approved" class="badge bg-amber-500/20 text-amber-300">Pending</span>
+          <span *ngIf="user.blocked"  class="badge bg-rose-500/20  text-rose-300">Gesperrt</span>
+        </h2>
+        <p class="text-sm text-gray-300">{{ user.email }}</p>
+        <p class="text-xs text-gray-400">Rolle: {{ user.roles?.[0] || 'user' }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap gap-2">
+        <zso-button size="sm" variant="primary" *ngIf="!user.approved"
+                    (click)="approve(user)">Approve</zso-button>
+
+        <zso-button size="sm" variant="warn" *ngIf="user.blocked"
+                    (click)="suspend(user)">Entsperren</zso-button>
+        <zso-button size="sm" variant="warn" *ngIf="!user.blocked"
+                    (click)="suspend(user)">Sperren</zso-button>
+
+        <zso-button size="sm" variant="ghost"
+                    (click)="toggleRole(user)">
+          Rolle wechseln
+        </zso-button>
+
+        <zso-button size="sm" variant="ghost"
+                    (click)="editUser(user)">
+          Details
+        </zso-button>
+      </div>
+    </div>
+  </div>
+</div>

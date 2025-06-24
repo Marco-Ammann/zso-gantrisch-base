@@ -1,83 +1,43 @@
 import { Component, inject, HostListener, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
-import { AsyncPipe } from '@angular/common';
-import { AuthService } from '@core/auth/services/auth.service';
-import { map, take } from 'rxjs/operators';
+import { CommonModule }  from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
-interface AppUser {
-  doc: {
-    email?: string;
-    roles?: string[];
-  };
-}
+import { AuthService } from '@core/auth/services/auth.service';
 
 @Component({
-  selector: 'zso-main-shell',
+  selector  : 'zso-main-shell',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterOutlet, 
-    RouterLink,
-    AsyncPipe, 
-  ],
+  imports   : [CommonModule, RouterModule],
   templateUrl: './main-shell.html',
+  styleUrls : ['./main-shell.scss']
 })
 export class MainShell {
-  private auth = inject(AuthService);
+  private auth   = inject(AuthService);
   private router = inject(Router);
 
-  isProfileOpen = false;
+  isProfileOpen   = false;
   isMobileMenuOpen = false;
-  currentYear = new Date().getFullYear();
 
-  readonly isAdmin$ = this.auth.appUser$.pipe(
-    map(user => user?.doc?.roles?.includes('admin') || false)
-  );
-  
-  readonly appUser$ = this.auth.appUser$;
-  readonly userInitials$ = this.appUser$.pipe(
-    map(user => user?.doc?.email?.charAt(0).toUpperCase() || 'U')
-  );
-  readonly userEmail$ = this.appUser$.pipe(
-    map(user => user?.doc?.email || '')
+  isAdmin$ = this.auth.appUser$.pipe(
+    map(u => u?.doc.roles?.includes('admin') ?? false)
   );
 
-  @ViewChild('profileDropdown') profileDropdown!: ElementRef;
-  
-  isLinkActive(url: string): boolean {
-    return this.router.url.includes(url);
-  }
+  userInitials$ = this.auth.appUser$.pipe(
+    map(u => u?.doc.email?.charAt(0).toUpperCase() ?? 'U')
+  );
+
+  @ViewChild('profileDropdown', { static: true }) profileDropdown!: ElementRef;
+
+  isLinkActive = (path: string) => this.router.url.includes(path);
 
   @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    const clickedInsideProfile = this.profileDropdown?.nativeElement.contains(target);
-    
-    if (!clickedInsideProfile) {
-      this.isProfileOpen = false;
-    }
-    
-    // Close mobile menu when clicking on a link
-    if (target.closest('a') && this.isMobileMenuOpen) {
-      this.isMobileMenuOpen = false;
-    }
+  closeMenus(ev: MouseEvent) {
+    const t = ev.target as HTMLElement;
+    if (!this.profileDropdown.nativeElement.contains(t)) this.isProfileOpen = false;
+    if (t.closest('a') && this.isMobileMenuOpen) this.isMobileMenuOpen = false;
   }
 
-  logout() {
-    this.auth.logout().pipe(take(1)).subscribe({
-      next: () => {
-        this.router.navigate(['/auth/login']);
-      },
-      error: (err) => {
-        console.error('Logout error:', err);
-        // Force navigation even if there's an error
-        this.router.navigate(['/auth/login']);
-      }
-    });
-  }
-
-  toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
-  }
+  toggleMobile() { this.isMobileMenuOpen = !this.isMobileMenuOpen; }
+  logout()       { this.auth.logout().subscribe(() => this.router.navigate(['/auth/login'])); }
 }
