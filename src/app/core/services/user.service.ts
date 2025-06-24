@@ -1,35 +1,54 @@
 import { Injectable } from '@angular/core';
-import { FirestoreService } from './firestore.service';
-import { collectionData, updateDoc } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { collection, collectionData, doc, updateDoc } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 import { UserDoc } from '@core/models/user-doc';
+import { FirestoreService } from './firestore.service';
 
 // alias to keep existing code compiling
 export type AppUser = UserDoc;
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  constructor(private fs: FirestoreService) {}
+  constructor(private firestoreService: FirestoreService) {}
 
   getAll(): Observable<UserDoc[]> {
-    const col = this.fs.col<UserDoc>('users');
+    const usersCollection = collection(this.firestoreService.db, 'users');
     console.log('[UserService] getAll');
-    return collectionData(col, { idField: 'uid' }) as Observable<UserDoc[]>;
+    return collectionData(usersCollection, { idField: 'uid' }) as Observable<UserDoc[]>;
   }
 
   approve(uid: string) {
     console.log('[UserService] approve', uid);
-    return updateDoc(this.fs.doc(`users/${uid}`), { approved: true, blocked: false, updatedAt: Date.now() });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      approved: true, 
+      blocked: false, 
+      updatedAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] User ${uid} approved`);
+    }));
   }
 
   block(uid: string, blocked = true) {
-    console.log('[UserService] block', uid, blocked);
-    return updateDoc(this.fs.doc(`users/${uid}`), { blocked, updatedAt: Date.now() });
+    console.log(`[UserService] ${blocked ? 'Blocking' : 'Unblocking'} user`, uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      blocked,
+      updatedAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] User ${uid} ${blocked ? 'blocked' : 'unblocked'}`);
+    }));
   }
 
   setRoles(uid: string, roles: string[]) {
-    console.log('[UserService] setRoles', uid, roles);
-    return updateDoc(this.fs.doc(`users/${uid}`), { roles, updatedAt: Date.now() });
+    console.log('[UserService] setRoles', { uid, roles });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      roles,
+      updatedAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] Roles updated for user ${uid}`, roles);
+    }));
   }
 }

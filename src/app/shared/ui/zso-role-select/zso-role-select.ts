@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { 
+  Component, 
+  EventEmitter, 
+  Input, 
+  Output, 
+  ViewChild, 
+  ElementRef, 
+  HostListener,
+  inject
+} from '@angular/core';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
 
@@ -8,15 +17,27 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
   standalone: true,
   imports: [CommonModule, OverlayModule],
   template: `
-    <div class="relative inline-block text-left select-none">
+    <div class="relative inline-block text-left">
       <!-- Trigger -->
-      <button #trigger="cdkOverlayOrigin" cdkOverlayOrigin type="button" (click)="toggle()" class="btn btn-xs bg-gray-700/60 hover:bg-gray-600/60 text-white rounded-md">
+      <button 
+        #trigger="cdkOverlayOrigin" 
+        cdkOverlayOrigin 
+        type="button" 
+        (click)="toggle()" 
+        class="inline-flex items-center justify-between w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 min-w-[120px] transition-colors"
+        [class.border-primary-500]="selected?.length">
         <ng-container *ngIf="selected?.length; else ph">
-          <span *ngFor="let r of selected" class="badge badge-secondary mr-1">{{ r }}</span>
+          <div class="flex flex-wrap gap-1">
+            <span *ngFor="let r of selected" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200">
+              {{ r }}
+            </span>
+          </div>
         </ng-container>
-        <ng-template #ph><span class="opacity-60">Rollen wählen</span></ng-template>
-        <svg class="w-4 h-4 ml-1 -mr-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <ng-template #ph>
+          <span class="text-gray-500 dark:text-gray-400">Rollen wählen</span>
+        </ng-template>
+        <svg class="-mr-1 ml-2 h-4 w-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
 
@@ -29,11 +50,24 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
                  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
                  (backdropClick)="open=false"
                  (detach)="open=false">
-        <div class="w-44 rounded-md glass-card p-2 z-30">
-          <label *ngFor="let opt of roleOptions" class="flex items-center gap-2 py-1 cursor-pointer text-sm">
-            <input type="checkbox" class="accent-orange-500" [checked]="isSelected(opt)" (change)="toggleOpt(opt)" />
-            <span>{{ opt }}</span>
-          </label>
+        <div class="mt-1 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+          <div class="py-1" role="menu" aria-orientation="vertical">
+            <div *ngFor="let opt of roleOptions" 
+                 class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
+                 (click)="toggleOpt(opt)"
+                 role="menuitem">
+              <div class="flex items-center h-5">
+                <input type="checkbox" 
+                       class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-900"
+                       [checked]="isSelected(opt)" 
+                       (click)="$event.stopPropagation()"
+                       (change)="toggleOpt(opt)">
+              </div>
+              <div class="ml-3">
+                {{ opt }}
+              </div>
+            </div>
+          </div>
         </div>
       </ng-template>
     </div>
@@ -42,9 +76,10 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
 })
 export class ZsoRoleSelect {
   @ViewChild(CdkConnectedOverlay) overlay?: CdkConnectedOverlay;
+  private el = inject(ElementRef);
 
   @Input() roleOptions: string[] = [];
-  @Input() selected: string[] = [];
+  @Input() selected: string[] | null = [];
   @Output() selectedChange = new EventEmitter<string[]>();
 
   open = false;
@@ -56,12 +91,26 @@ export class ZsoRoleSelect {
   toggle() { this.open = !this.open; }
   isSelected(opt: string) { return this.selected?.includes(opt) ?? false; }
 
+  get hasSelection(): boolean {
+    return !!this.selected && this.selected.length > 0;
+  }
+
   toggleOpt(opt: string) {
-    const sel = [...(this.selected ?? [])];
-    const idx = sel.indexOf(opt);
-    idx > -1 ? sel.splice(idx, 1) : sel.push(opt);
-    if (!sel.length) return;               // verhindert leeres Array
-    this.selected = sel;
-    this.selectedChange.emit(sel);
+    // For single selection, just set the selected item
+    // If clicking the same role, don't change the selection
+    if (this.selected?.includes(opt)) {
+      return;
+    }
+    this.selected = [opt];
+    this.selectedChange.emit(this.selected);
+    this.open = false; // Close dropdown after selection
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!this.el.nativeElement.contains(target)) {
+      this.open = false;
+    }
   }
 }

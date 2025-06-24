@@ -1,52 +1,143 @@
-<section class="bg-gray-900 rounded-lg shadow-lg p-6">
-  <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-semibold text-white">Benutzerverwaltung</h1>
-    <button (click)="togglePendingFilter()" class="btn btn-sm" [ngClass]="showPending ? 'btn-secondary' : 'btn-outline'">
-      {{ showPending ? 'Alle anzeigen' : 'Nur ausstehende' }}
-    </button>
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="glass-card p-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Benutzerverwaltung</h1>
+        <p class="text-sm text-white/70 mt-1">Verwalten Sie Benutzerkonten und Berechtigungen</p>
+      </div>
+      <zso-button 
+        (click)="refreshUsers()" 
+        [disabled]="isLoading" 
+        class="glass-btn-primary flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Aktualisieren
+      </zso-button>
+    </div>
   </div>
 
-  <div class="relative overflow-x-auto overflow-visible rounded-md border border-gray-700">
-    <table class="min-w-full text-sm text-gray-200 divide-y divide-gray-700">
-      <thead class="bg-gray-800 text-gray-300 sticky top-0 z-10">
-        <tr>
-          <th class="px-4 py-3 text-left font-medium">Name</th>
-          <th class="px-4 py-3 text-left font-medium">E-Mail</th>
-          <th class="px-4 py-3 text-center font-medium">Status</th>
-          <th class="px-4 py-3 text-left font-medium">Rollen</th>
-          <th class="px-4 py-3 text-right font-medium w-48">Aktionen</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-700">
-        <tr *ngFor="let u of users$ | async; let i = index" [hidden]="showPending && u.approved" [ngClass]="{'bg-gray-800': i % 2 === 1}" class="hover:bg-gray-800">
-          <td class="px-4 py-3 whitespace-nowrap">{{ u.firstName }} {{ u.lastName }}</td>
-          <td class="px-4 py-3 whitespace-nowrap">{{ u.email }}</td>
-          <td class="px-4 py-3 text-center">
-            <span [ngClass]="{
-                'badge badge-success': u.approved && !u.blocked,
-                'badge badge-warning': !u.approved,
-                'badge badge-error': u.blocked
-              }">
-              {{ u.blocked ? 'Gesperrt' : u.approved ? 'Aktiv' : 'Ausstehend' }}
-            </span>
-          </td>
-          <td class="px-4 py-3">
-
-            <zso-role-select
-            [roleOptions]="roleOptions"
-            [selected]="u.roles"
-            (selectedChange)="onRolesChange(u, $event)">
-          </zso-role-select>
-
-          </td>
-          <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-            <button *ngIf="!u.approved" (click)="approve(u)" class="btn btn-xs btn-primary">Bestätigen</button>
-            <button (click)="toggleBlock(u)" class="btn btn-xs" [ngClass]="u.blocked ? 'btn-secondary' : 'btn-warning'">
-              {{ u.blocked ? 'Entsperren' : 'Sperren' }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Filter -->
+  <div class="glass-card p-4">
+    <div class="flex items-center gap-3">
+      <zso-checkbox 
+        [(ngModel)]="showPending"
+        (ngModelChange)="onShowPendingChange($event)"
+        label="Nur ausstehende Benutzer anzeigen"
+      ></zso-checkbox>
+    </div>
   </div>
-</section>
+
+  <!-- Error Message -->
+  @if (error) {
+    <div class="bg-red-500/10 border-l-4 border-red-500 p-4 rounded">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-300">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="flex justify-center items-center p-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cp-orange"></div>
+    </div>
+  } @else {
+    <!-- Users List -->
+    <div class="glass-card overflow-hidden">
+      <!-- Desktop Header -->
+      <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-3 text-xs font-medium text-white/60 uppercase tracking-wider border-b border-white/10">
+        <div class="col-span-4">Name & E-Mail</div>
+        <div class="col-span-2">Status</div>
+        <div class="col-span-4">Rollen</div>
+        <div class="col-span-2 text-right">Aktionen</div>
+      </div>
+      
+      <!-- Users List -->
+      <ul class="divide-y divide-white/10">
+        @if (filteredUsers$ | async; as users) {
+          @if (users.length > 0) {
+            @for (user of users; track trackByUserId($index, user)) {
+              <li class="user-list-item p-4 hover:bg-white/5 transition-colors">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                  <!-- Name & Email -->
+                  <div class="col-span-4">
+                    <div class="font-medium text-white">
+                      {{ getDisplayName(user) }}
+                    </div>
+                    <div class="text-sm text-white/70">
+                      {{ user.email }}
+                    </div>
+                  </div>
+                  
+                  <!-- Status -->
+                  <div class="col-span-2">
+                    <span 
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      [ngClass]="getStatusBadgeClass(user)"
+                    >
+                      {{ getStatusText(user) }}
+                    </span>
+                  </div>
+                  
+                  <!-- Roles -->
+                  <div class="col-span-4">
+                    <zso-role-select 
+                      [roleOptions]="roleOptions"
+                      [selected]="user.roles || []"
+                      (selectedChange)="onRolesChange(user, $event)"
+                    ></zso-role-select>
+                  </div>
+                  
+                  <!-- Actions -->
+                  <div class="col-span-2 flex justify-end gap-2">
+                    @if (!user.approved) {
+                      <zso-button 
+                        size="sm" 
+                        type="primary"
+                        (click)="approve(user)"
+                        [disabled]="isLoading"
+                        class="whitespace-nowrap"
+                      >
+                        Freischalten
+                      </zso-button>
+                    }
+                    <zso-button 
+                      size="sm" 
+                      [type]="user.blocked ? 'primary' : 'danger'"
+                      (click)="toggleBlock(user)"
+                      [disabled]="isLoading"
+                      class="whitespace-nowrap"
+                    >
+                      {{ user.blocked ? 'Entsperren' : 'Sperren' }}
+                    </zso-button>
+                  </div>
+                </div>
+              </li>
+            }
+          } @else {
+            <div class="p-4 text-center text-gray-500">
+              Keine Benutzer gefunden.
+              <button (click)="refreshUsers()" class="text-primary-500 hover:underline ml-2">
+                Erneut versuchen
+              </button>
+            </div>
+          }
+        } @else {
+          <div class="p-4 text-center text-gray-500">
+            Lade Benutzer...
+          </div>
+        }
+      </ul>
+    </div>
+  }
+</div>

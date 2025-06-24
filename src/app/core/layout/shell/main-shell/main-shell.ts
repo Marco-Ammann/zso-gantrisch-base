@@ -1,28 +1,85 @@
-import { Component } from "@angular/core";
-import { Observable } from 'rxjs';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { AuthService } from '@core/auth/services/auth.service';
+import { Component, inject, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { AsyncPipe, NgIf, NgClass } from '@angular/common';
-import { RouterOutlet } from "@angular/router";
-import { CommonModule } from "@angular/common";
+import { AuthService } from '@core/auth/services/auth.service';
+import { map, take } from 'rxjs/operators';
+
+interface AppUser {
+  doc: {
+    email?: string;
+    roles?: string[];
+  };
+}
 
 @Component({
-    selector: 'app-main-shell',
-    templateUrl: './main-shell.html',
-    styleUrls: ['./main-shell.scss'],
-    imports: [RouterOutlet, CommonModule, RouterLink, RouterLinkActive, AsyncPipe, NgIf, NgClass],
-    standalone: true,
+  selector: 'zso-main-shell',
+  standalone: true,
+  imports: [
+    CommonModule, 
+    RouterOutlet, 
+    RouterLink, 
+    RouterLinkActive,
+    AsyncPipe, 
+    NgIf
+  ],
+  templateUrl: './main-shell.html',
 })
 export class MainShell {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  isProfileOpen = false;
+  isMobileMenuOpen = false;
+  currentYear = new Date().getFullYear();
+
+  readonly isAdmin$ = this.auth.appUser$.pipe(
+    map(user => user?.doc?.roles?.includes('admin') || false)
+  );
   
-  appUser$!: Observable<any>;
-  open = false;
-  constructor(private auth: AuthService, private router: Router) {
-    this.appUser$ = this.auth.appUser$;
+  readonly appUser$ = this.auth.appUser$;
+  readonly userInitials$ = this.appUser$.pipe(
+    map(user => user?.doc?.email?.charAt(0).toUpperCase() || 'U')
+  );
+  readonly userEmail$ = this.appUser$.pipe(
+    map(user => user?.doc?.email || '')
+  );
+
+  @ViewChild('profileDropdown') profileDropdown!: ElementRef;
+  
+  isLinkActive(url: string): boolean {
+    return this.router.url.includes(url);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const clickedInsideProfile = this.profileDropdown?.nativeElement.contains(target);
+    
+    if (!clickedInsideProfile) {
+      this.isProfileOpen = false;
+    }
+    
+    // Close mobile menu when clicking on a link
+    if (target.closest('a') && this.isMobileMenuOpen) {
+      this.isMobileMenuOpen = false;
+    }
   }
 
   logout() {
-    this.auth.logout().subscribe(() => this.router.navigate(['/auth/login']));
+    this.auth.logout().pipe(take(1)).subscribe({
+      next: () => {
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        console.error('Logout error:', err);
+        // Force navigation even if there's an error
+        this.router.navigate(['/auth/login']);
+      }
+    });
   }
 
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 }

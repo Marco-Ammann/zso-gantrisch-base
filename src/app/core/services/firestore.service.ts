@@ -6,7 +6,7 @@ import {
   CollectionReference, DocumentReference
 } from '@angular/fire/firestore';
 
-import { APP_SETTINGS, AppSettings } from '@config/app-settings';
+import { APP_SETTINGS, AppSettings } from '../config/app-settings';
 
 /**
  * Wrapper um eine **benannte** Firestore-Instanz.
