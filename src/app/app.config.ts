@@ -24,9 +24,9 @@ import { provideStorage, getStorage } from '@angular/fire/storage';
 import { environment } from '../environments/environment';
 
 // eigene Dateien
-import { App } from './app';
 import { appRoutes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -57,6 +57,5 @@ export const appConfig: ApplicationConfig = {
     provideDatabase(() => getDatabase()),
     provideFunctions(() => getFunctions()),
     provideStorage(() => getStorage()),
-
   ]
 };

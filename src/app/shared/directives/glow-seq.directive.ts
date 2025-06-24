@@ -1,3 +1,4 @@
+// src/app/shared/directives/glow-seq.directive.ts
 import { Directive, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
 
 @Directive({

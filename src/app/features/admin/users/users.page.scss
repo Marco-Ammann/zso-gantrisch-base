@@ -1,14 +1,7 @@
 :host { display:block; }
 
-/* Badges */
 .badge {
-  @apply ml-2 text-xs px-2 py-0.5 rounded font-medium;
+  @apply ml-2 text-xs px-2 py-0.5 rounded font-medium inline-flex items-center gap-1;
   &--pending   { @apply bg-amber-500/20 text-amber-300; }
   &--suspended { @apply bg-rose-500/20  text-rose-300; }
-}
-
-/* Icon-Zso-Buttons */
-.icon-btn {
-  @apply w-8 h-8 p-0 flex-shrink-0 flex items-center justify-center rounded-full
-         bg-white/10 backdrop-blur-md border border-white/20 transition hover:bg-white/15;
 }

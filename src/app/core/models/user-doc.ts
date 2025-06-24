@@ -1,3 +1,4 @@
+// src/app/core/models/user-doc.ts
 export interface UserDoc {
   uid: string;
   email: string;

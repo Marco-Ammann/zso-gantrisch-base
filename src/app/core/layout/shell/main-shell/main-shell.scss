@@ -1,23 +1,2 @@
 :host { display:block; height:100%; }
-
-/* Pill-Navi */
-.pill {
-  @apply relative px-3 py-1.5 rounded-full text-sm text-gray-300 hover:text-cp-orange/80 transition-colors;
-}
-.pill-active {
-  @apply text-white bg-cp-orange/20 shadow-[0_0_8px_1px_rgba(255,121,0,.5)];
-}
-.pill::after { @apply absolute left-0 -bottom-1 h-0.5 w-0 bg-cp-orange transition-all duration-300 content-['']; }
-.pill:hover::after, .pill-active::after { @apply w-full; }
-
-/* Avatar / Dropdown */
-.avatar        { @apply h-9 w-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-semibold; }
-.dropdown-menu { @apply absolute right-0 mt-2 w-44 bg-white rounded-md overflow-hidden z-50 shadow-lg; }
-.dropdown-item { @apply w-full text-left px-4 py-2 text-sm hover:bg-gray-100; }
-
-/* Mobile */
-.mobile-link { @apply block px-5 py-4 border-b border-white/5 text-gray-300 hover:text-white; }
-.mobile-link:last-child { @apply border-0; }
-
-/* Glas-Karte darf Dropdown nicht cutten */
-.navbar-glass { @apply overflow-visible; }
+// Nur absolute Minimal-Overrides, alles weitere in styles.css!

@@ -1,3 +1,4 @@
+// src/app/core/auth/services/auth.service.ts
 import { Injectable, Inject }       from '@angular/core';
 import { AngularFireAuth }          from '@angular/fire/compat/auth';
 import { FirestoreService }         from '@core/services/firestore.service';

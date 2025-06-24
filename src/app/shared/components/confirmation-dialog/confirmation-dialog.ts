@@ -1,3 +1,4 @@
+// src/app/shared/components/confirmation-dialog/confirmation-dialog.ts
 import { Component, EventEmitter, Input, Output, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ZsoButton } from '../../ui/zso-button/zso-button';

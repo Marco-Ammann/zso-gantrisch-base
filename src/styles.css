@@ -1,28 +1,84 @@
 /* src/styles.css: */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+/* ----------------------------------------------------------- */
+/*  ICON-FONT                                                  */
+/* ----------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap');
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 400;
+  font-style : normal;
+  line-height: 1;
+  font-variation-settings:
+    'FILL' 0,
+    'GRAD' 0,
+    'opsz' 24,
+    'wght' 400;
+}
+
+/* ----------------------------------------------------------- */
+/*  Tailwind Imports                                           */
+/* ----------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* == BASE == */
 @layer base {
-  html, body {
+  html,
+  body {
     @apply h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans;
   }
-  *, *::before, *::after { @apply box-border; }
-  a { @apply text-cp-orange hover:text-cp-orange/80 transition-colors; }
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
+  }
+  a {
+    @apply text-cp-orange hover:text-cp-orange/80 transition-colors;
+  }
 
-  html { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  html {
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
 }
 
 /* == COMPONENTS == */
 @layer components {
-
   /* Glass Card Grundstil */
   .glass-card {
     @apply relative overflow-hidden backdrop-blur-lg bg-white/15 dark:bg-gray-800/25
            border border-white/10 rounded-2xl shadow-lg;
+    z-index: 10;
+  }
+
+  /* Pills (Nav) */
+  .pill {
+    @apply relative px-3 py-1.5 rounded-full text-sm text-gray-300 hover:text-cp-orange/80 transition-colors;
+    /* Sparkle-Effekt */
+    overflow: visible;
+  }
+  .pill-active {
+    @apply text-white bg-cp-orange/20 shadow-[0_0_8px_1px_rgba(255,121,0,.5)];
+  }
+  .pill::after {
+    @apply absolute left-0 -bottom-1 h-0.5 w-0 bg-cp-orange transition-all duration-300 content-[''];
+  }
+  .pill:hover::after,
+  .pill-active::after {
+    @apply w-full;
+  }
+
+  /* Avatar */
+  .avatar {
+    @apply h-9 w-9 rounded-full bg-orange-100 text-orange-700
+             flex items-center justify-center font-semibold
+             ring-2 ring-transparent hover:ring-cp-orange transition
+             shadow-lg text-base;
+    letter-spacing: 0.01em;
+    font-family: inherit;
   }
 
   /* Buttons */
@@ -41,37 +97,60 @@
   .glass-btn-neutral {
     @apply glass-btn border-white/20 text-gray-200 hover:bg-white/10;
   }
-  
+
   .glass-btn-glow {
-    box-shadow: 0 0 10px rgba(255,121,0,.55), inset 0 0 6px rgba(255,121,0,.35);
+    box-shadow: 0 0 10px rgba(255, 121, 0, 0.55),
+      inset 0 0 6px rgba(255, 121, 0, 0.35);
   }
 
   /* Input / Label */
-  .input-wrapper { @apply mb-2.5; }
-  .input-label   { @apply mb-0.5 text-sm text-white/90; }
+  .input-wrapper {
+    @apply mb-2.5;
+  }
+  .input-label {
+    @apply mb-0.5 text-sm text-white/90;
+  }
   .form-input {
     @apply w-full rounded-lg bg-white/15 dark:bg-gray-800/30 ring-1 ring-white/40
            py-2 px-3 text-sm text-gray-200 placeholder-white/40 transition
            focus:bg-white/30 focus:ring-2 focus:ring-cp-orange;
   }
-  .form-input[aria-invalid='true']  { @apply ring-rose-500 text-rose-100; }
-  .form-input[aria-invalid='false'] { @apply ring-cp-orange/60; }
+  .form-input[aria-invalid="true"] {
+    @apply ring-rose-500 text-rose-100;
+  }
+  .form-input[aria-invalid="false"] {
+    @apply ring-cp-orange/60;
+  }
 
   /* Checkbox */
-  .checkbox-wrapper { @apply flex items-center gap-2 mb-2.5 cursor-pointer; }
-  .checkbox-hidden  { @apply sr-only; }
+  .checkbox-wrapper {
+    @apply flex items-center gap-2 mb-2.5 cursor-pointer;
+  }
+  .checkbox-hidden {
+    @apply sr-only;
+  }
   .checkbox-box {
     @apply h-4 w-4 flex items-center justify-center rounded border-2 border-white/30
            transition peer-checked:bg-cp-orange peer-checked:border-cp-orange;
   }
-  .checkbox-box svg { @apply h-2.5 w-2.5 text-white; }
-  .checkbox-label   { @apply text-sm text-white/90; }
+  .checkbox-box svg {
+    @apply h-2.5 w-2.5 text-white;
+  }
+  .checkbox-label {
+    @apply text-sm text-white/90;
+  }
 
   /* Layout Utilities */
-  .field-stack        { @apply flex flex-col gap-5 sm:gap-6; }
-  .field-stack--tight { @apply flex flex-col gap-3.5; }
-  .auth-card-padding  { @apply p-4 sm:p-5; }
-  .auth-icon-wrapper  {
+  .field-stack {
+    @apply flex flex-col gap-5 sm:gap-6;
+  }
+  .field-stack--tight {
+    @apply flex flex-col gap-3.5;
+  }
+  .auth-card-padding {
+    @apply p-4 sm:p-5;
+  }
+  .auth-icon-wrapper {
     @apply flex items-center justify-center h-14 w-14 rounded-full
            bg-white/10 backdrop-blur-md ring-1 ring-white/20;
   }
@@ -82,59 +161,141 @@
   .divider-labeled::after {
     @apply content-[''] flex-grow border-t border-white/20;
   }
-  .divider-labeled::before { @apply mr-1.5; }
-  .divider-labeled::after  { @apply ml-1.5; }
+  .divider-labeled::before {
+    @apply mr-1.5;
+  }
+  .divider-labeled::after {
+    @apply ml-1.5;
+  }
 
-  .section-title { @apply text-[10px] uppercase tracking-wide text-white/60; }
+  .section-title {
+    @apply text-[10px] uppercase tracking-wide text-white/60;
+  }
+
+  /* Dropdown */
+  .dropdown-menu {
+    @apply absolute right-0 mt-2 w-44 bg-white rounded-md overflow-hidden z-50 shadow-lg;
+    min-width: 10rem;
+  }
+  .dropdown-item {
+    @apply w-full px-4 py-2 text-sm text-left hover:bg-gray-100;
+    transition: background 0.15s;
+  }
+
+  /* Mobile-Link */
+  .mobile-link {
+    @apply block px-5 py-4 border-b border-white/5 text-gray-300 hover:text-white;
+  }
+  .mobile-link:last-child {
+    @apply border-0;
+  }
 }
 
-/* == UTILITIES (überarbeitet) == */
+/* == UTILITIES == */
 @layer utilities {
-  /* --- Hero Fade (seidig-glatt) --- */
-  @keyframes fadeUp {
-    0%   { opacity: 0; transform: translateY(.5rem); }
-    70%  { opacity: 1; transform: translateY(0); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fadeUp {
-    @apply animate-[fadeUp_700ms_cubic-bezier(.22,.14,.35,1)_forwards];
-  }
-
-  /* --- Sweep-Underline (abgerundete Enden) --- */
+  /* Sweep-Underline (abgerundete Enden) */
   @keyframes sweep {
-    0%    { width: 0;    opacity: 0; }
-    30%   { width: 40%;  opacity: .25; }
-    60%   { width: 80%;  opacity: .35; }
-    100%  { width: 100%; opacity: 0; }
+    0% {
+      width: 0;
+      opacity: 0;
+    }
+    30% {
+      width: 40%;
+      opacity: 0.25;
+    }
+    60% {
+      width: 80%;
+      opacity: 0.35;
+    }
+    100% {
+      width: 100%;
+      opacity: 0;
+    }
   }
   .underline-sweep {
-    position: relative; isolation: isolate;
+    position: relative;
+    isolation: isolate;
   }
   .underline-sweep::after {
-    content: '';
-    position: absolute; left: 0; bottom: -1px;
-    height: 2px; background: #FF9900; /* etwas helleres Orange */
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 2px;
+    background: #ff9900;
     border-radius: 1px;
-    animation: sweep 1.1s ease-out both;
+    animation: sweep 1.1s cubic-bezier(0.3, 0.8, 0.4, 1.2) both;
     animation-delay: var(--sweep-delay, 0ms);
     pointer-events: none;
   }
 
-  /* --- Border Reflection (helleres Glanzband) --- */
+  /* Sparkle-Effekt (mehr Glow, dezenter, leicht animiert) */
+  @keyframes sparkle {
+    0% {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    30% {
+      opacity: 0.5;
+      transform: scale(1.1) rotate(-3deg);
+    }
+    70% {
+      opacity: 0.9;
+      transform: scale(1) rotate(3deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.8) rotate(-3deg);
+    }
+  }
+  .sparkle::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    z-index: 40;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-image: radial-gradient(
+        circle at 25% 25%,
+        rgba(255, 255, 255, 0.8) 0%,
+        transparent 75%
+      ),
+      radial-gradient(
+        circle at 85% 20%,
+        rgba(255, 255, 255, 0.6) 0%,
+        transparent 80%
+      ),
+      radial-gradient(
+        circle at 45% 80%,
+        rgba(255, 121, 0, 0.3) 0%,
+        transparent 80%
+      );
+    background-size: 7px 7px, 5px 5px, 11px 11px;
+    animation: sparkle 2.5s cubic-bezier(0.22, 0.14, 0.35, 1) infinite;
+  }
+
+  /* Border Reflection (Reflexions-Glanzband) */
   @keyframes border-glide {
-    0%   { background-position: 0 0; }
-    100% { background-position: 200% 0; }
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
   .glass-card::before {
-    content: '';
-    position: absolute; inset: 0; padding: 1px; border-radius: inherit;
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255,255,255,.25) 20%,  /* heller */
+      rgba(255, 255, 255, 0.25) 20%,
       transparent 40%,
       transparent 60%,
-      rgba(255,255,255,.25) 80%,  /* heller */
+      rgba(255, 255, 255, 0.25) 80%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -143,23 +304,9 @@
     animation: border-glide 10s linear infinite;
     pointer-events: none;
   }
+}
 
-  /* --- Sparkles (dezentes Funkeln) --- */
-  @keyframes sparkle {
-    0%   { opacity: 0; transform: scale(0.6); }
-    50%  { opacity: .6; transform: scale(1); }
-    100% { opacity: 0; transform: scale(0.6); }
-  }
-  .glass-card.sparkle::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-repeat: no-repeat;
-    background-image:
-      radial-gradient(circle at 25% 25%, rgba(255,255,255,.8) 0%, transparent 70%),
-      radial-gradient(circle at 75% 20%, rgba(255,255,255,.8) 0%, transparent 70%),
-      radial-gradient(circle at 50% 80%, rgba(255,255,255,.8) 0%, transparent 70%);
-    background-size: 5px 5px, 4px 4px, 6px 6px;
-    animation: sparkle 3s ease-out forwards;
-    pointer-events: none;
-  }
+/* Section-Titles für Listen */
+.section-title {
+  @apply text-[10px] uppercase tracking-wide text-white/60 font-bold;
 }

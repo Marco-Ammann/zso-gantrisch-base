@@ -8,7 +8,6 @@ import { switchMap, map } from 'rxjs/operators';
 import { UserService } from '@core/services/user.service';
 import { UserDoc } from '@core/models/user-doc';
 import { CardShimmerDirective } from '@shared/directives/card-shimmer.directive';
-import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
@@ -19,7 +18,7 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
   standalone : true,
   imports    : [
     CommonModule, NgIf, NgForOf, FormsModule, RouterModule, AsyncPipe,
-    CardShimmerDirective, ZsoCheckbox, ZsoButton, ZsoInputField, ZsoRoleSelect,
+    CardShimmerDirective, ZsoButton, ZsoInputField, ZsoRoleSelect,
     ConfirmationDialogComponent
   ],
   templateUrl: './users.page.html',
@@ -55,6 +54,24 @@ export class UsersPage {
     switchMap(() => this.userService.getAll()),
     map(a => ({ total:a.length, pending:a.filter(u=>!u.approved).length, blocked:a.filter(u=>u.blocked).length }))
   );
+
+  base$ = this.refresh$.pipe(
+    switchMap(() => this.userService.getAll()),
+    map(list => {                 /* Suche + Pending-Filter */
+      let arr = list;
+      if (this.showPending) arr = arr.filter(u => !u.approved);
+      if (this.search.trim()) {
+        const q = this.search.toLowerCase();
+        arr = arr.filter(u =>
+          (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
+           u.email.toLowerCase().includes(q));
+      }
+      return arr;
+    })
+  );
+
+    pending$ = this.base$.pipe(map(a => a.filter(u => !u.approved)));
+  others$  = this.base$.pipe(map(a => a.filter(u =>  u.approved)));
 
   /* Dialog */
   @ViewChild(ConfirmationDialogComponent) confirmation!: ConfirmationDialogComponent;
