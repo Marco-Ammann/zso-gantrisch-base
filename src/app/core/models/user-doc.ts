@@ -12,6 +12,16 @@ export interface UserDoc {
 
   createdAt: number; // Date.now()
   updatedAt: number;
+
+  lastLoginAt?: number;
+
+  lastLogoutAt?: number;
+
+  lastActiveAt?: number;
+
+  lastInactiveAt?: number;
+
+  
 }
 
 export class User {

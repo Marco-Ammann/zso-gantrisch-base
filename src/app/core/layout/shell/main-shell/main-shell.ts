@@ -1,13 +1,17 @@
-import { Component, inject, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs/operators';
+
+import { OverlayModule } from '@angular/cdk/overlay';
+import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
+
 import { AuthService } from '@core/auth/services/auth.service';
 
 @Component({
   selector   : 'zso-main-shell',
   standalone : true,
-  imports    : [CommonModule, RouterModule],
+  imports    : [CommonModule, RouterModule, OverlayModule],
   templateUrl: './main-shell.html',
   styleUrls  : ['./main-shell.scss']
 })
@@ -15,21 +19,22 @@ export class MainShell {
   private auth   = inject(AuthService);
   private router = inject(Router);
 
-  showLinks   = false;
-  showProfile = false;
-
+  showLinks = false;
   isAdmin$  = this.auth.appUser$.pipe(map(u => u?.doc.roles?.includes('admin') ?? false));
   initials$ = this.auth.appUser$.pipe(map(u => u?.doc.email?.[0].toUpperCase() ?? 'U'));
 
-  @ViewChild('profileDrop', { static: true }) profileDrop!: ElementRef;
+  /* ---------- Overlay für Avatar ---------- */
+  @ViewChild(CdkConnectedOverlay) overlay?: CdkConnectedOverlay;
+  overlayOpen = false;
+  positions: ConnectedPosition[] = [
+    { originX:'end', originY:'bottom', overlayX:'end', overlayY:'top', offsetY: 8 },
+    { originX:'end', originY:'top',    overlayX:'end', overlayY:'bottom', offsetY:-8 }
+  ];
 
-  @HostListener('document:click', ['$event'])
-  closeOutside(evt: MouseEvent) {
-    const t = evt.target as HTMLElement;
-    if (!this.profileDrop.nativeElement.contains(t)) this.showProfile = false;
-  }
-
-  toggleProfile() { this.showProfile = !this.showProfile; }
+  toggleProfile() { this.overlayOpen = !this.overlayOpen; }
   toggleMobile () { this.showLinks   = !this.showLinks; }
-  logout()        { this.auth.logout().subscribe(()=>this.router.navigate(['/auth/login'])); }
+  logout() {
+    this.auth.logout().subscribe(()=>this.router.navigate(['/auth/login']));
+    this.overlayOpen = false;
+  }
 }

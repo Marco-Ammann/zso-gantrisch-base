@@ -1,7 +1,20 @@
 :host { display:block; }
 
-.badge {
-  @apply ml-2 text-xs px-2 py-0.5 rounded font-medium inline-flex items-center gap-1;
-  &--pending   { @apply bg-amber-500/20 text-amber-300; }
-  &--suspended { @apply bg-rose-500/20  text-rose-300; }
+/* Meta-Infos unterhalb der Mail-Adresse */
+.meta{ @apply text-xs text-gray-400 leading-relaxed; }
+
+/* Badge (gesperrt) anpassen */
+.badge{
+  @apply ml-2 text-xs px-2 py-0.5 rounded font-medium;
+  &--suspended{ @apply bg-rose-500/20 text-rose-300; }
+}
+
+/* Nur ein dünner roter Rahmen + dezentes Overlay */
+.user-card--blocked{
+  @apply border border-rose-400/30 bg-rose-400/[0.06];
+}
+
+/* Dummy-Tag (d) optisch markieren */
+.demo-tag{
+  @apply mr-1 text-cp-blue font-semibold;
 }

@@ -78,4 +78,45 @@ export class UserService {
       })
     );
   }
+
+  updateLastLoginAt(uid: string) {
+    console.log('[UserService] updateLastLoginAt', uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      lastLoginAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] Last login updated for user ${uid}`);
+    }));
+  }
+
+  updateLastLogoutAt(uid: string) {
+    console.log('[UserService] updateLastLogoutAt', uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      lastLogoutAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] Last logout updated for user ${uid}`);
+    }));
+  }
+
+  updateLastActiveAt(uid: string) {
+    console.log('[UserService] updateLastActiveAt', uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      lastActiveAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] Last active updated for user ${uid}`);
+    }));
+  }
+
+  updateLastInactiveAt(uid: string) {
+    console.log('[UserService] updateLastInactiveAt', uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return from(updateDoc(userDoc, { 
+      lastInactiveAt: Date.now() 
+    }).then(() => {
+      console.log(`[UserService] Last inactive updated for user ${uid}`);
+    }));
+  }
+
 }

@@ -3,18 +3,14 @@
 /* ----------------------------------------------------------- */
 /*  ICON-FONT                                                  */
 /* ----------------------------------------------------------- */
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap");
 
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
+  font-family: "Material Symbols Outlined";
   font-weight: 400;
-  font-style : normal;
+  font-style: normal;
   line-height: 1;
-  font-variation-settings:
-    'FILL' 0,
-    'GRAD' 0,
-    'opsz' 24,
-    'wght' 400;
+  font-variation-settings: "FILL" 0, "GRAD" 0, "opsz" 24, "wght" 400;
 }
 
 /* ----------------------------------------------------------- */
@@ -73,13 +69,17 @@
 
   /* Avatar */
   .avatar {
-    @apply h-9 w-9 rounded-full bg-orange-100 text-orange-700
-             flex items-center justify-center font-semibold
-             ring-2 ring-transparent hover:ring-cp-orange transition
-             shadow-lg text-base;
-    letter-spacing: 0.01em;
-    font-family: inherit;
+    @apply inline-flex items-center gap-1 pl-3 pr-2 h-10 rounded-full
+           bg-white/10 text-white font-semibold
+           ring-2 ring-white/15 hover:ring-cp-orange
+           transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cp-orange;
   }
+  .avatar > span:first-child {
+    @apply -mr-0.5;
+  } /* Initials    */
+  .avatar > .material-symbols-outlined {
+    @apply text-base;
+  } /* Chevron */
 
   /* Buttons */
   .glass-btn {
@@ -101,6 +101,26 @@
   .glass-btn-glow {
     box-shadow: 0 0 10px rgba(255, 121, 0, 0.55),
       inset 0 0 6px rgba(255, 121, 0, 0.35);
+  }
+
+  /* runde Icon-Buttons ------------------------------------------------- */
+  .btn-circle{
+    /* Grundform */
+    @apply inline-flex items-center justify-center w-9 h-9 rounded-full
+           transition active:scale-95
+           ring-1 ring-current ring-opacity-40 text-current bg-transparent;
+  }
+  .btn-circle:hover{ @apply ring-opacity-60 bg-current bg-opacity-10; }
+
+  /* Spezifische Varianten (nur Farbe ändern) */
+  .btn-approve{
+    @apply btn-circle text-lime-400 ring-lime-400 hover:bg-lime-400/15;
+  }
+  .btn-block{
+    @apply btn-circle text-rose-400 ring-rose-400 hover:bg-rose-400/15;
+  }
+  .btn-neutral{
+    @apply btn-circle text-gray-300 ring-gray-400 hover:bg-gray-300/10;
   }
 
   /* Input / Label */
@@ -172,14 +192,14 @@
     @apply text-[10px] uppercase tracking-wide text-white/60;
   }
 
-  /* Dropdown */
+  /* Dropdown-Menü --------------------------------------------------------- */
   .dropdown-menu {
-    @apply absolute right-0 mt-2 w-44 bg-white rounded-md overflow-hidden z-50 shadow-lg;
-    min-width: 10rem;
+    @apply w-44 rounded-xl overflow-hidden shadow-xl border border-white/15
+         backdrop-blur-md bg-white/80 dark:bg-gray-900/70;
   }
   .dropdown-item {
-    @apply w-full px-4 py-2 text-sm text-left hover:bg-gray-100;
-    transition: background 0.15s;
+    @apply w-full px-4 py-2 text-left text-gray-800 dark:text-gray-200
+         hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm;
   }
 
   /* Mobile-Link */
@@ -189,10 +209,42 @@
   .mobile-link:last-child {
     @apply border-0;
   }
+
+  /* Sort-Select */
+  .sort-select {
+    /* Basis */
+    @apply appearance-none bg-white/5 dark:bg-gray-800/40
+           border border-white/20 rounded-lg
+           py-1.5 pl-3 pr-8 text-sm text-gray-200
+           focus:ring-2 focus:ring-cp-orange focus:border-cp-orange
+           transition-colors cursor-pointer;
+  }
+  /* Dropdown-Pfeil in Firefox */
+  .sort-select::-ms-expand { display:none; }      /* IE / Edge-Legacy    */
+  .sort-select::-webkit-scrollbar { width:0; }    /* Safari Dropdown-bg  */
+
+  /* Options – damit Popup auch dunkel ist           */
+  .sort-select option {
+    @apply bg-[#0e1628] text-gray-200;
+  }
 }
 
 /* == UTILITIES == */
 @layer utilities {
+  .glow-green{
+    /* weicher Außen-Glow + ganz leichter innerer Schein                       */
+    box-shadow:
+      0 0 0 1px rgba(163,230,53 ,0.45),   /* feiner Outline-Farbsaum          */
+      0 0 6px     rgba(163,230,53 ,0.55);  /* eigentlicher Glow               */
+  }
+  .glow-red{
+    box-shadow:
+      0 0 0 1px rgba(244,63,94 ,0.45),
+      0 0 6px     rgba(244,63,94 ,0.55);
+  }
+
+  
+
   /* Sweep-Underline (abgerundete Enden) */
   @keyframes sweep {
     0% {

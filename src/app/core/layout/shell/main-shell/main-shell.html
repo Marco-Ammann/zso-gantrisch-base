@@ -1,89 +1,76 @@
-<!-- Vollbild-Hintergrund + Overlay -->
-<div class="relative min-h-screen bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]">
+<!-- Vollbild-BG + Overlay ---------------------------------------------- -->
+<div class="relative min-h-screen bg-fixed bg-cover bg-center
+            bg-[url('assets/images/background_mountains.jpg')]">
   <div class="absolute inset-0 bg-[#0e1628]/90"></div>
 
-  <!-- NAVBAR -->
-  <nav class="relative z-20 glass-card overflow-visible backdrop-blur-md bg-[#0e1628]/70 border-b border-white/10">
-    <div class="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center">
+  <header class="relative z-20 backdrop-blur-lg">
+    <nav class="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center">
 
-      <!-- Logo links -->
+      <!-- Logo --------------------------------------------------------- -->
       <a routerLink="/" class="flex items-end gap-1 font-bold text-white">
         <span class="text-xl text-cp-orange">ZSO GANTRISCH</span>
         <span class="text-sm leading-none tracking-tight">base</span>
       </a>
 
-      <!-- Zentrierte Links -->
+      <!-- Desktop-Links ------------------------------------------------ -->
       <ul class="hidden md:flex gap-6 absolute left-1/2 -translate-x-1/2">
-        <li>
-          <a routerLink="/dashboard"
-             routerLinkActive="pill-active underline-sweep"
-             [routerLinkActiveOptions]="{exact:true}"
-             class="pill">Dashboard</a>
-        </li>
+        <li><a routerLink="/dashboard" routerLinkActive="pill-active underline-sweep"
+               [routerLinkActiveOptions]="{exact:true}" class="pill">Dashboard</a></li>
         <li *ngIf="isAdmin$ | async">
-          <a routerLink="/admin/users"
-             routerLinkActive="pill-active underline-sweep"
-             class="pill">Benutzer</a>
-        </li>
+          <a routerLink="/admin/users" routerLinkActive="pill-active underline-sweep"
+             class="pill">Benutzer</a></li>
       </ul>
 
-      <!-- Spacer für Flex-Grow -->
       <div class="flex-1"></div>
 
-      <!-- Avatar & Dropdown -->
-      <div class="relative" #profileDrop>
-        <button class="avatar"
-                (click)="toggleProfile()"
-                aria-haspopup="menu"
-                [attr.aria-expanded]="showProfile">
-          {{ initials$ | async }}
-        </button>
-
-        <ul *ngIf="showProfile"
-            class="dropdown-menu"
-            (keydown.escape)="showProfile=false">
-          <li>
-            <a class="dropdown-item">Mein Profil</a>
-          </li>
-          <li>
-            <button class="dropdown-item text-rose-600" (click)="logout()">Abmelden</button>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Burger rechts -->
-      <button class="md:hidden ml-3 text-gray-300"
-              (click)="toggleMobile()"
-              aria-label="Menü">
-        <svg *ngIf="!showLinks" xmlns="http://www.w3.org/2000/svg"
-             class="h-7 w-7" fill="none" viewBox="0 0 24 24"
-             stroke="currentColor" stroke-width="2">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-        <svg *ngIf="showLinks" xmlns="http://www.w3.org/2000/svg"
-             class="h-7 w-7" fill="none" viewBox="0 0 24 24"
-             stroke="currentColor" stroke-width="2">
-          <path d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <!-- Avatar-Button (Overlay-Origin) ------------------------------- -->
+      <button cdkOverlayOrigin #origin="cdkOverlayOrigin"
+              (click)="toggleProfile()"
+              class="avatar group"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="overlayOpen">
+        <span>{{ initials$ | async }}</span>
+        <span class="material-symbols-outlined text-sm transition-transform
+                     group-[[aria-expanded=true]]:rotate-180">expand_more</span>
       </button>
-    </div>
 
-    <!-- Mobile-Links -->
+      <!-- Dropdown (CDK-Overlay) -------------------------------------- -->
+      <ng-template
+         cdkConnectedOverlay
+         [cdkConnectedOverlayOrigin]="origin"
+         [cdkConnectedOverlayOpen]="overlayOpen"
+         [cdkConnectedOverlayPositions]="positions"
+         cdkConnectedOverlayHasBackdrop
+         cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+         (backdropClick)="overlayOpen=false"
+         (detach)="overlayOpen=false">
+
+        <ul class="dropdown-menu">
+          <li><button class="dropdown-item underline-sweep">Mein Profil</button></li>
+          <li><button class="dropdown-item text-rose-600 underline-sweep"
+                      (click)="logout()">Abmelden</button></li>
+        </ul>
+      </ng-template>
+
+      <!-- Burger (mobile) --------------------------------------------- -->
+      <button class="md:hidden text-gray-300 ml-3"
+              (click)="toggleMobile()" aria-label="Menü">
+        <span class="material-symbols-outlined text-3xl">
+          {{ showLinks ? 'close' : 'menu' }}
+        </span>
+      </button>
+    </nav>
+
+    <!-- Mobile-Links --------------------------------------------------- -->
     <ul *ngIf="showLinks"
         class="md:hidden bg-[#0e1628]/95 backdrop-blur-sm border-t border-white/5">
-      <li>
-        <a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-link">Dashboard</a>
-      </li>
+      <li><a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-link">Dashboard</a></li>
       <li *ngIf="isAdmin$ | async">
-        <a routerLink="/admin/users" (click)="toggleMobile()" class="mobile-link">Benutzer</a>
-      </li>
-      <li>
-        <button (click)="logout()" class="mobile-link text-rose-400">Abmelden</button>
-      </li>
+        <a routerLink="/admin/users" (click)="toggleMobile()" class="mobile-link">Benutzer</a></li>
+      <li><button (click)="logout()" class="mobile-link text-rose-400">Abmelden</button></li>
     </ul>
-  </nav>
+  </header>
 
-  <!-- Router-Content -->
   <main class="relative z-10 flex-1">
     <router-outlet></router-outlet>
   </main>

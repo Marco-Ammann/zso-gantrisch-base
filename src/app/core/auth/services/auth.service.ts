@@ -57,7 +57,7 @@ export class AuthService {
     return from(this.afAuth.setPersistence(persistence)).pipe(
       switchMap(() => from(this.afAuth.signInWithEmailAndPassword(email, password))),
       switchMap(() => from(this.afAuth.currentUser)),
-      switchMap(u => u ? from(u.reload()).pipe(map(() => void 0)) : of(void 0))
+      switchMap(u => u ? from(u.reload()).pipe(map(() => void 0)) : of(void 0)),
     );
   }
 
@@ -86,7 +86,11 @@ export class AuthService {
           approved: false,
           blocked : false,
           createdAt: now,
-          updatedAt: now
+          updatedAt: now,
+          lastLoginAt: now,
+          lastLogoutAt: now,
+          lastActiveAt: now,
+          lastInactiveAt: now,
         };
         const createProfile$ = from(setDoc(profileRef, profile));
 
