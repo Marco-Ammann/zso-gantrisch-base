@@ -3,12 +3,9 @@ import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, of, combineLatest, Subject } from 'rxjs';
-import { map, switchMap, shareReplay, startWith, debounceTime, distinctUntilChanged, tap, catchError } from 'rxjs/operators';
+import { BehaviorSubject, Subject, takeUntil, map, startWith, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { UserService } from '@core/services/user.service';
-import { SubscriptionService } from '@core/services/subscription.service';
-import { StateManagementService } from '@core/services/state-management.service';
 import { LoggerService } from '@core/services/logger.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
@@ -45,21 +42,13 @@ interface UsersPageState {
 export class UsersPage implements OnInit, OnDestroy {
   private readonly COMPONENT_NAME = 'UsersPage';
   
-  // Service Injection
+  // Services
   private readonly userService = inject(UserService);
-  private readonly subscriptionService = inject(SubscriptionService);
-  readonly stateService = inject(StateManagementService); // public für Template
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
 
-  // State Keys
-  private readonly STATE_KEYS = {
-    LOAD_USERS: 'users_load',
-    APPROVE_USER: 'users_approve',
-    BLOCK_USER: 'users_block',
-    SET_ROLES: 'users_roles',
-    BULK_OPERATIONS: 'users_bulk'
-  } as const;
+  // Cleanup
+  private readonly destroy$ = new Subject<void>();
 
   /* ----------------------------- Demo Data */
   public readonly dummyUsers: UserDoc[] = [
@@ -98,159 +87,128 @@ export class UsersPage implements OnInit, OnDestroy {
     pendingRoles: {}
   });
 
-  // UI State Selectors
-  readonly search$ = this.pageState$.pipe(map(state => state.search), distinctUntilChanged());
-  readonly sortBy$ = this.pageState$.pipe(map(state => state.sortBy), distinctUntilChanged());
-  readonly selectedUsers$ = this.pageState$.pipe(map(state => state.selectedUsers));
-  readonly pendingRoles$ = this.pageState$.pipe(map(state => state.pendingRoles));
+  // Simple State Properties
+  allUsers: UserDoc[] = [];
+  filteredUsers: { pending: UserDoc[], rest: UserDoc[], all: UserDoc[] } = {
+    pending: [],
+    rest: [],
+    all: []
+  };
+  isLoading = false;
+  errorMsg: string | null = null;
 
-  /* ----------------------------- Data Streams */
-  private readonly refresh$ = new BehaviorSubject<void>(undefined);
-
-  // Enhanced data loading with automatic state management
-  private readonly usersSubscription = this.subscriptionService.subscribe(
-    this.refresh$.pipe(
-      tap(() => this.logger.log(this.COMPONENT_NAME, 'Loading users...')),
-      switchMap(() => this.userService.getAll().pipe(
-        map(realUsers => [
-          ...realUsers,
-          ...this.dummyUsers.filter(d => !realUsers.some(u => u.uid === d.uid))
-        ]),
-        catchError(error => {
-          this.logger.error(this.COMPONENT_NAME, 'Failed to load users:', error);
-          return of(this.dummyUsers); // Fallback to dummy data
-        })
-      ))
-    ),
-    {
-      debugName: 'loadUsers',
-      component: this.COMPONENT_NAME,
-      retryAttempts: 3,
-      retryDelay: 2000,
-      manageLoading: true,
-      manageError: true
-    }
-  );
-
-  readonly allUsers$ = this.usersSubscription.data$;
-  readonly usersState$ = this.usersSubscription.state$;
-
-  // Enhanced filtered users with performance optimization
-  readonly users$ = combineLatest([
-    this.allUsers$,
-    this.search$.pipe(debounceTime(300), distinctUntilChanged(), startWith('')),
-    this.sortBy$.pipe(startWith('newest' as const))
-  ]).pipe(
-    map(([users, searchTerm, sortBy]) => this.processUsers(users, searchTerm, sortBy)),
-    shareReplay({ bufferSize: 1, refCount: true })
-  );
-
-  // Statistics with caching
-  readonly stats$ = this.allUsers$.pipe(
-    map(users => ({
-      total: users.length,
-      pending: users.filter(u => !u.approved).length,
-      blocked: users.filter(u => u.blocked).length,
-      active: users.filter(u => u.approved && !u.blocked).length,
-      realUsers: users.filter(u => !u.firstName.startsWith('(d)')).length,
-      demoUsers: users.filter(u => u.firstName.startsWith('(d)')).length
-    })),
-    shareReplay({ bufferSize: 1, refCount: true })
-  );
-
-  // Loading and Error States from StateManagementService
-  readonly isLoading$ = this.stateService.isAnyLoading$;
-  readonly globalError$ = this.stateService.globalError$;
-  readonly usersLoading$ = this.stateService.isLoading$(this.STATE_KEYS.LOAD_USERS);
+  // Search and Filter
+  private readonly searchTerm$ = new BehaviorSubject<string>('');
 
   /* ----------------------------- UI Properties */
   get search(): string { return this.pageState$.value.search; }
-  set search(value: string) { this.updateState({ search: value }); }
+  set search(value: string) { 
+    this.updateState({ search: value });
+    this.searchTerm$.next(value);
+  }
 
   get sortBy() { return this.pageState$.value.sortBy; }
-  set sortBy(value: 'newest' | 'oldest' | 'name' | 'blocked') { this.updateState({ sortBy: value }); }
+  set sortBy(value: 'newest' | 'oldest' | 'name' | 'blocked') { 
+    this.updateState({ sortBy: value });
+    this.applyFiltersAndSort();
+  }
 
   get showOnlyBlocked() { return this.pageState$.value.showOnlyBlocked; }
-  set showOnlyBlocked(value: boolean) { this.updateState({ showOnlyBlocked: value }); }
-
-  get pendingRole() { return this.pageState$.value.pendingRoles; }
+  set showOnlyBlocked(value: boolean) { 
+    this.updateState({ showOnlyBlocked: value });
+    this.applyFiltersAndSort();
+  }
 
   @ViewChild(ConfirmationDialogComponent) confirmation!: ConfirmationDialogComponent;
 
-  /* ----------------------------- Template Hilfsmethoden */
+  /* ----------------------------- Template Helper Methods */
   
-  /**
-   * Prüft ob alle Benutzer einer Liste ausgewählt sind
-   * WICHTIG: Diese Methode ist für das Template - keine Arrow Functions!
-   */
   areAllUsersSelected(users: UserDoc[]): boolean {
     if (!users || users.length === 0) return false;
     const selectedUsers = this.pageState$.value.selectedUsers;
     return users.every(u => selectedUsers.has(u.uid));
   }
 
-  /**
-   * Prüft ob ein Benutzer ausgewählt ist
-   */
   isUserSelected(uid: string): boolean {
     return this.pageState$.value.selectedUsers.has(uid);
   }
 
-  /**
-   * Bereinigt Demo-Präfix aus Namen
-   */
   getCleanFirstName(firstName: string): string {
     return firstName.replace('(d) ', '');
   }
 
-  /**
-   * Prüft ob Name mit Demo-Präfix beginnt
-   */
   isDemoUser(firstName: string): boolean {
     return firstName.startsWith('(d)');
   }
 
-  /**
-   * Holt Rollen für Benutzer (pending oder aktuelle)
-   */
   getUserRoles(user: UserDoc): string[] {
     return this.pageState$.value.pendingRoles[user.uid] || user.roles;
   }
 
-  /**
-   * Prüft ob Datum geändert wurde
-   */
   wasUserUpdated(user: UserDoc): boolean {
     return user.updatedAt !== user.createdAt;
-  }
-
-  /**
-   * Sichere boolean conversion für loading states
-   */
-  getLoadingState(loading: boolean | null): boolean {
-    return loading ?? false;
   }
 
   /* ----------------------------- Lifecycle */
   ngOnInit(): void {
     this.logger.log(this.COMPONENT_NAME, 'Component initialized');
-    // Initial load wird automatisch durch refresh$ triggered
+    
+    // Setup search with debounce
+    this.searchTerm$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.applyFiltersAndSort();
+    });
+
+    // Load initial data
+    this.loadUsers();
   }
 
   ngOnDestroy(): void {
-    this.subscriptionService.destroyComponent(this.COMPONENT_NAME);
-    this.stateService.resetState(); // Optional: Reset global state
+    this.destroy$.next();
+    this.destroy$.complete();
     this.pageState$.complete();
-    this.refresh$.complete();
+    this.searchTerm$.complete();
     this.logger.log(this.COMPONENT_NAME, 'Component destroyed');
   }
 
+  /* ----------------------------- Data Loading */
+  private loadUsers(): void {
+    this.isLoading = true;
+    this.errorMsg = null;
+
+    this.userService.getAll().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (realUsers) => {
+        // Merge real users with dummy data
+        this.allUsers = [
+          ...realUsers,
+          ...this.dummyUsers.filter(d => !realUsers.some(u => u.uid === d.uid))
+        ];
+        this.applyFiltersAndSort();
+        this.isLoading = false;
+        this.logger.log(this.COMPONENT_NAME, 'Users loaded successfully', this.allUsers.length);
+      },
+      error: (error) => {
+        this.logger.error(this.COMPONENT_NAME, 'Failed to load users:', error);
+        this.allUsers = [...this.dummyUsers]; // Fallback to dummy data
+        this.applyFiltersAndSort();
+        this.errorMsg = 'Fehler beim Laden der Benutzer';
+        this.isLoading = false;
+      }
+    });
+  }
+
   /* ----------------------------- Data Processing */
-  private processUsers(users: UserDoc[], searchTerm: string, sortBy: string) {
-    let filtered = [...users];
+  private applyFiltersAndSort(): void {
+    let filtered = [...this.allUsers];
 
     // Search filter
-    if (searchTerm.trim()) {
+    const searchTerm = this.pageState$.value.search.trim();
+    if (searchTerm) {
       const query = searchTerm.toLowerCase();
       filtered = filtered.filter(u =>
         `${u.firstName} ${u.lastName}`.toLowerCase().includes(query) ||
@@ -264,7 +222,7 @@ export class UsersPage implements OnInit, OnDestroy {
     }
 
     // Sorting
-    switch (sortBy) {
+    switch (this.sortBy) {
       case 'name':
         filtered.sort((a, b) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName, 'de'));
         break;
@@ -278,7 +236,7 @@ export class UsersPage implements OnInit, OnDestroy {
         filtered.sort((a, b) => b.createdAt - a.createdAt);
     }
 
-    return {
+    this.filteredUsers = {
       pending: filtered.filter(u => !u.approved),
       rest: filtered.filter(u => u.approved),
       all: filtered
@@ -297,16 +255,25 @@ export class UsersPage implements OnInit, OnDestroy {
 
   refresh(): void {
     this.logger.log(this.COMPONENT_NAME, 'Manual refresh triggered');
-    this.refresh$.next();
+    this.loadUsers();
   }
 
   /* ----------------------------- User Actions */
   approve(user: UserDoc): void {
-    this.executeUserAction(
-      () => this.userService.approve(user.uid),
-      `Benutzer ${user.firstName} ${user.lastName} genehmigen`,
-      this.STATE_KEYS.APPROVE_USER
-    );
+    this.isLoading = true;
+    this.userService.approve(user.uid).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log(this.COMPONENT_NAME, `User ${user.firstName} ${user.lastName} approved`);
+        this.loadUsers(); // Reload data
+      },
+      error: (error) => {
+        this.logger.error(this.COMPONENT_NAME, 'Approve failed:', error);
+        this.errorMsg = `Fehler beim Genehmigen von ${user.firstName} ${user.lastName}`;
+        this.isLoading = false;
+      }
+    });
   }
 
   toggleActive(user: UserDoc): void {
@@ -315,17 +282,26 @@ export class UsersPage implements OnInit, OnDestroy {
     const type = user.blocked ? 'primary' : 'danger';
 
     this.showConfirmation(message, type, () => {
-      this.executeUserAction(
-        () => this.userService.block(user.uid, !user.blocked),
-        `Benutzer ${action}`,
-        this.STATE_KEYS.BLOCK_USER
-      );
+      this.isLoading = true;
+      this.userService.block(user.uid, !user.blocked).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.logger.log(this.COMPONENT_NAME, `User ${user.firstName} ${user.lastName} ${action}ed`);
+          this.loadUsers(); // Reload data
+        },
+        error: (error) => {
+          this.logger.error(this.COMPONENT_NAME, 'Toggle active failed:', error);
+          this.errorMsg = `Fehler beim ${action} von ${user.firstName} ${user.lastName}`;
+          this.isLoading = false;
+        }
+      });
     });
   }
 
   askRoleChange(user: UserDoc, roles: string[]): void {
     if (!roles || roles.length === 0) {
-      this.stateService.setError('roles', 'Mindestens eine Rolle muss ausgewählt werden.');
+      this.errorMsg = 'Mindestens eine Rolle muss ausgewählt werden.';
       return;
     }
 
@@ -335,17 +311,24 @@ export class UsersPage implements OnInit, OnDestroy {
 
     const message = `Rolle von „${user.roles[0]}" auf „${roles[0]}" ändern?`;
     this.showConfirmation(message, 'primary', () => {
-      this.executeUserAction(
-        () => this.userService.setRoles(user.uid, roles),
-        `Rolle für ${user.firstName} ${user.lastName} ändern`,
-        this.STATE_KEYS.SET_ROLES,
-        () => {
+      this.isLoading = true;
+      this.userService.setRoles(user.uid, roles).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.logger.log(this.COMPONENT_NAME, `Roles updated for ${user.firstName} ${user.lastName}`);
           // Cleanup pending role after success
           const updated = { ...this.pageState$.value.pendingRoles };
           delete updated[user.uid];
           this.updateState({ pendingRoles: updated });
+          this.loadUsers(); // Reload data
+        },
+        error: (error) => {
+          this.logger.error(this.COMPONENT_NAME, 'Role change failed:', error);
+          this.errorMsg = `Fehler beim Ändern der Rolle für ${user.firstName} ${user.lastName}`;
+          this.isLoading = false;
         }
-      );
+      });
     });
   }
 
@@ -393,52 +376,38 @@ export class UsersPage implements OnInit, OnDestroy {
     this.pageState$.next({ ...this.pageState$.value, ...partial });
   }
 
-  private executeUserAction(
-    action: () => any,
-    description: string,
-    stateKey: string,
-    onSuccess?: () => void
-  ): void {
-    this.stateService.startOperation(stateKey);
-
-    this.subscriptionService.simpleSubscribe(
-      action(),
-      () => {
-        this.stateService.completeOperation(stateKey);
-        this.logger.log(this.COMPONENT_NAME, `Success: ${description}`);
-        this.refresh$.next();
-        onSuccess?.();
-      },
-      (error) => {
-        this.stateService.completeOperation(stateKey, `Fehler bei ${description}: ${error.message}`);
-      },
-      this.COMPONENT_NAME
-    );
-  }
-
   private executeBulkAction(userIds: string[], action: 'approve' | 'block'): void {
-    this.stateService.startOperation(this.STATE_KEYS.BULK_OPERATIONS);
+    this.isLoading = true;
+    this.logger.log(this.COMPONENT_NAME, `Bulk ${action}ing ${userIds.length} users`);
 
-    const operations = userIds.map(uid => 
-      action === 'approve' ? this.userService.approve(uid) : this.userService.block(uid, true)
-    );
+    // Simple approach: execute actions sequentially
+    // In production, you might want to do this in parallel or use a batch API
+    let completedActions = 0;
+    const totalActions = userIds.length;
 
-    // Batch subscribe for parallel execution
-    const { unsubscribeAll } = this.subscriptionService.batchSubscribe(
-      operations.map((op, index) => ({ 
-        name: `${action}_${userIds[index]}`, 
-        observable$: op 
-      })),
-      this.COMPONENT_NAME
-    );
+    userIds.forEach(uid => {
+      const operation = action === 'approve' 
+        ? this.userService.approve(uid) 
+        : this.userService.block(uid, true);
 
-    // Simple completion tracking (you could enhance this)
-    setTimeout(() => {
-      this.stateService.completeOperation(this.STATE_KEYS.BULK_OPERATIONS);
-      this.updateState({ selectedUsers: new Set() });
-      this.refresh$.next();
-      unsubscribeAll();
-    }, 2000);
+      operation.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          completedActions++;
+          if (completedActions === totalActions) {
+            this.logger.log(this.COMPONENT_NAME, `Bulk ${action} completed`);
+            this.updateState({ selectedUsers: new Set() });
+            this.loadUsers(); // Reload data
+          }
+        },
+        error: (error) => {
+          this.logger.error(this.COMPONENT_NAME, `Bulk ${action} failed for user ${uid}:`, error);
+          this.errorMsg = `Fehler bei Bulk-Aktion für einige Benutzer`;
+          this.isLoading = false;
+        }
+      });
+    });
   }
 
   private showConfirmation(
@@ -452,21 +421,26 @@ export class UsersPage implements OnInit, OnDestroy {
     this.confirmation.confirmType = type;
     this.confirmation.visible = true;
 
-    const unsubscribe = this.subscriptionService.simpleSubscribe(
-      this.confirmation.confirmed,
-      (confirmed) => {
-        if (confirmed) onConfirm();
-        unsubscribe();
-      },
-      undefined,
-      this.COMPONENT_NAME
-    );
+    this.confirmation.confirmed.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((confirmed) => {
+      if (confirmed) onConfirm();
+    });
   }
 
-  /* ----------------------------- Debug Methods */
-  logState(): void {
-    this.logger.log(this.COMPONENT_NAME, 'Page State:', this.pageState$.value);
-    this.stateService.logCurrentState();
-    this.logger.log(this.COMPONENT_NAME, 'Subscription Metrics:', this.subscriptionService.getMetrics());
+  /* ----------------------------- Computed Properties for Template */
+  get stats() {
+    return {
+      total: this.allUsers.length,
+      pending: this.allUsers.filter(u => !u.approved).length,
+      blocked: this.allUsers.filter(u => u.blocked).length,
+      active: this.allUsers.filter(u => u.approved && !u.blocked).length,
+      realUsers: this.allUsers.filter(u => !u.firstName.startsWith('(d)')).length,
+      demoUsers: this.allUsers.filter(u => u.firstName.startsWith('(d)')).length
+    };
+  }
+
+  get selectedUsersCount(): number {
+    return this.pageState$.value.selectedUsers.size;
   }
 }
