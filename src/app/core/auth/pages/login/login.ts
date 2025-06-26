@@ -11,7 +11,7 @@ import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
 import { AuthService } from '../../services/auth.service';
 import { finalize, take } from 'rxjs/operators';
 import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
-import { LoggerService } from '@shared/services/logger.service';
+import { LoggerService } from '@core/services/logger.service';
 
 @Component({
   selector: 'zso-login',

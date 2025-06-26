@@ -1,166 +1,309 @@
-<div class="max-w-7xl mx-auto px-4 py-10 space-y-10">
+<div class="max-w-7xl mx-auto px-4 py-10 space-y-6">
 
-  <!-- Toolbar ---------------------------------------------------------- -->
+  <!-- Global Error Banner -->
+  @if (globalError$ | async; as error) {
+    <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <span class="material-symbols-outlined text-rose-400 mr-2">error</span>
+          <span class="text-rose-400 font-medium">{{ error }}</span>
+        </div>
+        <button (click)="stateService.clearAllErrors()" class="text-rose-400 hover:text-rose-300">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Toolbar -->
   <div class="glass-card flex flex-wrap gap-4 items-center p-4 sm:p-5">
-    <!-- Suche -->
+    <!-- Search -->
     <zso-input-field
-        type="text" label="Suche"
+        type="text" 
+        label="Benutzer suchen"
         class="flex-grow sm:flex-none sm:w-72"
         [(ngModel)]="search"
         (ngModelChange)="onSearchChange($event)">
     </zso-input-field>
-  
-    <!-- Filter + Sortierung -->
-    <div class="ml-auto flex items-center gap-4 text-sm text-white/80">
-  
-      <!-- Sortieren --------------------------------------------------- -->
+
+    <!-- Filters & Controls -->
+    <div class="flex flex-wrap items-center gap-4 ml-auto">
+      
+      <!-- Block Filter Toggle -->
+      <zso-checkbox 
+        [(ngModel)]="showOnlyBlocked"
+        label="Nur Gesperrte">
+      </zso-checkbox>
+
+      <!-- Sort Dropdown -->
       <div class="relative">
         <select
           [(ngModel)]="sortBy"
           (change)="onSortChange(sortBy)"
           class="sort-select peer">
-          <option value="newest">Neueste</option>
-          <option value="oldest">Älteste</option>
-          <option value="name">Name</option>
-          <option value="blocked">Gesperrte</option>
+          <option value="newest">Neueste zuerst</option>
+          <option value="oldest">Älteste zuerst</option>
+          <option value="name">Nach Name</option>
+          <option value="blocked">Gesperrte zuerst</option>
         </select>
-  
-        <!-- Chevron (rein dekorativ) -->
-        <span class="material-symbols-outlined pointer-events-none
-                     absolute right-2 top-1/2 -translate-y-1/2 text-gray-400
-                     peer-focus:text-cp-orange transition-colors">
+        <span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 peer-focus:text-cp-orange transition-colors">
           arrow_drop_down
         </span>
       </div>
-  
-      <!-- Zähler -->
-      <ng-container *ngIf="stats$ | async as s">
-        <span>{{ s.total }} Nutzer</span>
-        <span class="text-amber-300" title="Pending">• {{ s.pending }}</span>
-        <span class="text-rose-400"  title="Gesperrt">• {{ s.blocked }}</span>
-      </ng-container>
-  
-      <!-- Refresh-Button -->
-      <zso-button type="neutral" size="sm" (click)="refresh$.next()" title="Aktualisieren">
+
+      <!-- Statistics -->
+      @if (stats$ | async; as s) {
+        <div class="text-sm text-white/80 hidden sm:block">
+          <span>📊 {{ s.total }} Gesamt</span>
+          <span class="text-amber-300 ml-2">⏳ {{ s.pending }}</span>
+          <span class="text-rose-400 ml-2">🚫 {{ s.blocked }}</span>
+          <span class="text-green-400 ml-2">✅ {{ s.active }}</span>
+        </div>
+      }
+
+      <!-- Refresh Button -->
+      <zso-button 
+        type="neutral" 
+        size="sm" 
+        (click)="refresh()" 
+        title="Aktualisieren"
+        [loading]="usersLoading$ | async">
         <span class="material-symbols-outlined text-base">refresh</span>
+      </zso-button>
+
+      <!-- Debug Button (only in dev) -->
+      <zso-button 
+        type="neutral" 
+        size="sm" 
+        (click)="logState()" 
+        title="Debug State">
+        <span class="material-symbols-outlined text-base">bug_report</span>
       </zso-button>
     </div>
   </div>
-  
-    <!-- AUSSTEHEND ------------------------------------------------------- -->
-    <div *ngIf="(users$ | async)?.pending?.length">
-      <h2 class="text-xl font-bold text-amber-400 mb-3 flex items-center gap-2">
-        <span class="material-symbols-outlined text-amber-300">hourglass_top</span>
-        Ausstehende&nbsp;Benutzer ({{ (users$ | async)?.pending?.length }})
-      </h2>
-  
-      <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
-        <div *ngFor="let u of (users$ | async)?.pending"
-             class="glass-card shimmer-once p-6 flex flex-col gap-4"
-             [ngClass]="{'user-card--blocked':u.blocked}">
-  
-          <!-- Info + Rollenwahl -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <h2 class="text-lg font-semibold text-white">
-                <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
-                {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
-              </h2>
-              <p class="text-sm text-gray-300">{{ u.email }}</p>
-  
-              <p class="meta">
-                Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
-                <span *ngIf="u.updatedAt !== u.createdAt">
-                  • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
-                </span>
-              </p>
-              <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
-            </div>
-  
-            <zso-role-select [roleOptions]="['user','admin']"
-                             [selected]="pendingRole[u.uid] || u.roles"
-                             (selectedChange)="askRoleChange(u,$event)">
-            </zso-role-select>
-          </div>
-  
-          <!-- Aktionen --------------------------------------------------- -->
-          <div class="flex flex-row flex-wrap gap-2 pt-2">
-            <button title="Genehmigen" (click)="approve(u)" class="btn-approve glow-green">
-              <span class="material-symbols-outlined text-lg">check</span>
-            </button>
-  
-            <button title="Blockieren" (click)="toggleActive(u)" class="btn-block glow-red">
-              <span class="material-symbols-outlined text-lg">block</span>
-            </button>
-  
-            <button title="Details" (click)="details(u)" class="btn-neutral">
-              <span class="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
-          </div>
+
+  <!-- Bulk Actions Bar -->
+  @if (selectedUsers$ | async; as selectedUsers) {
+    @if (selectedUsers.size > 0) {
+      <div class="glass-card p-4 flex items-center justify-between">
+        <span class="text-white">{{ selectedUsers.size }} Benutzer ausgewählt</span>
+        <div class="flex gap-2">
+          <zso-button type="primary" size="sm" (click)="bulkApprove()">
+            <span class="material-symbols-outlined text-sm mr-1">check</span>
+            Alle genehmigen
+          </zso-button>
+          <zso-button type="danger" size="sm" (click)="bulkBlock()">
+            <span class="material-symbols-outlined text-sm mr-1">block</span>
+            Alle blockieren
+          </zso-button>
+          <zso-button type="neutral" size="sm" (click)="selectAll([], false)">
+            Auswahl aufheben
+          </zso-button>
         </div>
       </div>
-    </div>
-  
-    <!-- APPROVED / REST -------------------------------------------------- -->
-    <div *ngIf="(users$ | async)?.rest?.length">
-      <h2 class="text-lg font-bold text-white mb-2">Alle&nbsp;Benutzer</h2>
-  
-      <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
-        <div *ngFor="let u of (users$ | async)?.rest"
-             class="glass-card shimmer-once p-6 flex flex-col gap-4"
-             [ngClass]="{'user-card--blocked':u.blocked}">
-  
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <h2 class="text-lg font-semibold text-white">
-                <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
-                {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
-                <span *ngIf="u.blocked" class="badge badge--suspended">Gesperrt</span>
-              </h2>
-              <p class="text-sm text-gray-300">{{ u.email }}</p>
-  
-              <p class="meta">
-                Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
-                <span *ngIf="u.updatedAt !== u.createdAt">
-                  • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
-                </span>
-              </p>
-              <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
-  
-              <p class="meta" *ngIf="u.lastLoginAt">
-                Letzter&nbsp;Login:&nbsp;{{ u.lastLoginAt | date:'dd.MM.yyyy' }}
-              </p>
-            </div>
-  
-            <zso-role-select [roleOptions]="['user','admin']"
-                             [selected]="pendingRole[u.uid] || u.roles"
-                             (selectedChange)="askRoleChange(u,$event)">
-            </zso-role-select>
-          </div>
-  
-          <!-- Aktionen -->
-          <div class="flex flex-row flex-wrap gap-2 pt-2">
-            <button *ngIf="u.blocked" title="Entsperren"
-                    (click)="toggleActive(u)" class="btn-approve glow-green">
-              <span class="material-symbols-outlined text-lg">lock_open</span>
-            </button>
-            <button *ngIf="!u.blocked" title="Blockieren"
-                    (click)="toggleActive(u)" class="btn-block glow-red">
-              <span class="material-symbols-outlined text-lg">block</span>
-            </button>
-  
-            <button title="Details" (click)="details(u)" class="btn-neutral">
-              <span class="material-symbols-outlined text-lg">chevron_right</span>
-            </button>
-          </div>
+    }
+  }
+
+  <!-- Loading Indicator -->
+  @if (usersState$ | async; as state) {
+    @if (state.isLoading) {
+      <div class="glass-card p-4">
+        <div class="flex items-center justify-center">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-cp-orange mr-3"></div>
+          <span class="text-white">Lade Benutzerdaten...</span>
         </div>
       </div>
-    </div>
-  
-    <!-- Dialog + Fallback -->
-    <ng-template #loading>
-      <p class="text-center text-sm text-gray-400">Lade&nbsp;Benutzer…</p>
-    </ng-template>
-  
-    <zso-confirmation-dialog></zso-confirmation-dialog>
-  </div>
+    }
+  }
+
+  <!-- Users Content -->
+  @if (users$ | async; as users) {
+    
+    <!-- UNAPPROVED Users Section (Wartende/Nicht genehmigte) -->
+    @if (users.pending && users.pending.length > 0) {
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-300">hourglass_top</span>
+            Wartende Benutzer ({{ users.pending.length }})
+          </h2>
+          <div class="flex items-center gap-2">
+            <zso-checkbox 
+              [ngModel]="users.pending.every(u => (selectedUsers$ | async)?.has(u.uid))"
+              (ngModelChange)="selectAll(users.pending, $event)"
+              label="Alle auswählen">
+            </zso-checkbox>
+          </div>
+        </div>
+
+        <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
+          @for (user of users.pending; track user.uid) {
+            <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
+                 [ngClass]="{'ring-2 ring-cp-orange': (selectedUsers$ | async)?.has(user.uid)}">
+
+              <!-- Selection Checkbox -->
+              <zso-checkbox 
+                class="absolute top-4 right-4"
+                [ngModel]="(selectedUsers$ | async)?.has(user.uid) || false"
+                (ngModelChange)="selectUser(user.uid, $event)"
+                label="">
+              </zso-checkbox>
+
+              <!-- User Info -->
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+                <div>
+                  <h3 class="text-lg font-semibold text-white">
+                    @if (user.firstName.startsWith('(d)')) {
+                      <span class="demo-tag">(d)</span>
+                    }
+                    {{ user.firstName.replace('(d) ','') }} {{ user.lastName }}
+                  </h3>
+                  <p class="text-sm text-gray-300">{{ user.email }}</p>
+                  <p class="meta">
+                    Registriert: {{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}
+                  </p>
+                  <p class="meta">Rolle: {{ user.roles.join(', ') }}</p>
+                </div>
+
+                <zso-role-select 
+                  [roleOptions]="['user','admin']"
+                  [selected]="(pendingRoles$ | async)?.[user.uid] || user.roles"
+                  (selectedChange)="askRoleChange(user, $event)">
+                </zso-role-select>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex flex-wrap gap-2 pt-2">
+                <button title="Genehmigen" 
+                        (click)="approve(user)" 
+                        class="btn-approve glow-green"
+                        [disabled]="isLoading$ | async">
+                  <span class="material-symbols-outlined text-lg">check</span>
+                </button>
+                <button title="Blockieren" 
+                        (click)="toggleActive(user)" 
+                        class="btn-block glow-red"
+                        [disabled]="isLoading$ | async">
+                  <span class="material-symbols-outlined text-lg">block</span>
+                </button>
+                <button title="Details" 
+                        (click)="details(user)" 
+                        class="btn-neutral">
+                  <span class="material-symbols-outlined text-lg">person</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- APPROVED Users Section (Genehmigte Benutzer) -->
+    @if (users.rest && users.rest.length > 0) {
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold text-white">
+            Genehmigte Benutzer ({{ users.rest.length }})
+          </h2>
+          <div class="flex items-center gap-2">
+            <zso-checkbox 
+              [ngModel]="users.rest.every(u => (selectedUsers$ | async)?.has(u.uid))"
+              (ngModelChange)="selectAll(users.rest, $event)"
+              label="Alle auswählen">
+            </zso-checkbox>
+          </div>
+        </div>
+
+        <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
+          @for (user of users.rest; track user.uid) {
+            <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
+                 [ngClass]="{
+                   'user-card--blocked': user.blocked,
+                   'ring-2 ring-cp-orange': (selectedUsers$ | async)?.has(user.uid)
+                 }">
+
+              <!-- Selection Checkbox -->
+              <zso-checkbox 
+                class="absolute top-4 right-4"
+                [ngModel]="(selectedUsers$ | async)?.has(user.uid) || false"
+                (ngModelChange)="selectUser(user.uid, $event)"
+                label="">
+              </zso-checkbox>
+
+              <!-- User Info -->
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+                <div>
+                  <h3 class="text-lg font-semibold text-white">
+                    @if (user.firstName.startsWith('(d)')) {
+                      <span class="demo-tag">(d)</span>
+                    }
+                    {{ user.firstName.replace('(d) ','') }} {{ user.lastName }}
+                    @if (user.blocked) {
+                      <span class="badge badge--suspended">Gesperrt</span>
+                    }
+                  </h3>
+                  <p class="text-sm text-gray-300">{{ user.email }}</p>
+                  <p class="meta">
+                    Registriert: {{ user.createdAt | date:'dd.MM.yyyy' }}
+                    @if (user.updatedAt !== user.createdAt) {
+                      <span>• Geändert: {{ user.updatedAt | date:'dd.MM.yyyy' }}</span>
+                    }
+                  </p>
+                  <p class="meta">Rolle: {{ user.roles.join(', ') }}</p>
+                  @if (user.lastLoginAt) {
+                    <p class="meta">
+                      Letzter Login: {{ user.lastLoginAt | date:'dd.MM.yyyy HH:mm' }}
+                    </p>
+                  }
+                </div>
+
+                <zso-role-select 
+                  [roleOptions]="['user','admin']"
+                  [selected]="(pendingRoles$ | async)?.[user.uid] || user.roles"
+                  (selectedChange)="askRoleChange(user, $event)">
+                </zso-role-select>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex flex-wrap gap-2 pt-2">
+                @if (user.blocked) {
+                  <button title="Entsperren"
+                          (click)="toggleActive(user)" 
+                          class="btn-approve glow-green"
+                          [disabled]="isLoading$ | async">
+                    <span class="material-symbols-outlined text-lg">lock_open</span>
+                  </button>
+                } @else {
+                  <button title="Blockieren"
+                          (click)="toggleActive(user)" 
+                          class="btn-block glow-red"
+                          [disabled]="isLoading$ | async">
+                    <span class="material-symbols-outlined text-lg">block</span>
+                  </button>
+                }
+                <button title="Details" 
+                        (click)="details(user)" 
+                        class="btn-neutral">
+                  <span class="material-symbols-outlined text-lg">person</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if ((!users.pending || users.pending.length === 0) && (!users.rest || users.rest.length === 0)) {
+      <div class="glass-card p-12 text-center">
+        <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
+        <h3 class="text-xl font-medium text-white mb-2">Keine Benutzer gefunden</h3>
+        <p class="text-gray-400">Versuche einen anderen Suchbegriff oder ändere die Filter.</p>
+      </div>
+    }
+  }
+
+  <!-- Confirmation Dialog -->
+  <zso-confirmation-dialog></zso-confirmation-dialog>
+
+</div>

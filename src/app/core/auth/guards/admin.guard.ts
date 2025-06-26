@@ -3,7 +3,7 @@ import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, take, skipWhile } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
-import { LoggerService } from '@shared/services/logger.service';
+import { LoggerService } from '@core/services/logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {

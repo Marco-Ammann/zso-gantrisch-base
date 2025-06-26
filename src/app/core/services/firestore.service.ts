@@ -8,7 +8,7 @@ import {
 } from '@angular/fire/firestore';
 
 import { APP_SETTINGS, AppSettings } from '../config/app-settings';
-import { LoggerService } from '@shared/services/logger.service';
+import { LoggerService } from '@core/services/logger.service';
 
 /**
  * Wrapper um eine **benannte** Firestore-Instanz.

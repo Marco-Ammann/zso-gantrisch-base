@@ -9,7 +9,7 @@ import {
   UrlTree
 } from '@angular/router';
 import { Observable } from 'rxjs';
-import { LoggerService } from '@shared/services/logger.service';
+import { LoggerService } from '@core/services/logger.service';
 import { map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 

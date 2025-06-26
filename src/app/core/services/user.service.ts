@@ -7,7 +7,7 @@ import { switchMap } from 'rxjs/operators';
 
 import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
-import { LoggerService } from '@shared/services/logger.service';
+import { LoggerService } from '@core/services/logger.service';
 
 // alias to keep existing code compile
 export type AppUser = UserDoc;
