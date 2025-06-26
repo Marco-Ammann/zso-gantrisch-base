@@ -1,10 +1,17 @@
 /* src/styles.css: */
 
 /* ----------------------------------------------------------- */
-/*  ICON-FONT                                                  */
+/*  IMPORTS - MÜSSEN ALLE AM ANFANG STEHEN!                   */
 /* ----------------------------------------------------------- */
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* ----------------------------------------------------------- */
+/*  ICON-FONT                                                  */
+/* ----------------------------------------------------------- */
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined";
   font-weight: 400;
@@ -12,14 +19,6 @@
   line-height: 1;
   font-variation-settings: "FILL" 0, "GRAD" 0, "opsz" 24, "wght" 400;
 }
-
-/* ----------------------------------------------------------- */
-/*  Tailwind Imports                                           */
-/* ----------------------------------------------------------- */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* == BASE == */
 @layer base {

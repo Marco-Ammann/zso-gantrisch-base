@@ -1,5 +1,6 @@
+// src/app/features/admin/users/users.page.ts
 import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, AsyncPipe, NgIf, NgForOf } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, of, combineLatest, Subject } from 'rxjs';
@@ -12,6 +13,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
 import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
 
@@ -28,13 +30,12 @@ interface UsersPageState {
   standalone: true,
   imports: [
     CommonModule,
-    NgIf,
-    NgForOf,
     FormsModule,
     RouterModule,
     AsyncPipe,
     ZsoButton,
     ZsoInputField,
+    ZsoCheckbox,
     ZsoRoleSelect,
     ConfirmationDialogComponent,
   ],
@@ -47,7 +48,7 @@ export class UsersPage implements OnInit, OnDestroy {
   // Service Injection
   private readonly userService = inject(UserService);
   private readonly subscriptionService = inject(SubscriptionService);
-  private readonly stateService = inject(StateManagementService);
+  readonly stateService = inject(StateManagementService); // public für Template
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
 
@@ -175,6 +176,60 @@ export class UsersPage implements OnInit, OnDestroy {
   get pendingRole() { return this.pageState$.value.pendingRoles; }
 
   @ViewChild(ConfirmationDialogComponent) confirmation!: ConfirmationDialogComponent;
+
+  /* ----------------------------- Template Hilfsmethoden */
+  
+  /**
+   * Prüft ob alle Benutzer einer Liste ausgewählt sind
+   * WICHTIG: Diese Methode ist für das Template - keine Arrow Functions!
+   */
+  areAllUsersSelected(users: UserDoc[]): boolean {
+    if (!users || users.length === 0) return false;
+    const selectedUsers = this.pageState$.value.selectedUsers;
+    return users.every(u => selectedUsers.has(u.uid));
+  }
+
+  /**
+   * Prüft ob ein Benutzer ausgewählt ist
+   */
+  isUserSelected(uid: string): boolean {
+    return this.pageState$.value.selectedUsers.has(uid);
+  }
+
+  /**
+   * Bereinigt Demo-Präfix aus Namen
+   */
+  getCleanFirstName(firstName: string): string {
+    return firstName.replace('(d) ', '');
+  }
+
+  /**
+   * Prüft ob Name mit Demo-Präfix beginnt
+   */
+  isDemoUser(firstName: string): boolean {
+    return firstName.startsWith('(d)');
+  }
+
+  /**
+   * Holt Rollen für Benutzer (pending oder aktuelle)
+   */
+  getUserRoles(user: UserDoc): string[] {
+    return this.pageState$.value.pendingRoles[user.uid] || user.roles;
+  }
+
+  /**
+   * Prüft ob Datum geändert wurde
+   */
+  wasUserUpdated(user: UserDoc): boolean {
+    return user.updatedAt !== user.createdAt;
+  }
+
+  /**
+   * Sichere boolean conversion für loading states
+   */
+  getLoadingState(loading: boolean | null): boolean {
+    return loading ?? false;
+  }
 
   /* ----------------------------- Lifecycle */
   ngOnInit(): void {
