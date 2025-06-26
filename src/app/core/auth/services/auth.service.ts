@@ -1,25 +1,24 @@
 // src/app/core/auth/services/auth.service.ts
 import { Injectable, Inject, inject, Injector, runInInjectionContext } from '@angular/core';
-import { 
-  Auth, 
-  signInWithEmailAndPassword, 
+import {
+  Auth,
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut, 
-  sendEmailVerification, 
+  signOut,
+  sendEmailVerification,
   sendPasswordResetEmail,
-  updateProfile, 
-  authState, 
-  User,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence
+  updateProfile,
+  authState,
+  setPersistence
 } from '@angular/fire/auth';
+import { User, browserSessionPersistence } from 'firebase/auth';
 import { FirestoreService } from '@core/services/firestore.service';
 import { setDoc, docData } from '@angular/fire/firestore';
-import { Observable, from, of } from 'rxjs';
-import { switchMap, map, shareReplay } from 'rxjs/operators';
+import { Observable, from, of, throwError } from 'rxjs';
+import { switchMap, map, shareReplay, catchError } from 'rxjs/operators';
 
 import { APP_SETTINGS, AppSettings } from '@core/config/app-settings';
+import { LoggerService } from '@core/services/logger.service';
 
 /* ---------- Modelle ---------- */
 export interface RegisterData {
@@ -39,6 +38,7 @@ export interface AppUserCombined {
 export class AuthService {
   private auth = inject(Auth);
   private injector = inject(Injector);
+  private logger = inject(LoggerService);
 
   readonly user$: Observable<User | null>;
   readonly appUser$: Observable<AppUserCombined | null>;
@@ -57,12 +57,17 @@ export class AuthService {
     this.appUser$ = this.user$.pipe(
       switchMap(user => {
         if (!user) return of(null);
-        const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(`users/${user.uid}`);
-        return runInInjectionContext(this.injector, () => 
-          docData(ref).pipe(
-            map(doc => (doc ? { auth: user, doc } : null))
-          )
-        );
+        try {
+          const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(`users/${user.uid}`);
+          return runInInjectionContext(this.injector, () =>
+            docData<import('@core/models/user-doc').UserDoc>(ref).pipe(
+              map(doc => (doc ? ({ auth: user, doc } as AppUserCombined) : null))
+            )
+          );
+        } catch (error) {
+          this.logger.error('AuthService', 'Error creating user document reference:', error);
+          return of(null);
+        }
       }),
       shareReplay({ bufferSize: 1, refCount: false })
     );
@@ -70,16 +75,39 @@ export class AuthService {
 
   /* ---------- Auth ---------- */
   login(email: string, password: string, remember: boolean): Observable<void> {
-    const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
-    return runInInjectionContext(this.injector, () => 
-      from(setPersistence(this.auth, persistence)).pipe(
-        switchMap(() => from(signInWithEmailAndPassword(this.auth, email, password))),
-        switchMap(() => {
-          const user = this.auth.currentUser;
-          return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
-        })
-      )
-    );
+    this.logger.log('AuthService', 'Login attempt', { email, remember });
+    
+    try {
+      return runInInjectionContext(this.injector, () => {
+        return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+          switchMap(() => {
+            this.logger.log('AuthService', 'Persistence set, attempting sign in');
+            return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+              map((result) => {
+                this.logger.log('AuthService', 'Sign in successful', result.user?.email);
+                return result;
+              }),
+              catchError(error => {
+                this.logger.error('AuthService', 'Sign in failed:', error);
+                return throwError(error);
+              })
+            );
+          }),
+          switchMap(() => {
+            this.logger.log('AuthService', 'Sign in successful, reloading user');
+            const user = this.auth.currentUser;
+            return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
+          }),
+          map(() => {
+            this.logger.log('AuthService', 'Login completed successfully');
+            return void 0;
+          })
+        );
+      });
+    } catch (error) {
+      this.logger.error('AuthService', 'Login error:', error);
+      return from(Promise.reject(error));
+    }
   }
 
   logout(): Observable<void> {

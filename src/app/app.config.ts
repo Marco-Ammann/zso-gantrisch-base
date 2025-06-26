@@ -8,8 +8,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 // Moderne Firebase API
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
+import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 
 // Environment
 import { environment } from '../environments/environment';
@@ -31,9 +31,21 @@ export const appConfig: ApplicationConfig = {
       multi: true,
     },
 
-    // Moderne Firebase Setup
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
+    // Firebase Setup - Fixed for v11+ compatibility
+    provideFirebaseApp(() => {
+      const app = initializeApp(environment.firebase);
+      console.log('Firebase app initialized:', app.name);
+      return app;
+    }),
+    provideAuth(() => {
+      const auth = getAuth();
+      console.log('Firebase Auth initialized');
+      return auth;
+    }),
+    provideFirestore(() => {
+      const firestore = getFirestore();
+      console.log('Firestore initialized');
+      return firestore;
+    }),
   ],
 };

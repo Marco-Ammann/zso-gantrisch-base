@@ -57,6 +57,25 @@ export class ZsoLogin implements OnInit {
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      const emailErrors = this.form.get('email')?.errors;
+      const passwordErrors = this.form.get('password')?.errors;
+      
+      if (emailErrors?.['required']) {
+        this.errorMsg = 'E-Mail ist erforderlich.';
+        return;
+      }
+      if (emailErrors?.['email']) {
+        this.errorMsg = 'Ungültige E-Mail-Adresse.';
+        return;
+      }
+      if (passwordErrors?.['required']) {
+        this.errorMsg = 'Passwort ist erforderlich.';
+        return;
+      }
+      if (passwordErrors?.['minlength']) {
+        this.errorMsg = 'Passwort muss mindestens 6 Zeichen lang sein.';
+        return;
+      }
       return;
     }
     this.errorMsg = null;
@@ -64,6 +83,9 @@ export class ZsoLogin implements OnInit {
     this.form.disable();
 
     const { email, password, rememberMe } = this.form.getRawValue();
+    
+    this.logger.log('ZsoLogin', 'Login attempt', { email, rememberMe });
+    
     this.auth
       .login(email, password, rememberMe)
       .pipe(finalize(() => {
@@ -72,23 +94,33 @@ export class ZsoLogin implements OnInit {
       }))
       .subscribe({
         next: () => {
+          this.logger.log('ZsoLogin', 'Login successful');
           this.auth.user$.pipe(take(1)).subscribe(user => {
             if (user?.emailVerified) {
+              this.logger.log('ZsoLogin', 'User email verified, navigating to', this.returnUrl);
               this.router.navigateByUrl(this.returnUrl);
             } else {
+              this.logger.log('ZsoLogin', 'User email not verified, navigating to verification page');
               this.router.navigate(['/auth/verify-email']);
             }
           });
         },
-        error: err => (this.errorMsg = this.mapError(err.code))
+        error: err => {
+          this.logger.error('ZsoLogin', 'Login error:', err);
+          this.errorMsg = this.mapError(err.code);
+        }
       });
   }
 
   private mapError(code: string) {
+    this.logger.log('ZsoLogin', 'Error code received:', code);
     switch (code) {
       case 'auth/user-not-found': return 'E-Mail nicht gefunden.';
       case 'auth/wrong-password': return 'Falsches Passwort.';
-      default: return 'Fehler beim Anmelden.';
+      case 'auth/invalid-email': return 'Ungültige E-Mail-Adresse.';
+      case 'auth/too-many-requests': return 'Zu viele Loginversuche. Bitte warten Sie.';
+      case 'auth/network-request-failed': return 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.';
+      default: return `Fehler beim Anmelden: ${code || 'Unbekannter Fehler'}`;
     }
   }
 }

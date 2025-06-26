@@ -24,8 +24,16 @@ export class FirestoreService {
   private readonly settings: AppSettings = inject(APP_SETTINGS);
 
   constructor(firebaseApp: FirebaseApp) {
-    this.db = getFirestore(firebaseApp, this.settings.firestoreDbId);
-    this.logger.info('Firestore', `verbunden mit „${this.settings.firestoreDbId}"`);
+    try {
+      // For Firebase v11+, handle named database initialization more carefully
+      this.db = getFirestore(firebaseApp, this.settings.firestoreDbId);
+      this.logger.info('Firestore', `verbunden mit „${this.settings.firestoreDbId}"`);
+    } catch (error) {
+      console.error('Firestore initialization error:', error);
+      // Fallback to default database if named database fails
+      this.db = getFirestore(firebaseApp);
+      this.logger.warn('Firestore', `Fallback to default database due to error: ${error}`);
+    }
   }
 
   /* ---------- Convenience ---------- */
