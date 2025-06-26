@@ -1,9 +1,9 @@
 // src/app/core/services/user.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 import { collection, collectionData, doc, updateDoc } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 
 import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
@@ -13,10 +13,9 @@ export type AppUser = UserDoc;
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  constructor(
-    private firestoreService: FirestoreService,
-    private auth: Auth
-  ) {}
+  private auth = inject(Auth);
+
+  constructor(private firestoreService: FirestoreService) {}
 
   getAll(): Observable<UserDoc[]> {
     const usersCollection = collection(this.firestoreService.db, 'users');
@@ -118,5 +117,4 @@ export class UserService {
       console.log(`[UserService] Last inactive updated for user ${uid}`);
     }));
   }
-
 }

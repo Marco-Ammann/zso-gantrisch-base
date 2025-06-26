@@ -1,41 +1,53 @@
 // src/app/core/auth/services/auth.service.ts
-import { Injectable, Inject }       from '@angular/core';
-import { AngularFireAuth }          from '@angular/fire/compat/auth';
-import { FirestoreService }         from '@core/services/firestore.service';
-import { setDoc, docData }          from '@angular/fire/firestore';
-import firebase                     from 'firebase/compat/app';
-import { Observable, from, of }     from 'rxjs';
+import { Injectable, Inject, inject } from '@angular/core';
+import { 
+  Auth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut, 
+  sendEmailVerification, 
+  sendPasswordResetEmail,
+  updateProfile, 
+  authState, 
+  User,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
+} from '@angular/fire/auth';
+import { FirestoreService } from '@core/services/firestore.service';
+import { setDoc, docData } from '@angular/fire/firestore';
+import { Observable, from, of } from 'rxjs';
 import { switchMap, map, shareReplay } from 'rxjs/operators';
 
-import { APP_SETTINGS, AppSettings } from '@config/app-settings';
+import { APP_SETTINGS, AppSettings } from '@core/config/app-settings';
 
 /* ---------- Modelle ---------- */
 export interface RegisterData {
   firstName: string;
-  lastName : string;
-  email    : string;
-  password : string;
+  lastName: string;
+  email: string;
+  password: string;
 }
 
 export interface AppUserCombined {
-  auth: firebase.User;
-  doc : import('@core/models/user-doc').UserDoc;
+  auth: User;
+  doc: import('@core/models/user-doc').UserDoc;
 }
 
 /* ---------- Service ---------- */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private auth = inject(Auth);
 
-  readonly user$:    Observable<firebase.User | null>;
+  readonly user$: Observable<User | null>;
   readonly appUser$: Observable<AppUserCombined | null>;
 
   constructor(
-    private afAuth: AngularFireAuth,
-    private fs    : FirestoreService,
+    private fs: FirestoreService,
     @Inject(APP_SETTINGS) private settings: AppSettings
   ) {
 
-    this.user$ = this.afAuth.authState.pipe(
+    this.user$ = authState(this.auth).pipe(
       shareReplay({ bufferSize: 1, refCount: false })
     );
 
@@ -53,38 +65,41 @@ export class AuthService {
 
   /* ---------- Auth ---------- */
   login(email: string, password: string, remember: boolean): Observable<void> {
-    const persistence: 'local' | 'session' = remember ? 'local' : 'session';
-    return from(this.afAuth.setPersistence(persistence)).pipe(
-      switchMap(() => from(this.afAuth.signInWithEmailAndPassword(email, password))),
-      switchMap(() => from(this.afAuth.currentUser)),
-      switchMap(u => u ? from(u.reload()).pipe(map(() => void 0)) : of(void 0)),
+    const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
+    return from(setPersistence(this.auth, persistence)).pipe(
+      switchMap(() => from(signInWithEmailAndPassword(this.auth, email, password))),
+      switchMap(() => {
+        const user = this.auth.currentUser;
+        return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
+      })
     );
   }
 
   logout(): Observable<void> {
-    return from(this.afAuth.signOut());
+    return from(signOut(this.auth));
   }
 
   /* ---------- Registrierung ---------- */
   register(data: RegisterData): Observable<void> {
-    return from(this.afAuth.createUserWithEmailAndPassword(data.email, data.password)).pipe(
+    return from(createUserWithEmailAndPassword(this.auth, data.email, data.password)).pipe(
       switchMap(cred => {
-        const uid = cred.user!.uid;
+        const uid = cred.user.uid;
+        const user = cred.user;
 
         const updateDisplay$ = from(
-          cred.user!.updateProfile({ displayName: `${data.firstName} ${data.lastName}` })
+          updateProfile(user, { displayName: `${data.firstName} ${data.lastName}` })
         );
 
         const profileRef = this.fs.doc(`users/${uid}`);
-        const now        = Date.now();
-        const profile    = {
+        const now = Date.now();
+        const profile = {
           uid,
           email: data.email,
           firstName: data.firstName,
-          lastName : data.lastName,
-          roles   : ['user'],
+          lastName: data.lastName,
+          roles: ['user'],
           approved: false,
-          blocked : false,
+          blocked: false,
           createdAt: now,
           updatedAt: now,
           lastLoginAt: now,
@@ -95,7 +110,7 @@ export class AuthService {
         const createProfile$ = from(setDoc(profileRef, profile));
 
         const verify$ = from(
-          cred.user!.sendEmailVerification({
+          sendEmailVerification(user, {
             url: this.settings.verifyRedirect,
             handleCodeInApp: false
           })
@@ -112,29 +127,37 @@ export class AuthService {
 
   /* ---------- E-Mail-Aktionen ---------- */
   resendVerificationEmail(): Observable<void> {
-    return from(this.afAuth.currentUser).pipe(
-      switchMap(u => u
-        ? from(u.sendEmailVerification({ url: this.settings.verifyRedirect, handleCodeInApp: false }))
-        : from(Promise.reject('Kein User angemeldet'))
-      ),
-      map(() => void 0)
-    );
+    const user = this.auth.currentUser;
+    if (!user) {
+      return from(Promise.reject('Kein User angemeldet'));
+    }
+    
+    return from(
+      sendEmailVerification(user, { 
+        url: this.settings.verifyRedirect, 
+        handleCodeInApp: false 
+      })
+    ).pipe(map(() => void 0));
   }
 
   resetPassword(email: string): Observable<void> {
     return from(
-      this.afAuth.sendPasswordResetEmail(email, { url: this.settings.resetRedirect, handleCodeInApp: false })
+      sendPasswordResetEmail(this.auth, email, { 
+        url: this.settings.resetRedirect, 
+        handleCodeInApp: false 
+      })
     ).pipe(map(() => void 0));
   }
 
   refreshAndCheckEmail(): Observable<boolean> {
-    return from(this.afAuth.currentUser).pipe(
-      switchMap(u => u ? from(u.reload().then(() => u.emailVerified)) : of(false))
-    );
+    const user = this.auth.currentUser;
+    if (!user) return of(false);
+    
+    return from(user.reload().then(() => user.emailVerified));
   }
 
   /* ---------- Token ---------- */
   getToken(): Promise<string> {
-    return this.afAuth.currentUser.then(u => u ? u.getIdToken() : '');
+    return this.auth.currentUser?.getIdToken() || Promise.resolve('');
   }
 }

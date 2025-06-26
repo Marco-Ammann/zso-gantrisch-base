@@ -6,9 +6,10 @@ import { provideRouter } from '@angular/router';
 // HttpClient + Interceptor
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
-// AngularFire Compat
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+// Moderne Firebase API
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 
 // Environment
 import { environment } from '../environments/environment';
@@ -30,10 +31,9 @@ export const appConfig: ApplicationConfig = {
       multi: true,
     },
 
-    // AngularFire (Compat) – stellt das InjectionToken angularfire2.app.options bereit
-    importProvidersFrom(
-      AngularFireModule.initializeApp(environment.firebase),
-      AngularFireAuthModule
-    ),
+    // Moderne Firebase Setup
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAuth(() => getAuth()),
+    provideFirestore(() => getFirestore()),
   ],
 };
