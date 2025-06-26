@@ -1,5 +1,5 @@
 // src/app/core/auth/services/auth.service.ts
-import { Injectable, Inject, inject } from '@angular/core';
+import { Injectable, Inject, inject, Injector, runInInjectionContext } from '@angular/core';
 import { 
   Auth, 
   signInWithEmailAndPassword, 
@@ -38,6 +38,7 @@ export interface AppUserCombined {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private auth = inject(Auth);
+  private injector = inject(Injector);
 
   readonly user$: Observable<User | null>;
   readonly appUser$: Observable<AppUserCombined | null>;
@@ -47,16 +48,20 @@ export class AuthService {
     @Inject(APP_SETTINGS) private settings: AppSettings
   ) {
 
-    this.user$ = authState(this.auth).pipe(
-      shareReplay({ bufferSize: 1, refCount: false })
+    this.user$ = runInInjectionContext(this.injector, () => 
+      authState(this.auth).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      )
     );
 
     this.appUser$ = this.user$.pipe(
       switchMap(user => {
         if (!user) return of(null);
         const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(`users/${user.uid}`);
-        return docData(ref).pipe(
-          map(doc => (doc ? { auth: user, doc } : null))
+        return runInInjectionContext(this.injector, () => 
+          docData(ref).pipe(
+            map(doc => (doc ? { auth: user, doc } : null))
+          )
         );
       }),
       shareReplay({ bufferSize: 1, refCount: false })
@@ -66,12 +71,14 @@ export class AuthService {
   /* ---------- Auth ---------- */
   login(email: string, password: string, remember: boolean): Observable<void> {
     const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
-    return from(setPersistence(this.auth, persistence)).pipe(
-      switchMap(() => from(signInWithEmailAndPassword(this.auth, email, password))),
-      switchMap(() => {
-        const user = this.auth.currentUser;
-        return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
-      })
+    return runInInjectionContext(this.injector, () => 
+      from(setPersistence(this.auth, persistence)).pipe(
+        switchMap(() => from(signInWithEmailAndPassword(this.auth, email, password))),
+        switchMap(() => {
+          const user = this.auth.currentUser;
+          return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
+        })
+      )
     );
   }
 
@@ -107,7 +114,9 @@ export class AuthService {
           lastActiveAt: now,
           lastInactiveAt: now,
         };
-        const createProfile$ = from(setDoc(profileRef, profile));
+        const createProfile$ = runInInjectionContext(this.injector, () => 
+          from(setDoc(profileRef, profile))
+        );
 
         const verify$ = from(
           sendEmailVerification(user, {

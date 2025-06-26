@@ -1,166 +1,166 @@
 <div class="max-w-7xl mx-auto px-4 py-10 space-y-10">
 
-<!-- Toolbar ---------------------------------------------------------- -->
-<div class="glass-card flex flex-wrap gap-4 items-center p-4 sm:p-5">
-  <!-- Suche -->
-  <zso-input-field
-      type="text" label="Suche"
-      class="flex-grow sm:flex-none sm:w-72"
-      [(ngModel)]="search"
-      (ngModelChange)="refresh$.next()">
-  </zso-input-field>
-
-  <!-- Filter + Sortierung -->
-  <div class="ml-auto flex items-center gap-4 text-sm text-white/80">
-
-    <!-- Sortieren --------------------------------------------------- -->
-    <div class="relative">
-      <select
-        [(ngModel)]="sortBy"
-        (change)="refresh$.next()"
-        class="sort-select peer">
-        <option value="newest">Neueste</option>
-        <option value="oldest">Älteste</option>
-        <option value="name">Name</option>
-        <option value="blocked">Gesperrte</option>
-      </select>
-
-      <!-- Chevron (rein dekorativ) -->
-      <span class="material-symbols-outlined pointer-events-none
-                   absolute right-2 top-1/2 -translate-y-1/2 text-gray-400
-                   peer-focus:text-cp-orange transition-colors">
-        arrow_drop_down
-      </span>
+  <!-- Toolbar ---------------------------------------------------------- -->
+  <div class="glass-card flex flex-wrap gap-4 items-center p-4 sm:p-5">
+    <!-- Suche -->
+    <zso-input-field
+        type="text" label="Suche"
+        class="flex-grow sm:flex-none sm:w-72"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange($event)">
+    </zso-input-field>
+  
+    <!-- Filter + Sortierung -->
+    <div class="ml-auto flex items-center gap-4 text-sm text-white/80">
+  
+      <!-- Sortieren --------------------------------------------------- -->
+      <div class="relative">
+        <select
+          [(ngModel)]="sortBy"
+          (change)="onSortChange(sortBy)"
+          class="sort-select peer">
+          <option value="newest">Neueste</option>
+          <option value="oldest">Älteste</option>
+          <option value="name">Name</option>
+          <option value="blocked">Gesperrte</option>
+        </select>
+  
+        <!-- Chevron (rein dekorativ) -->
+        <span class="material-symbols-outlined pointer-events-none
+                     absolute right-2 top-1/2 -translate-y-1/2 text-gray-400
+                     peer-focus:text-cp-orange transition-colors">
+          arrow_drop_down
+        </span>
+      </div>
+  
+      <!-- Zähler -->
+      <ng-container *ngIf="stats$ | async as s">
+        <span>{{ s.total }} Nutzer</span>
+        <span class="text-amber-300" title="Pending">• {{ s.pending }}</span>
+        <span class="text-rose-400"  title="Gesperrt">• {{ s.blocked }}</span>
+      </ng-container>
+  
+      <!-- Refresh-Button -->
+      <zso-button type="neutral" size="sm" (click)="refresh$.next()" title="Aktualisieren">
+        <span class="material-symbols-outlined text-base">refresh</span>
+      </zso-button>
     </div>
-
-    <!-- Zähler -->
-    <ng-container *ngIf="stats$ | async as s">
-      <span>{{ s.total }} Nutzer</span>
-      <span class="text-amber-300" title="Pending">• {{ s.pending }}</span>
-      <span class="text-rose-400"  title="Gesperrt">• {{ s.blocked }}</span>
-    </ng-container>
-
-    <!-- Refresh-Button -->
-    <zso-button variant="ghost" size="sm" (click)="refresh$.next()" title="Aktualisieren">
-      <span class="material-symbols-outlined text-base">refresh</span>
-    </zso-button>
   </div>
-</div>
-
-  <!-- AUSSTEHEND ------------------------------------------------------- -->
-  <div *ngIf="(users$ | async)?.pending?.length">
-    <h2 class="text-xl font-bold text-amber-400 mb-3 flex items-center gap-2">
-      <span class="material-symbols-outlined text-amber-300">hourglass_top</span>
-      Ausstehende&nbsp;Benutzer ({{ (users$ | async)?.pending?.length }})
-    </h2>
-
-    <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
-      <div *ngFor="let u of (users$ | async)?.pending"
-           class="glass-card shimmer-once p-6 flex flex-col gap-4"
-           [ngClass]="{'user-card--blocked':u.blocked}">
-
-        <!-- Info + Rollenwahl -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-semibold text-white">
-              <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
-              {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
-            </h2>
-            <p class="text-sm text-gray-300">{{ u.email }}</p>
-
-            <p class="meta">
-              Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
-              <span *ngIf="u.updatedAt !== u.createdAt">
-                • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
-              </span>
-            </p>
-            <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
+  
+    <!-- AUSSTEHEND ------------------------------------------------------- -->
+    <div *ngIf="(users$ | async)?.pending?.length">
+      <h2 class="text-xl font-bold text-amber-400 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-amber-300">hourglass_top</span>
+        Ausstehende&nbsp;Benutzer ({{ (users$ | async)?.pending?.length }})
+      </h2>
+  
+      <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
+        <div *ngFor="let u of (users$ | async)?.pending"
+             class="glass-card shimmer-once p-6 flex flex-col gap-4"
+             [ngClass]="{'user-card--blocked':u.blocked}">
+  
+          <!-- Info + Rollenwahl -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-semibold text-white">
+                <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
+                {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
+              </h2>
+              <p class="text-sm text-gray-300">{{ u.email }}</p>
+  
+              <p class="meta">
+                Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
+                <span *ngIf="u.updatedAt !== u.createdAt">
+                  • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
+                </span>
+              </p>
+              <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
+            </div>
+  
+            <zso-role-select [roleOptions]="['user','admin']"
+                             [selected]="pendingRole[u.uid] || u.roles"
+                             (selectedChange)="askRoleChange(u,$event)">
+            </zso-role-select>
           </div>
-
-          <zso-role-select [roleOptions]="['user','admin']"
-                           [selected]="pendingRole[u.uid] || u.roles"
-                           (selectedChange)="askRoleChange(u,$event)">
-          </zso-role-select>
-        </div>
-
-        <!-- Aktionen --------------------------------------------------- -->
-        <div class="flex flex-row flex-wrap gap-2 pt-2">
-          <button title="Genehmigen" (click)="approve(u)" class="btn-approve glow-green">
-            <span class="material-symbols-outlined text-lg">check</span>
-          </button>
-
-          <button title="Blockieren" (click)="toggleActive(u)" class="btn-block glow-red">
-            <span class="material-symbols-outlined text-lg">block</span>
-          </button>
-
-          <button title="Details" (click)="details(u)" class="btn-neutral">
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
+  
+          <!-- Aktionen --------------------------------------------------- -->
+          <div class="flex flex-row flex-wrap gap-2 pt-2">
+            <button title="Genehmigen" (click)="approve(u)" class="btn-approve glow-green">
+              <span class="material-symbols-outlined text-lg">check</span>
+            </button>
+  
+            <button title="Blockieren" (click)="toggleActive(u)" class="btn-block glow-red">
+              <span class="material-symbols-outlined text-lg">block</span>
+            </button>
+  
+            <button title="Details" (click)="details(u)" class="btn-neutral">
+              <span class="material-symbols-outlined text-lg">chevron_right</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- APPROVED / REST -------------------------------------------------- -->
-  <div *ngIf="(users$ | async)?.rest?.length">
-    <h2 class="text-lg font-bold text-white mb-2">Alle&nbsp;Benutzer</h2>
-
-    <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
-      <div *ngFor="let u of (users$ | async)?.rest"
-           class="glass-card shimmer-once p-6 flex flex-col gap-4"
-           [ngClass]="{'user-card--blocked':u.blocked}">
-
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-semibold text-white">
-              <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
-              {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
-              <span *ngIf="u.blocked" class="badge badge--suspended">Gesperrt</span>
-            </h2>
-            <p class="text-sm text-gray-300">{{ u.email }}</p>
-
-            <p class="meta">
-              Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
-              <span *ngIf="u.updatedAt !== u.createdAt">
-                • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
-              </span>
-            </p>
-            <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
-
-            <p class="meta" *ngIf="u.lastLoginAt">
-              Letzter&nbsp;Login:&nbsp;{{ u.lastLoginAt | date:'dd.MM.yyyy' }}
-            </p>
+  
+    <!-- APPROVED / REST -------------------------------------------------- -->
+    <div *ngIf="(users$ | async)?.rest?.length">
+      <h2 class="text-lg font-bold text-white mb-2">Alle&nbsp;Benutzer</h2>
+  
+      <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
+        <div *ngFor="let u of (users$ | async)?.rest"
+             class="glass-card shimmer-once p-6 flex flex-col gap-4"
+             [ngClass]="{'user-card--blocked':u.blocked}">
+  
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-semibold text-white">
+                <span *ngIf="u.firstName.startsWith('(d)')" class="demo-tag">(d)</span>
+                {{ u.firstName.replace('(d) ','') }} {{ u.lastName }}
+                <span *ngIf="u.blocked" class="badge badge--suspended">Gesperrt</span>
+              </h2>
+              <p class="text-sm text-gray-300">{{ u.email }}</p>
+  
+              <p class="meta">
+                Registriert&nbsp;am&nbsp;{{ u.createdAt | date:'dd.MM.yyyy' }}
+                <span *ngIf="u.updatedAt !== u.createdAt">
+                  • geändert&nbsp;am&nbsp;{{ u.updatedAt | date:'dd.MM.yyyy' }}
+                </span>
+              </p>
+              <p class="meta">Rolle: {{ u.roles.join(', ') }}</p>
+  
+              <p class="meta" *ngIf="u.lastLoginAt">
+                Letzter&nbsp;Login:&nbsp;{{ u.lastLoginAt | date:'dd.MM.yyyy' }}
+              </p>
+            </div>
+  
+            <zso-role-select [roleOptions]="['user','admin']"
+                             [selected]="pendingRole[u.uid] || u.roles"
+                             (selectedChange)="askRoleChange(u,$event)">
+            </zso-role-select>
           </div>
-
-          <zso-role-select [roleOptions]="['user','admin']"
-                           [selected]="pendingRole[u.uid] || u.roles"
-                           (selectedChange)="askRoleChange(u,$event)">
-          </zso-role-select>
-        </div>
-
-        <!-- Aktionen -->
-        <div class="flex flex-row flex-wrap gap-2 pt-2">
-          <button *ngIf="u.blocked" title="Entsperren"
-                  (click)="toggleActive(u)" class="btn-approve glow-green">
-            <span class="material-symbols-outlined text-lg">lock_open</span>
-          </button>
-          <button *ngIf="!u.blocked" title="Blockieren"
-                  (click)="toggleActive(u)" class="btn-block glow-red">
-            <span class="material-symbols-outlined text-lg">block</span>
-          </button>
-
-          <button title="Details" (click)="details(u)" class="btn-neutral">
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
+  
+          <!-- Aktionen -->
+          <div class="flex flex-row flex-wrap gap-2 pt-2">
+            <button *ngIf="u.blocked" title="Entsperren"
+                    (click)="toggleActive(u)" class="btn-approve glow-green">
+              <span class="material-symbols-outlined text-lg">lock_open</span>
+            </button>
+            <button *ngIf="!u.blocked" title="Blockieren"
+                    (click)="toggleActive(u)" class="btn-block glow-red">
+              <span class="material-symbols-outlined text-lg">block</span>
+            </button>
+  
+            <button title="Details" (click)="details(u)" class="btn-neutral">
+              <span class="material-symbols-outlined text-lg">chevron_right</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+  
+    <!-- Dialog + Fallback -->
+    <ng-template #loading>
+      <p class="text-center text-sm text-gray-400">Lade&nbsp;Benutzer…</p>
+    </ng-template>
+  
+    <zso-confirmation-dialog></zso-confirmation-dialog>
   </div>
-
-  <!-- Dialog + Fallback -->
-  <ng-template #loading>
-    <p class="text-center text-sm text-gray-400">Lade&nbsp;Benutzer…</p>
-  </ng-template>
-
-  <zso-confirmation-dialog></zso-confirmation-dialog>
-</div>

@@ -2,8 +2,8 @@ import { Component, inject, ViewChild } from '@angular/core';
 import { CommonModule, AsyncPipe, NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, of, combineLatest } from 'rxjs';
+import { map, switchMap, shareReplay, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { UserService } from '@core/services/user.service';
 import { UserDoc } from '@core/models/user-doc';
@@ -152,6 +152,12 @@ export class UsersPage {
 
   /** Trigger für Reload/Filter */
   public readonly refresh$ = new BehaviorSubject<void>(undefined);
+  
+  /** Search-Observable mit Debouncing */
+  private readonly search$ = new BehaviorSubject<string>('');
+  
+  /** SortBy-Observable */
+  private readonly sortBy$ = new BehaviorSubject<'newest' | 'oldest' | 'name' | 'blocked'>('newest');
 
   /** Rollenänderungen in Warteschlange */
   pendingRole: Record<string, string[]> = {};
@@ -159,29 +165,42 @@ export class UsersPage {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
 
-  /* ----------------------------- Streams */
+  /* ----------------------------- Optimized Streams */
 
-  /** alle Benutzer (Service + Demo) → Filter/Sort → Split  */
-  public readonly users$ = this.refresh$.pipe(
+  /** Basis-Daten (nur EINMAL laden, dann cachen) */
+  private readonly allUsers$ = this.refresh$.pipe(
     switchMap(() =>
       this.userService.getAll().pipe(
-        // Falls der Service (z. B. offline) nichts liefert, dummyUsers trotzdem zeigen
-        // (mit `of([])` würde das observable leer sein)
         switchMap((real) =>
           of([
             ...real,
             ...this.dummyUsers.filter(
-              (d) => !real.some((u) => u.uid === d.uid) // Duplikate vermeiden
+              (d) => !real.some((u) => u.uid === d.uid)
             ),
           ])
         )
       )
     ),
-    map((list) => {
+    shareReplay({ bufferSize: 1, refCount: true }) // WICHTIG: Caching!
+  );
+
+  /** Gefilterte und sortierte Benutzer */
+  public readonly users$ = combineLatest([
+    this.allUsers$,
+    this.search$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      startWith('')
+    ),
+    this.sortBy$.pipe(startWith('newest'))
+  ]).pipe(
+    map(([list, searchTerm, sortBy]) => {
+      let filteredList = [...list];
+
       /* --- Suche ---------------------------------------------------- */
-      if (this.search.trim()) {
-        const q = this.search.toLowerCase();
-        list = list.filter(
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        filteredList = filteredList.filter(
           (u) =>
             `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
             u.email.toLowerCase().includes(q)
@@ -189,12 +208,14 @@ export class UsersPage {
       }
 
       /* --- nur gesperrte ------------------------------------------- */
-      if (this.showOnlyBlocked) list = list.filter((u) => u.blocked);
+      if (this.showOnlyBlocked) {
+        filteredList = filteredList.filter((u) => u.blocked);
+      }
 
       /* --- Sortierung ---------------------------------------------- */
-      switch (this.sortBy) {
+      switch (sortBy) {
         case 'name':
-          list = [...list].sort((a, b) =>
+          filteredList.sort((a, b) =>
             (a.lastName + a.firstName).localeCompare(
               b.lastName + b.firstName,
               'de'
@@ -202,42 +223,28 @@ export class UsersPage {
           );
           break;
         case 'oldest':
-          list = [...list].sort((a, b) => a.createdAt - b.createdAt);
+          filteredList.sort((a, b) => a.createdAt - b.createdAt);
           break;
         case 'blocked':
-          // shows blocked first
-          list = [...list].sort(
+          filteredList.sort(
             (a, b) => (a.blocked ? -1 : 1) - (b.blocked ? -1 : 1)
           );
           break;
         default: /* newest */
-          list = [...list].sort((a, b) => b.createdAt - a.createdAt);
+          filteredList.sort((a, b) => b.createdAt - a.createdAt);
       }
 
       /* --- Split pending / rest ------------------------------------ */
       return {
-        pending: list.filter((u) => !u.approved),
-        rest: list.filter((u) => u.approved),
+        pending: filteredList.filter((u) => !u.approved),
+        rest: filteredList.filter((u) => u.approved),
       };
-    })
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
   /** Statistik-Info rechts oben */
-  public readonly stats$ = this.refresh$.pipe(
-    switchMap(() =>
-      this.userService
-        .getAll()
-        .pipe(
-          switchMap((real) =>
-            of([
-              ...real,
-              ...this.dummyUsers.filter(
-                (d) => !real.some((u) => u.uid === d.uid)
-              ),
-            ])
-          )
-        )
-    ),
+  public readonly stats$ = this.allUsers$.pipe(
     map((a) => ({
       total: a.length,
       pending: a.filter((u) => !u.approved).length,
@@ -245,9 +252,22 @@ export class UsersPage {
     }))
   );
 
+  /* ----------------------------- Search & Sort Handler */
+  
+  onSearchChange(value: string) {
+    this.search = value;
+    this.search$.next(value);
+  }
+
+  onSortChange(value: 'newest' | 'oldest' | 'name' | 'blocked') {
+    this.sortBy = value;
+    this.sortBy$.next(value);
+  }
+
   /* ----------------------------- Dialog */
   @ViewChild(ConfirmationDialogComponent)
   confirmation!: ConfirmationDialogComponent;
+  
   private confirm(
     cb: () => void,
     msg: string,
@@ -284,7 +304,7 @@ export class UsersPage {
   /** Rollenauswahl (Dialog vor finalem Speichern) */
   askRoleChange(u: UserDoc, roles: string[]) {
     this.pendingRole[u.uid] = roles;
-    const msg = `Rolle von „${u.roles[0]}“ auf „${roles[0]}“ ändern?`;
+    const msg = `Rolle von „${u.roles[0]}" auf „${roles[0]}" ändern?`;
     this.confirm(() => {
       this.userService.setRoles(u.uid, roles).subscribe(() => {
         delete this.pendingRole[u.uid];
@@ -295,8 +315,4 @@ export class UsersPage {
 
   details = (u: UserDoc) =>
     this.router.navigate(['/admin/users', u.uid, 'edit']);
-
-  sortChanged() {
-    this.refresh$.next();
-  }
 }
