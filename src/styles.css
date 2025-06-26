@@ -104,22 +104,24 @@
   }
 
   /* runde Icon-Buttons ------------------------------------------------- */
-  .btn-circle{
+  .btn-circle {
     /* Grundform */
     @apply inline-flex items-center justify-center w-9 h-9 rounded-full
            transition active:scale-95
            ring-1 ring-current ring-opacity-40 text-current bg-transparent;
   }
-  .btn-circle:hover{ @apply ring-opacity-60 bg-current bg-opacity-10; }
+  .btn-circle:hover {
+    @apply ring-opacity-60 bg-current bg-opacity-10;
+  }
 
   /* Spezifische Varianten (nur Farbe ändern) */
-  .btn-approve{
+  .btn-approve {
     @apply btn-circle text-lime-400 ring-lime-400 hover:bg-lime-400/15;
   }
-  .btn-block{
+  .btn-block {
     @apply btn-circle text-rose-400 ring-rose-400 hover:bg-rose-400/15;
   }
-  .btn-neutral{
+  .btn-neutral {
     @apply btn-circle text-gray-300 ring-gray-400 hover:bg-gray-300/10;
   }
 
@@ -161,6 +163,12 @@
   }
 
   /* Layout Utilities */
+  .auth-responsive-padding {
+    @media (max-width: 319px) {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+  }
   .field-stack {
     @apply flex flex-col gap-5 sm:gap-6;
   }
@@ -220,8 +228,12 @@
            transition-colors cursor-pointer;
   }
   /* Dropdown-Pfeil in Firefox */
-  .sort-select::-ms-expand { display:none; }      /* IE / Edge-Legacy    */
-  .sort-select::-webkit-scrollbar { width:0; }    /* Safari Dropdown-bg  */
+  .sort-select::-ms-expand {
+    display: none;
+  } /* IE / Edge-Legacy    */
+  .sort-select::-webkit-scrollbar {
+    width: 0;
+  } /* Safari Dropdown-bg  */
 
   /* Options – damit Popup auch dunkel ist           */
   .sort-select option {
@@ -231,19 +243,15 @@
 
 /* == UTILITIES == */
 @layer utilities {
-  .glow-green{
+  .glow-green {
     /* weicher Außen-Glow + ganz leichter innerer Schein                       */
-    box-shadow:
-      0 0 0 1px rgba(163,230,53 ,0.45),   /* feiner Outline-Farbsaum          */
-      0 0 6px     rgba(163,230,53 ,0.55);  /* eigentlicher Glow               */
+    box-shadow: 0 0 0 1px rgba(163, 230, 53, 0.45),
+      /* feiner Outline-Farbsaum          */ 0 0 6px rgba(163, 230, 53, 0.55); /* eigentlicher Glow               */
   }
-  .glow-red{
-    box-shadow:
-      0 0 0 1px rgba(244,63,94 ,0.45),
-      0 0 6px     rgba(244,63,94 ,0.55);
+  .glow-red {
+    box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.45),
+      0 0 6px rgba(244, 63, 94, 0.55);
   }
-
-  
 
   /* Sweep-Underline (abgerundete Enden) */
   @keyframes sweep {

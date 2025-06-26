@@ -11,6 +11,7 @@ import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
 import { AuthService } from '../../services/auth.service';
 import { finalize, take } from 'rxjs/operators';
 import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
+import { LoggerService } from '@shared/services/logger.service';
 
 @Component({
   selector: 'zso-login',
@@ -39,7 +40,8 @@ export class ZsoLogin implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private logger: LoggerService
   ) {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   }
