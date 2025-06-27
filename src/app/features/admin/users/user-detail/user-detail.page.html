@@ -1,0 +1,118 @@
+<ng-container *ngIf="user$ | async as user; else loading">
+  <div class="max-w-4xl mx-auto space-y-6 mt-8">
+    <button class="btn-neutral" (click)="back()" title="Zurück">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+    </button>
+    <!-- Header -->
+    <div class="glass-card p-6 overflow-visible z-30 relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <!-- Avatar -------------------------------------------------- -->
+        <div class="relative group">
+          <ng-container *ngIf="$any(user).photoUrl || $any(user).photoURL; else placeholder">
+            <img [src]="$any(user).photoUrl || $any(user).photoURL" alt="Avatar"
+                 class="h-20 w-20 rounded-full object-cover ring-2 ring-white/20" />
+          </ng-container>
+          <ng-template #placeholder>
+            <div class="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
+              <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
+            </div>
+          </ng-template>
+          <!-- Upload button on hover -->
+          <label class="absolute bottom-1 right-1 hidden group-hover:flex items-center justify-center bg-black/60 rounded-full p-1 cursor-pointer hover:bg-cp-orange/80 transition-colors"
+                 title="Bild ändern">
+            <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
+            <span class="material-symbols-outlined text-xs text-white">photo_camera</span>
+          </label>
+        </div>
+        <!-- Name / Email ------------------------------------------- -->
+        <div>
+        <p class="text-gray-300">{{ user.email }}</p>
+
+        <!-- Status Badges -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <span *ngIf="user.approved" class="badge bg-green-600/20 text-green-400">Genehmigt</span>
+          <span *ngIf="!user.approved" class="badge bg-amber-500/20 text-amber-300">Ausstehend</span>
+          <span *ngIf="user.blocked" class="badge bg-red-600/20 text-red-400">Gesperrt</span>
+        </div>
+              </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-wrap items-center gap-1">
+        <button *ngIf="!user.approved" (click)="approve(user.uid)" class="btn-approve" title="Genehmigen">
+          <span class="material-symbols-outlined text-base">check</span>
+        </button>
+        <button *ngIf="!user.blocked" (click)="block(user.uid, true)" class="btn-block" title="Blockieren">
+          <span class="material-symbols-outlined text-base">block</span>
+        </button>
+        <button *ngIf="user.blocked" (click)="block(user.uid, false)" class="btn-approve" title="Entblocken">
+          <span class="material-symbols-outlined text-base">lock_open</span>
+        </button>
+        <!-- Actions Dropdown (CDK Overlay) -->
+        <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin"
+                (click)="menuOpen = !menuOpen"
+                class="btn-neutral" title="Mehr Aktionen"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="menuOpen">
+          <span class="material-symbols-outlined text-base"
+                [class.rotate-180]="menuOpen"
+                style="transition:transform .2s">more_vert</span>
+        </button>
+
+        <ng-template
+          cdkConnectedOverlay
+          [cdkConnectedOverlayOrigin]="menuOrigin"
+          [cdkConnectedOverlayOpen]="menuOpen"
+          [cdkConnectedOverlayPositions]="positions"
+          cdkConnectedOverlayHasBackdrop
+          cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+          (backdropClick)="menuOpen=false"
+          (detach)="menuOpen=false">
+          <ul class="dropdown-menu">
+            <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort reset</button></li>
+            <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Mail senden</button></li>
+            <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail ändern</button></li>
+            <li>
+              <label class="dropdown-item underline-sweep cursor-pointer">
+                <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid); menuOpen=false" />
+                Bild hochladen
+              </label>
+            </li>
+          </ul>
+        </ng-template>
+
+      </div>
+    </div>
+
+    <!-- Detail Grid -->
+    <div class="glass-card p-6 grid gap-6 sm:grid-cols-2">
+      <div>
+        <p class="label">Erstellt</p>
+        <p class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+      </div>
+      <div>
+        <p class="label">Zuletzt aktualisiert</p>
+        <p class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+      </div>
+      <div>
+        <p class="label">Letzter Login</p>
+        <p class="value">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+      </div>
+      <div>
+        <p class="label">Letzte Aktivität</p>
+        <p class="value">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+      </div>
+      <div class="sm:col-span-2">
+        <p class="label mb-1">Rollen</p>
+        <zso-role-select
+          [roleOptions]="availableRoles"
+          [selected]="user.roles"
+          (selectedChange)="updateRoles($event, user.uid)"></zso-role-select>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #loading>
+  <div class="text-center text-gray-400 py-10">Lade Benutzer…</div>
+</ng-template>

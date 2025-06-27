@@ -123,7 +123,7 @@
       <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
         @for (user of filteredUsers.pending; track user.uid) {
           <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
-               [ngClass]="{'ring-2 ring-cp-orange': isUserSelected(user.uid)}">
+               [ngClass]="{'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)}">
 
             <!-- Selection Checkbox -->
             <zso-checkbox 
@@ -133,7 +133,19 @@
               label="">
             </zso-checkbox>
 
-            <!-- User Info -->
+            <!-- Avatar -->
+        <div class="flex items-center gap-3 mb-2 sm:mb-0">
+          <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
+            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
+                 class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
+          </ng-container>
+          <ng-template #placeholder>
+            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center ring-1 ring-white/20">
+              <span class="material-symbols-outlined text-lg text-gray-400">person</span>
+            </div>
+          </ng-template>
+        </div>
+        <!-- User Info -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
               <div>
                 <h3 class="text-lg font-semibold text-white">
@@ -203,7 +215,7 @@
           <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
                [ngClass]="{
                  'user-card--blocked': user.blocked,
-                 'ring-2 ring-cp-orange': isUserSelected(user.uid)
+                 'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)
                }">
 
             <!-- Selection Checkbox -->
@@ -214,7 +226,19 @@
               label="">
             </zso-checkbox>
 
-            <!-- User Info -->
+            <!-- Avatar -->
+        <div class="flex items-center gap-3 mb-2 sm:mb-0">
+          <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
+            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
+                 class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
+          </ng-container>
+          <ng-template #placeholder>
+            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center ring-1 ring-white/20">
+              <span class="material-symbols-outlined text-lg text-gray-400">person</span>
+            </div>
+          </ng-template>
+        </div>
+        <!-- User Info -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
               <div>
                 <h3 class="text-lg font-semibold text-white">

@@ -6,5 +6,9 @@ export const adminRoutes: Routes = [
     loadComponent: () =>
       import('./users/users.page').then(m => m.UsersPage),
   },
-  { path: '', redirectTo: 'users', pathMatch: 'full' },
+  {
+    path: 'users/:uid',
+    loadComponent: () => import('./users/user-detail/user-detail.page').then(m => m.UserDetailPage),
+  },
+  { path: '', redirectTo: 'users', pathMatch: 'full' }
 ];

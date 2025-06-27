@@ -1,12 +1,13 @@
 // src/app/features/admin/users/users.page.ts
 import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, Subject, takeUntil, map, startWith, debounceTime, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, Subject, takeUntil, take, map, startWith, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { UserService } from '@core/services/user.service';
 import { LoggerService } from '@core/services/logger.service';
+import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
@@ -29,7 +30,7 @@ interface UsersPageState {
     CommonModule,
     FormsModule,
     RouterModule,
-    AsyncPipe,
+
     ZsoButton,
     ZsoInputField,
     ZsoCheckbox,
@@ -46,6 +47,10 @@ export class UsersPage implements OnInit, OnDestroy {
   private readonly userService = inject(UserService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+
+  // Currently logged-in user UID (used for highlighting own card)
+  currentUid: string | null = null;
 
   // Cleanup
   private readonly destroy$ = new Subject<void>();
@@ -164,6 +169,9 @@ export class UsersPage implements OnInit, OnDestroy {
 
     // Load initial data
     this.loadUsers();
+
+    // Fetch current user UID once
+    this.authService.appUser$.pipe(take(1)).subscribe(u => this.currentUid = u?.auth.uid ?? null);
   }
 
   ngOnDestroy(): void {
@@ -180,6 +188,7 @@ export class UsersPage implements OnInit, OnDestroy {
     this.errorMsg = null;
 
     this.userService.getAll().pipe(
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       takeUntil(this.destroy$)
     ).subscribe({
       next: (realUsers) => {
@@ -334,7 +343,7 @@ export class UsersPage implements OnInit, OnDestroy {
 
   details(user: UserDoc): void {
     this.logger.log(this.COMPONENT_NAME, 'Navigate to user details:', user.uid);
-    this.router.navigate(['/admin/users', user.uid, 'edit']);
+    this.router.navigate(['/admin/users', user.uid]);
   }
 
   /* ----------------------------- Bulk Operations */
@@ -346,6 +355,11 @@ export class UsersPage implements OnInit, OnDestroy {
       selectedUsers.delete(uid);
     }
     this.updateState({ selectedUsers });
+  }
+
+  /* ----------------------------- Utility */
+  isCurrentUser(uid: string): boolean {
+    return uid === this.currentUid;
   }
 
   selectAll(users: UserDoc[], selected: boolean): void {

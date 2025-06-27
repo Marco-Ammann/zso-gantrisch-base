@@ -1,0 +1,23 @@
+.label {
+  @apply text-gray-400 text-sm;
+}
+
+.value {
+  @apply text-white;
+}
+
+.badge {
+  @apply text-xs font-medium px-2 py-0.5 rounded;
+}
+
+.action-btn {
+  @apply px-1 py-0.5 text-[0.65rem] whitespace-nowrap leading-none rounded-sm;
+}
+
+.dropdown-menu {
+  @apply min-w-[11rem] bg-gray-800/95 backdrop-blur-sm z-50;
+}
+
+.icon-btn {
+  @apply inline-flex items-center justify-center w-7 h-7 text-[0.75rem] leading-none rounded hover:bg-gray-700/30 transition-colors;
+}

@@ -21,6 +21,8 @@ export interface UserDoc {
 
   lastInactiveAt?: number;
 
+  photoUrl?: string;
+  photoURL?: string;
   
 }
 

@@ -201,12 +201,10 @@
 
   /* Dropdown-Menü --------------------------------------------------------- */
   .dropdown-menu {
-    @apply w-44 rounded-xl overflow-hidden shadow-xl border border-white/15
-         backdrop-blur-md bg-white/80 dark:bg-gray-900/70;
+    @apply w-44 rounded-xl overflow-hidden shadow-xl border border-white/15 backdrop-blur-md bg-white/80 dark:bg-gray-900/70;
   }
   .dropdown-item {
-    @apply w-full px-4 py-2 text-left text-gray-800 dark:text-gray-200
-         hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm;
+    @apply block w-full px-4 py-2 text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm;
   }
 
   /* Mobile-Link */

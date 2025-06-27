@@ -68,6 +68,38 @@ export class UserService {
     );
   }
 
+  /**
+   * Update email address in Firestore profile document (does NOT change auth email).
+   */
+  setEmail(uid: string, email: string) {
+    this.logger.log('UserService', 'setEmail', { uid, email });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        email,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `Email updated for user ${uid}`);
+      }))
+    );
+  }
+
+  /**
+   * Save photoUrl (avatar) in profile document.
+   */
+  setPhotoUrl(uid: string, photoUrl: string) {
+    this.logger.log('UserService', 'setPhotoUrl', { uid, photoUrl });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        photoUrl,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `Photo URL saved for user ${uid}`);
+      }))
+    );
+  }
+
   unapprove(uid: string) {
     this.logger.log('UserService', 'unapprove', uid);
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);

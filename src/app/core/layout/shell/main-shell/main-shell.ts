@@ -1,7 +1,7 @@
 import { Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
@@ -32,6 +32,14 @@ export class MainShell {
   ];
 
   toggleProfile() { this.overlayOpen = !this.overlayOpen; }
+  myProfile() {
+    this.auth.appUser$.pipe(take(1)).subscribe(u => {
+      if (u) {
+        this.router.navigate(['/admin/users', u.auth.uid]);
+      }
+      this.overlayOpen = false;
+    });
+  }
   toggleMobile () { this.showLinks   = !this.showLinks; }
   logout() {
     this.auth.logout().subscribe(()=>this.router.navigate(['/auth/login']));

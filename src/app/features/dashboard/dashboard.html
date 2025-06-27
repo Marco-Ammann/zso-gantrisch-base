@@ -5,20 +5,59 @@
     Willkommen, {{ (appUser$ | async)?.doc?.firstName ?? 'Gast' }}!
   </h1>
 
-  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div class="glass-card shimmer-once p-6 text-center" zsoCardShimmer>
+      <h2 class="text-lg font-semibold text-white mb-4">Benutzer insgesamt</h2>
+      <p class="text-3xl font-bold text-orange-500">{{ (stats$ | async)?.total ?? '—' }}</p>
+    </div>
+
     <div class="glass-card shimmer-once p-6 text-center" zsoCardShimmer>
       <h2 class="text-lg font-semibold text-white mb-4">Aktive Benutzer</h2>
-      <p class="text-3xl font-bold text-orange-500">—</p>
+      <p class="text-3xl font-bold text-orange-500">{{ (stats$ | async)?.active ?? '—' }}</p>
     </div>
 
     <div class="glass-card shimmer-once p-6 text-center" zsoCardShimmer>
       <h2 class="text-lg font-semibold text-white mb-4">Ausstehende Anträge</h2>
-      <p class="text-3xl font-bold text-orange-500">—</p>
+      <p class="text-3xl font-bold text-orange-500">{{ (stats$ | async)?.pending ?? '—' }}</p>
     </div>
 
-    <div class="glass-card shimmer-once p-6 text-center sm:col-span-2 lg:col-span-1" zsoCardShimmer>
-      <h2 class="text-lg font-semibold text-white mb-4">Letzte Aktivitäten</h2>
-      <p class="text-sm text-gray-300">Demnächst verfügbar…</p>
+    <div class="glass-card shimmer-once p-6 text-center" zsoCardShimmer>
+      <h2 class="text-lg font-semibold text-white mb-4">Gesperrte Benutzer</h2>
+      <p class="text-3xl font-bold text-orange-500">{{ (stats$ | async)?.blocked ?? '—' }}</p>
     </div>
+
+
+  <div class="glass-card shimmer-once p-6 sm:col-span-2 lg:col-span-4" zsoCardShimmer>
+      <h2 class="text-lg font-semibold text-white mb-4">Letzte Aktivitäten</h2>
+      <ul class="text-sm text-gray-200 space-y-2 max-h-48 overflow-y-auto">
+        <li *ngFor="let u of (latestUsers$ | async)" class="flex justify-between">
+          <span>{{ u.firstName }} {{ u.lastName }}</span>
+          <span class="text-gray-400" title="{{ u.updatedAt | date:'short' }}">{{ u.updatedAt | date:'dd.MM.y HH:mm' }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="grid gap-6 mt-10 md:grid-cols-2 lg:grid-cols-4">
+    <a routerLink="/admin/users" class="glass-card p-6 flex flex-col items-center hover:ring-2 hover:ring-orange-500 transition">
+      <ng-icon name="heroUserGroup" class="w-14 h-14 mb-4 text-orange-400"></ng-icon>
+      <span class="text-lg font-semibold text-white">Benutzer verwalten</span>
+    </a>
+
+    <a routerLink="/admin/users" [queryParams]="{ filter: 'pending' }" class="glass-card p-6 flex flex-col items-center hover:ring-2 hover:ring-orange-500 transition">
+      <ng-icon name="heroClock" class="w-14 h-14 mb-4 text-orange-400"></ng-icon>
+      <span class="text-lg font-semibold text-white">Ausstehende Anträge</span>
+    </a>
+
+    <a routerLink="/account" class="glass-card p-6 flex flex-col items-center hover:ring-2 hover:ring-orange-500 transition">
+      <ng-icon name="heroCog6Tooth" class="w-14 h-14 mb-4 text-orange-400"></ng-icon>
+      <span class="text-lg font-semibold text-white">Profil bearbeiten</span>
+    </a>
+
+    <a routerLink="/wk" class="glass-card p-6 flex flex-col items-center hover:ring-2 hover:ring-orange-500 transition">
+      <ng-icon name="heroCalendarDays" class="w-14 h-14 mb-4 text-orange-400"></ng-icon>
+      <span class="text-lg font-semibold text-white">WK-Übersicht</span>
+    </a>
   </div>
 </div>
