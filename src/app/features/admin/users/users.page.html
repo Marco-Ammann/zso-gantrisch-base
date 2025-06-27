@@ -15,39 +15,49 @@
     </div>
   }
 
+  <!-- Page Header -->
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-2xl text-cp-orange">group</span>
+    <h1 class="text-2xl font-bold tracking-tight">Benutzerverwaltung</h1>
+  </div>
+
   <!-- Toolbar -->
-  <div class="glass-card flex flex-wrap gap-4 items-center p-4 sm:p-5">
+  <div class="glass-card flex flex-wrap items-center gap-4 p-4 sm:p-5">
     <!-- Search -->
-    <zso-input-field
-        type="text" 
-        label="Benutzer suchen"
-        class="flex-grow sm:flex-none sm:w-72"
-        [(ngModel)]="search"
-        (ngModelChange)="onSearchChange($event)">
-    </zso-input-field>
+    <div class="relative flex-auto min-w-[12rem] sm:w-80">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+      <input type="text"
+             [(ngModel)]="search"
+             (ngModelChange)="onSearchChange($event)"
+             placeholder="Benutzer suchen"
+             class="glass-input pl-10 w-full rounded-full bg-white/5 hover:bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp-orange transition-colors py-2" />
+    </div>
 
     <!-- Filters & Controls -->
-    <div class="flex flex-wrap items-center gap-4 ml-auto">
+    <div class="flex items-center flex-wrap gap-4 ml-auto">
       
-      <!-- Block Filter Toggle -->
-      <zso-checkbox 
-        [(ngModel)]="showOnlyBlocked"
-        label="Nur Gesperrte">
-      </zso-checkbox>
+      <!-- Block Filter -->
+      <button type="button"
+              class="pill underline-sweep flex items-center gap-1"
+              [ngClass]="{'bg-rose-500/10': showOnlyBlocked}"
+              (click)="showOnlyBlocked = !showOnlyBlocked">
+        <span class="material-symbols-outlined text-sm">block</span>
+        Gesperrt
+      </button>
 
       <!-- Sort Dropdown -->
       <div class="relative">
         <select
           [(ngModel)]="sortBy"
           (change)="onSortChange(sortBy)"
-          class="sort-select peer">
+          class="pill sort-select appearance-none pr-8">
           <option value="newest">Neueste zuerst</option>
           <option value="oldest">Älteste zuerst</option>
           <option value="name">Nach Name</option>
           <option value="blocked">Gesperrte zuerst</option>
         </select>
         <span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 peer-focus:text-cp-orange transition-colors">
-          arrow_drop_down
+          expand_more
         </span>
       </div>
 
@@ -73,7 +83,7 @@
 
   <!-- Bulk Actions Bar -->
   @if (selectedUsersCount > 0) {
-    <div class="glass-card p-4 flex items-center justify-between">
+    <div class="glass-card p-4 flex items-center justify-between fixed bottom-4 inset-x-4 max-w-7xl mx-auto z-40">
       <span class="text-white">{{ selectedUsersCount }} Benutzer ausgewählt</span>
       <div class="flex gap-2">
         <zso-button type="primary" size="sm" (click)="bulkApprove()">
@@ -107,7 +117,7 @@
   @if (filteredUsers.pending && filteredUsers.pending.length > 0) {
     <div class="space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+        <h2 class="text-xl font-bold text-cp-orange flex items-center gap-2">
           <span class="material-symbols-outlined text-amber-300">hourglass_top</span>
           Wartende Benutzer ({{ filteredUsers.pending.length }})
         </h2>
@@ -122,7 +132,7 @@
 
       <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
         @for (user of filteredUsers.pending; track user.uid) {
-          <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
+          <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
                [ngClass]="{'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)}">
 
             <!-- Selection Checkbox -->
@@ -134,7 +144,7 @@
             </zso-checkbox>
 
             <!-- Avatar -->
-        <div class="flex items-center gap-3 mb-2 sm:mb-0">
+        <div class="flex items-center gap-4">
           <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
             <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
                  class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
@@ -146,7 +156,7 @@
           </ng-template>
         </div>
         <!-- User Info -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pr-4">
               <div>
                 <h3 class="text-lg font-semibold text-white">
                   @if (isDemoUser(user.firstName)) {
@@ -212,7 +222,7 @@
 
       <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(21rem,1fr))]">
         @for (user of filteredUsers.rest; track user.uid) {
-          <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative"
+          <div class="glass-card shimmer-once p-6 flex flex-col gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
                [ngClass]="{
                  'user-card--blocked': user.blocked,
                  'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)
@@ -227,7 +237,7 @@
             </zso-checkbox>
 
             <!-- Avatar -->
-        <div class="flex items-center gap-3 mb-2 sm:mb-0">
+        <div class="flex items-center gap-4">
           <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
             <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
                  class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
@@ -239,7 +249,7 @@
           </ng-template>
         </div>
         <!-- User Info -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pr-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pr-4">
               <div>
                 <h3 class="text-lg font-semibold text-white">
                   @if (isDemoUser(user.firstName)) {

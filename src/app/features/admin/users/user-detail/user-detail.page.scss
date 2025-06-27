@@ -18,6 +18,10 @@
   @apply min-w-[11rem] bg-gray-800/95 backdrop-blur-sm z-50;
 }
 
+.avatar-ring-hover label:hover {
+  @apply ring-2 ring-cp-orange/60;
+}
+
 .icon-btn {
   @apply inline-flex items-center justify-center w-7 h-7 text-[0.75rem] leading-none rounded hover:bg-gray-700/30 transition-colors;
 }

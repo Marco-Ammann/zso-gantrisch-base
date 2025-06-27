@@ -16,7 +16,8 @@ import { AuthService } from '@core/auth/services/auth.service';
   styleUrls  : ['./main-shell.scss']
 })
 export class MainShell {
-  private auth   = inject(AuthService);
+  readonly auth   = inject(AuthService);
+  appUser$ = this.auth.appUser$;
   private router = inject(Router);
 
   showLinks = false;

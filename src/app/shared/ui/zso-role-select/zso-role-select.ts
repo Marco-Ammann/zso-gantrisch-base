@@ -25,7 +25,7 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
         cdkOverlayOrigin 
         type="button" 
         (click)="toggle()" 
-        class="inline-flex items-center justify-between w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 min-w-[120px] transition-colors"
+        class="inline-flex items-center justify-between w-full rounded glass-card bg-white/5 hover:bg-white/10 px-3 py-1.5 text-sm text-white min-w-[120px] transition-colors"
         [class.border-primary-500]="selected?.length">
         <ng-container *ngIf="selected?.length; else ph">
           <div class="flex flex-wrap gap-1">
@@ -51,10 +51,10 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
                  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
                  (backdropClick)="open=false"
                  (detach)="open=false">
-        <div class="mt-1 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+        <div class="mt-1 w-52 rounded glass-card py-2 z-50">
           <div class="py-1" role="menu" aria-orientation="vertical">
             <div *ngFor="let opt of roleOptions" 
-                 class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
+                 class="dropdown-item cursor-pointer flex items-center"
                  (click)="toggleOpt(opt)"
                  role="menuitem">
               <div class="flex items-center h-5">

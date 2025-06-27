@@ -26,11 +26,17 @@
       <!-- Avatar-Button (Overlay-Origin) ------------------------------- -->
       <button cdkOverlayOrigin #origin="cdkOverlayOrigin"
               (click)="toggleProfile()"
-              class="avatar group"
+              class="avatar group ring-1 ring-transparent hover:ring-cp-orange/60 transition-all"
               aria-haspopup="menu"
               [attr.aria-expanded]="overlayOpen">
-        <span>{{ initials$ | async }}</span>
-        <span class="material-symbols-outlined text-sm transition-transform
+        <ng-container *ngIf="appUser$ | async as cur; else initialsOnly">
+          <ng-container *ngIf="cur.doc.photoUrl || cur.doc.photoURL; else initials">
+            <img [src]="cur.doc.photoUrl || cur.doc.photoURL" alt="Avatar" class="h-9 w-9 rounded-full object-cover" />
+          </ng-container>
+          <ng-template #initials><span>{{ initials$ | async }}</span></ng-template>
+        </ng-container>
+        <ng-template #initialsOnly><span>{{ initials$ | async }}</span></ng-template>
+        <span class="material-symbols-outlined text-base transition-transform group-hover:text-cp-orange
                      group-[[aria-expanded=true]]:rotate-180">expand_more</span>
       </button>
 
@@ -45,9 +51,9 @@
          (backdropClick)="overlayOpen=false"
          (detach)="overlayOpen=false">
 
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu z-50">
           <li><button class="dropdown-item underline-sweep" (click)="myProfile()">Mein Profil</button></li>
-          <li><button class="dropdown-item text-rose-600 underline-sweep"
+          <li><button class="dropdown-item underline-sweep text-rose-600"
                       (click)="logout()">Abmelden</button></li>
         </ul>
       </ng-template>

@@ -1,5 +1,6 @@
 // src/app/features/admin/users/user-detail/user-detail.page.ts
 import { CommonModule, DatePipe, NgIf, AsyncPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { OverlayModule, ConnectedPosition } from '@angular/cdk/overlay';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { Component, inject } from '@angular/core';
@@ -11,12 +12,14 @@ import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
+import { UserEditDialogComponent } from '@shared/components/user-edit-dialog/user-edit-dialog';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { LoggerService } from '@core/services/logger.service';
 
 @Component({
   selector: 'zso-user-detail-page',
   standalone: true,
-  imports: [CommonModule, NgIf, AsyncPipe, RouterModule, DatePipe, OverlayModule, ZsoRoleSelect],
+  imports: [CommonModule, NgIf, AsyncPipe, RouterModule, DatePipe, OverlayModule, FormsModule, ZsoRoleSelect, UserEditDialogComponent, ZsoButton],
   templateUrl: './user-detail.page.html',
   styleUrls: ['./user-detail.page.scss']
 })
@@ -30,6 +33,8 @@ export class UserDetailPage {
   availableRoles: string[] = ['user', 'admin'];
 
   menuOpen = false;
+  dialogVisible = false;
+  editUser: UserDoc | null = null;
   uploading = false;
 
   positions: ConnectedPosition[] = [
@@ -59,6 +64,31 @@ export class UserDetailPage {
   updateRoles(roles: string[], uid: string): void {
     this.logger.log('UserDetailPage', 'updateRoles', roles);
     this.userService.setRoles(uid, roles).subscribe();
+  }
+
+  startEdit(user: UserDoc): void {
+    this.editUser = user;
+    this.dialogVisible = true;
+  }
+
+  onDialogClosed() {
+    this.dialogVisible = false;
+  }
+
+  onDialogSaved(payload: { uid: string; firstName: string; lastName: string; email: string }) {
+    this.userService.setNames(payload.uid, payload.firstName, payload.lastName).subscribe();
+    this.userService.setEmail(payload.uid, payload.email).subscribe();
+    this.dialogVisible = false;
+  }
+
+  
+
+  
+
+  // legacy prompt method removed
+
+  editNames(user: UserDoc): void {
+    this.startEdit(user);
   }
 
   resetPassword(email: string): void {

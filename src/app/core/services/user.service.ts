@@ -87,6 +87,20 @@ export class UserService {
   /**
    * Save photoUrl (avatar) in profile document.
    */
+  setNames(uid: string, firstName: string, lastName: string) {
+    this.logger.log('UserService', 'setNames', { uid, firstName, lastName });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        firstName,
+        lastName,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `Names updated for user ${uid}`);
+      }))
+    );
+  }
+
   setPhotoUrl(uid: string, photoUrl: string) {
     this.logger.log('UserService', 'setPhotoUrl', { uid, photoUrl });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
