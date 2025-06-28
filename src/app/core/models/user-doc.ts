@@ -7,6 +7,12 @@ export interface UserDoc {
   lastName: string;
 
   roles: string[]; // e.g. ['user'] | ['admin']
+
+  // ----- Auth Info (synced from Firebase Auth) -----
+  authProvider?: string; // e.g. 'password', 'google.com'
+  emailVerified?: boolean;
+  phoneNumber?: string;
+  birthDate?: number | null;
   approved: boolean;
   blocked: boolean;
 

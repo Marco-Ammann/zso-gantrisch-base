@@ -10,6 +10,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
 import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 // Environment
 import { environment } from '../environments/environment';
@@ -47,5 +48,6 @@ export const appConfig: ApplicationConfig = {
       console.log('Firestore initialized');
       return firestore;
     }),
+    provideAnimations(),
   ],
 };

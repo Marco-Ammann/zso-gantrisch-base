@@ -29,6 +29,10 @@ import { UserDoc } from '@core/models/user-doc';
           <zso-input-field label="Vorname" [(ngModel)]="firstName"></zso-input-field>
           <zso-input-field label="Nachname" [(ngModel)]="lastName"></zso-input-field>
           <zso-input-field label="E-Mail" type="email" [(ngModel)]="email"></zso-input-field>
+          <zso-input-field label="Telefon" type="text" [(ngModel)]="phoneNumber"></zso-input-field>
+          <label class="block text-sm text-gray-300">Geburtsdatum
+            <input type="date" class="mt-1 w-full rounded bg-white/10 text-white p-2 outline-none" [(ngModel)]="birthDateStr" />
+          </label>
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
@@ -46,17 +50,21 @@ export class UserEditDialogComponent {
       this.firstName = u.firstName;
       this.lastName = u.lastName;
       this.email = u.email;
+      this.phoneNumber = u.phoneNumber || '';
+      this.birthDateStr = u.birthDate ? new Date(u.birthDate).toISOString().substring(0,10) : '';
       this._uid = u.uid;
     }
   }
 
-  @Output() saved = new EventEmitter<{ uid: string; firstName: string; lastName: string; email: string }>();
+  @Output() saved = new EventEmitter<{ uid: string; firstName: string; lastName: string; email: string; phoneNumber: string; birthDate: number | null }>();
   @Output() closed = new EventEmitter<void>();
 
   /* form model */
   firstName = '';
   lastName = '';
   email = '';
+  phoneNumber = '';
+  birthDateStr = '';
   private _uid = '';
 
   onBackdrop(_e: MouseEvent) {
@@ -64,7 +72,8 @@ export class UserEditDialogComponent {
   }
 
   save() {
-    this.saved.emit({ uid: this._uid, firstName: this.firstName.trim(), lastName: this.lastName.trim(), email: this.email.trim() });
+    const birthDateTs = this.birthDateStr ? new Date(this.birthDateStr).getTime() : null;
+    this.saved.emit({ uid: this._uid, firstName: this.firstName.trim(), lastName: this.lastName.trim(), email: this.email.trim(), phoneNumber: this.phoneNumber.trim(), birthDate: birthDateTs });
     this.visible = false;
     this.closed.emit();
   }

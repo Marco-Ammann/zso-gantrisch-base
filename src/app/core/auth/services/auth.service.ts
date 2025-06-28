@@ -15,9 +15,10 @@ import { User, browserSessionPersistence } from 'firebase/auth';
 import { FirestoreService } from '@core/services/firestore.service';
 import { setDoc, docData } from '@angular/fire/firestore';
 import { Observable, from, of, throwError } from 'rxjs';
-import { switchMap, map, shareReplay, catchError } from 'rxjs/operators';
+import { switchMap, map, shareReplay, catchError, tap } from 'rxjs/operators';
 
 import { APP_SETTINGS, AppSettings } from '@core/config/app-settings';
+import { UserService } from '@core/services/user.service';
 import { LoggerService } from '@core/services/logger.service';
 
 /* ---------- Modelle ---------- */
@@ -39,6 +40,7 @@ export class AuthService {
   private auth = inject(Auth);
   private injector = inject(Injector);
   private logger = inject(LoggerService);
+  private userService = inject(UserService);
 
   readonly user$: Observable<User | null>;
   readonly appUser$: Observable<AppUserCombined | null>;
@@ -96,7 +98,17 @@ export class AuthService {
           switchMap(() => {
             this.logger.log('AuthService', 'Sign in successful, reloading user');
             const user = this.auth.currentUser;
-            return user ? from(user.reload()).pipe(map(() => void 0)) : of(void 0);
+            return user ? from(user.reload()).pipe(
+              tap(() => {
+                this.userService.setAuthInfo(
+                  user.uid,
+                  user.providerData?.[0]?.providerId || user.providerId || '-',
+                  user.emailVerified,
+                  user.phoneNumber || null
+                ).subscribe({ next: () => {}, error: () => {} });
+              }),
+              map(() => void 0)
+            ) : of(void 0);
           }),
           map(() => {
             this.logger.log('AuthService', 'Login completed successfully');
@@ -141,6 +153,10 @@ export class AuthService {
           lastLogoutAt: now,
           lastActiveAt: now,
           lastInactiveAt: now,
+          // ----- Auth Info -----
+          authProvider: user.providerData?.[0]?.providerId || user.providerId || '-',
+          emailVerified: user.emailVerified,
+          phoneNumber: user.phoneNumber || null,
         };
         const createProfile$ = runInInjectionContext(this.injector, () => 
           from(setDoc(profileRef, profile))
@@ -190,7 +206,16 @@ export class AuthService {
     const user = this.auth.currentUser;
     if (!user) return of(false);
     
-    return from(user.reload().then(() => user.emailVerified));
+    return from(user.reload().then(() => {
+      if (user.emailVerified) {
+        // sync flag in Firestore (ignore result)
+        this.userService.updateEmailVerified(user.uid, true).subscribe({
+            next: () => {},
+            error: () => {}
+          });
+      }
+      return user.emailVerified;
+    }));
   }
 
   /* ---------- Token ---------- */

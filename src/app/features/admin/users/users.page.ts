@@ -1,5 +1,6 @@
 // src/app/features/admin/users/users.page.ts
 import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
+import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -10,7 +11,6 @@ import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
-import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
 import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
@@ -32,12 +32,49 @@ interface UsersPageState {
     RouterModule,
 
     ZsoButton,
-    ZsoInputField,
     ZsoCheckbox,
     ZsoRoleSelect,
     ConfirmationDialogComponent,
   ],
   templateUrl: './users.page.html',
+  animations: [
+    trigger('itemFade', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.95)' }),
+        animate('250ms cubic-bezier(0.22,1,0.36,1)', style({ opacity: 1, transform: 'scale(1)' }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ opacity: 0, transform: 'scale(0.95)' }))
+      ])
+    ]),
+    // Slide in from bottom for bulk actions bar
+    trigger('list', [
+      transition('* <=> *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'scale(0.95)' }),
+          stagger(40, [
+            animate('250ms cubic-bezier(0.22,1,0.36,1)', style({ opacity: 1, transform: 'scale(1)' }))
+          ])
+        ], { optional: true }),
+        query(':leave', [
+          stagger(40, [
+            animate('200ms ease-in', style({ opacity: 0, transform: 'scale(0.9)' }))
+          ])
+        ], { optional: true })
+      ])
+    ]),
+
+    trigger('slideBottom', [
+      transition(':enter', [
+        style({ transform: 'translateY(100%)', opacity: 0 }),
+        animate('300ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ transform: 'translateY(0)', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('250ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
+      ])
+    ]),
+
+  ],
   styleUrls: ['./users.page.scss'],
 })
 export class UsersPage implements OnInit, OnDestroy {
@@ -265,6 +302,24 @@ export class UsersPage implements OnInit, OnDestroy {
   refresh(): void {
     this.logger.log(this.COMPONENT_NAME, 'Manual refresh triggered');
     this.loadUsers();
+  }
+
+  /** Entfernt Genehmigung für einen Benutzer */
+  unapprove(user: UserDoc): void {
+    this.isLoading = true;
+    this.userService.unapprove(user.uid).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log(this.COMPONENT_NAME, `User ${user.firstName} ${user.lastName} unapproved`);
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.logger.error(this.COMPONENT_NAME, 'Unapprove failed:', error);
+        this.errorMsg = `Fehler beim Zurückziehen der Genehmigung von ${user.firstName} ${user.lastName}`;
+        this.isLoading = false;
+      }
+    });
   }
 
   /* ----------------------------- User Actions */

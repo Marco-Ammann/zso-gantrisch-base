@@ -1,28 +1,36 @@
 <ng-container *ngIf="user$ | async as user; else loading">
-  <div class="max-w-4xl mx-auto space-y-6 mt-8">
+  <!-- Upload Toast -->
+  <div *ngIf="!uploading && uploadMsg" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-3 px-5"
+       [class.text-rose-400]="uploadError" [class.text-green-300]="!uploadError" [@toastSlide]>
+    {{ uploadMsg }}
+  </div>
+  <div class="max-w-6xl mx-auto space-y-6 mt-8 px-4">
     <zso-button type="neutral" size="sm" icon="arrow_back" aria-label="Zurück" (click)="back()"></zso-button>
     <!-- Header -->
     <div class="glass-card p-6 overflow-visible z-30 relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
       <div class="flex items-center gap-4">
         <!-- Avatar -------------------------------------------------- -->
-        <div class="relative group">
+        <div class="relative group shrink-0">
           <ng-container *ngIf="$any(user).photoUrl || $any(user).photoURL; else placeholder">
             <img [src]="$any(user).photoUrl || $any(user).photoURL" alt="Avatar"
-                 class="h-20 w-20 rounded-full object-cover ring-2 ring-white/20" />
+                 class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full object-cover ring-2 ring-white/20" />
           </ng-container>
           <ng-template #placeholder>
-            <div class="h-20 w-20 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
+            <div class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
               <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
             </div>
           </ng-template>
           <!-- Upload button on hover -->
           <label class="absolute bottom-1 right-1 hidden group-hover:flex items-center justify-center bg-black/60 rounded-full w-9 h-9 cursor-pointer hover:bg-cp-orange/80 transition-colors"
-                 title="Bild ändern">
+                 title="Avatar hochladen oder ändern">
             <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
             <span class="material-symbols-outlined text-xs text-white">photo_camera</span>
           </label>
         </div>
         <!-- Name / Email ------------------------------------------- -->
+        <!-- Upload Feedback -->
+        
+        
         <div class="flex-1">
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <h2 class="text-2xl font-semibold text-white">{{ user.firstName }} {{ user.lastName }}</h2>
@@ -34,19 +42,21 @@
         </div>
         <!-- Status Badges -->
         <div class="flex flex-wrap gap-2 mt-3">
-          <span *ngIf="user.approved" class="badge bg-green-600/20 text-green-400">Genehmigt</span>
-          <span *ngIf="!user.approved" class="badge bg-amber-500/20 text-amber-300">Ausstehend</span>
-          <span *ngIf="user.blocked" class="badge bg-red-600/20 text-red-400">Gesperrt</span>
+          <span class="badge" [ngClass]="user.approved ? 'bg-green-600/20 text-green-400' : 'bg-amber-500/20 text-amber-300'" [@badgeState]="user.approved ? 'approved' : 'pending'">
+            {{ user.approved ? 'Genehmigt' : 'Ausstehend' }}
+          </span>
+          <span *ngIf="user.blocked" class="badge bg-red-600/20 text-red-400" [@badgeAnim]>Gesperrt</span>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="flex flex-wrap items-center gap-1">
-        <zso-button *ngIf="!user.approved" type="primary" size="xs" icon="check" aria-label="Genehmigen" (click)="approve(user.uid)"></zso-button>
-        <zso-button *ngIf="!user.blocked" type="danger" size="xs" icon="block" aria-label="Blockieren" (click)="block(user.uid, true)"></zso-button>
-        <zso-button *ngIf="user.blocked" type="primary" size="xs" icon="lock_open" aria-label="Entblocken" (click)="block(user.uid, false)"></zso-button>
+        <zso-button *ngIf="!user.approved" type="primary" size="xs" icon="check" aria-label="Genehmigen" title="Benutzer genehmigen" (click)="approve(user.uid)"></zso-button>
+        <zso-button *ngIf="user.approved" type="neutral" size="xs" icon="backspace" aria-label="Genehmigung zurückziehen" title="Genehmigung zurückziehen" (click)="unapprove(user.uid)"></zso-button>
+        <zso-button *ngIf="!user.blocked" type="neutral" size="xs" icon="block" aria-label="Blockieren" title="Benutzer blockieren" (click)="block(user.uid, true)"></zso-button>
+        <zso-button *ngIf="user.blocked" type="primary" size="xs" icon="lock_open" aria-label="Entblocken" title="Benutzer entsperren" (click)="block(user.uid, false)"></zso-button>
         <!-- Actions Dropdown (CDK Overlay) -->
-        <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" class="icon-btn" (click)="menuOpen = !menuOpen" aria-label="Mehr Aktionen"
+        <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" class="icon-btn" (click)="menuOpen = !menuOpen" aria-label="Mehr Aktionen" title="Weitere Aktionen"
                 aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
           <span class="material-symbols-outlined text-sm transition-transform" [class.rotate-180]="menuOpen">expand_more</span>
         </button>
@@ -61,13 +71,13 @@
           (backdropClick)="menuOpen=false"
           (detach)="menuOpen=false">
           <ul class="dropdown-menu">
-            <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort&nbsp;reset</button></li>
-            <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Mail&nbsp;senden</button></li>
-            <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail&nbsp;ändern</button></li>
+            <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort&nbsp;zurücksetzen</button></li>
+            <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Verifizierungs-Mail&nbsp;erneut&nbsp;senden</button></li>
+            <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail-Adresse&nbsp;ändern</button></li>
             <li>
               <label class="dropdown-item underline-sweep cursor-pointer">
                 <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid); menuOpen=false" />
-                Bild&nbsp;ändern
+                Avatar&nbsp;ändern
               </label>
             </li>
           </ul>
@@ -76,26 +86,100 @@
       </div>
     </div>
 
-    <!-- Detail Grid -->
-    <div class="glass-card p-6 grid gap-6 sm:grid-cols-2">
-      <div>
-        <p class="label">Erstellt</p>
-        <p class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+    <!-- Datenkarten ------------------------------------------------------------------ -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+      <!-- Persönliche Informationen -->
+      <div class="glass-card p-6 space-y-4 md:col-span-2">
+        <h3 class="text-lg font-semibold">Persönliche Informationen</h3>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p class="label">E-Mail</p>
+            <p class="value flex flex-col sm:flex-row items-start sm:items-center gap-1 text-gray-300 text-sm">
+              <span class="material-symbols-outlined text-sm">mail</span>
+              <a [href]="'mailto:' + user.email" class="hover:underline break-all">{{ user.email }}</a>
+            </p>
+          </div>
+          <div>
+            <p class="label">Telefon</p>
+            <p class="value flex flex-col sm:flex-row items-start sm:items-center gap-1 text-gray-300 text-sm">
+              <ng-container *ngIf="$any(user).phoneNumber; else noPhone">
+                <span class="material-symbols-outlined text-sm">call</span>
+                <a [href]="'tel:' + ($any(user).phoneNumber | swissPhone)" class="hover:underline">
+                  {{ $any(user).phoneNumber | swissPhone }}
+                </a>
+              </ng-container>
+              <ng-template #noPhone>-</ng-template>
+            </p>
+          </div>
+          <div>
+            <p class="label">Geburtsdatum</p>
+            <p class="value">{{ $any(user).birthDate ? ($any(user).birthDate | date:'dd.MM.yyyy') : '-' }}</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <p class="label">Zuletzt aktualisiert</p>
-        <p class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+
+      <!-- Status & Auth -->
+      <div class="glass-card p-6 space-y-4">
+        <h3 class="text-lg font-semibold">Status &amp; Auth</h3>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p class="label">Auth Provider</p>
+            <p class="value">{{ $any(user).authProvider || '-' }}</p>
+          </div>
+          <div>
+            <p class="label">E-Mail verifiziert</p>
+            <p class="value">
+              <span *ngIf="$any(user).emailVerified; else notVer">✅</span>
+              <ng-template #notVer>❌</ng-template>
+            </p>
+          </div>
+          <div>
+            <p class="label">Genehmigt</p>
+            <p class="value">
+              <span *ngIf="user.approved; else notApp">✅</span>
+              <ng-template #notApp>❌</ng-template>
+            </p>
+          </div>
+          <div>
+            <p class="label">Blockiert</p>
+            <p class="value">
+              <span *ngIf="user.blocked; else notBlocked">✅</span>
+              <ng-template #notBlocked>❌</ng-template>
+            </p>
+          </div>
+          <div>
+            <p class="label">UID</p>
+            <p class="value select-all text-xs text-gray-400 break-all">{{ user.uid }}</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <p class="label">Letzter Login</p>
-        <p class="value">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+
+      <!-- Aktivität -->
+      <div class="glass-card p-6 space-y-4">
+        <h3 class="text-lg font-semibold">Aktivität</h3>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p class="label">Erstellt</p>
+            <p class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+          </div>
+          <div>
+            <p class="label">Zuletzt aktualisiert</p>
+            <p class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+          </div>
+          <div>
+            <p class="label">Letzter Login</p>
+            <p class="value">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+          </div>
+          <div>
+            <p class="label">Letzte Aktivität</p>
+            <p class="value">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <p class="label">Letzte Aktivität</p>
-        <p class="value">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
-      </div>
-      <div class="sm:col-span-2">
-        <p class="label mb-1">Rollen</p>
+
+      <!-- Rollen -->
+      <div class="glass-card p-6 md:col-span-2 xl:col-span-3">
+        <h3 class="text-lg font-semibold mb-2">Rollen</h3>
         <zso-role-select
           [roleOptions]="availableRoles"
           [selected]="user.roles"

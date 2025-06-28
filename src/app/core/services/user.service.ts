@@ -101,6 +101,27 @@ export class UserService {
     );
   }
 
+  setBirthDate(uid: string, birthDate: number | null) {
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () => from(updateDoc(userDoc, {
+      birthDate,
+      updatedAt: Date.now()
+    })));
+  }
+
+  setPhoneNumber(uid: string, phoneNumber: string | null) {
+    this.logger.log('UserService', 'setPhoneNumber', { uid, phoneNumber });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        phoneNumber,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `Phone number updated for user ${uid}`);
+      }))
+    );
+  }
+
   setPhotoUrl(uid: string, photoUrl: string) {
     this.logger.log('UserService', 'setPhotoUrl', { uid, photoUrl });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
@@ -134,6 +155,39 @@ export class UserService {
         this.logger.log('UserService', 'Password reset email sent to', email);
         return of(undefined);
       })
+    );
+  }
+
+  /**
+   * Persist auth info (provider, emailVerified, phoneNumber) to the Firestore user document.
+   * Can be called after signup or periodically by an admin task.
+   */
+  setAuthInfo(uid: string, authProvider: string, emailVerified: boolean, phoneNumber: string | null) {
+    this.logger.log('UserService', 'setAuthInfo', { uid, authProvider, emailVerified, phoneNumber });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        authProvider,
+        emailVerified,
+        phoneNumber,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `Auth info updated for user ${uid}`);
+      }))
+    );
+  }
+
+  /** Update only the emailVerified flag */
+  updateEmailVerified(uid: string, emailVerified: boolean) {
+    this.logger.log('UserService', 'updateEmailVerified', { uid, emailVerified });
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    return runInInjectionContext(this.injector, () =>
+      from(updateDoc(userDoc, {
+        emailVerified,
+        updatedAt: Date.now()
+      }).then(() => {
+        this.logger.log('UserService', `emailVerified updated for user ${uid}`);
+      }))
     );
   }
 

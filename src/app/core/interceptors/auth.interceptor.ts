@@ -13,6 +13,8 @@ import { AuthService } from '../auth/services/auth.service';
 export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
+  private lastUpdate = 0;
+
   intercept(
     req: HttpRequest<unknown>,
     next: HttpHandler
@@ -26,7 +28,17 @@ export class AuthInterceptor implements HttpInterceptor {
         const authReq = req.clone({
           setHeaders: { Authorization: `Bearer ${token}` }
         });
-        return next.handle(authReq);
+        const now = Date.now();
+            if (now - this.lastUpdate > 5 * 60 * 1000) {
+              this.lastUpdate = now;
+              this.authService.appUser$.subscribe(user => {
+                if (user?.doc.uid) {
+                  // fire and forget
+                  this.authService['userService']?.updateLastActiveAt(user.doc.uid).subscribe({});
+                }
+              });
+            }
+            return next.handle(authReq);
       })
     );
   }
