@@ -125,7 +125,7 @@
 
       <!-- User Card -->
       <div
-        [@list] class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
+        class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
         [ngClass]="{'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)}">
 
         <!-- Selection Checkbox -->
@@ -203,7 +203,7 @@
       
 
       <div
-        [@list] class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
+        class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
         [ngClass]="{
                  'user-card--blocked': user.blocked,
                  'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)

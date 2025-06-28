@@ -1,6 +1,6 @@
 // src/app/features/admin/users/users.page.ts
 import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
-import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -48,22 +48,6 @@ interface UsersPageState {
       ])
     ]),
     // Slide in from bottom for bulk actions bar
-    trigger('list', [
-      transition('* <=> *', [
-        query(':enter', [
-          style({ opacity: 0, transform: 'scale(0.95)' }),
-          stagger(40, [
-            animate('250ms cubic-bezier(0.22,1,0.36,1)', style({ opacity: 1, transform: 'scale(1)' }))
-          ])
-        ], { optional: true }),
-        query(':leave', [
-          stagger(40, [
-            animate('200ms ease-in', style({ opacity: 0, transform: 'scale(0.9)' }))
-          ])
-        ], { optional: true })
-      ])
-    ]),
-
     trigger('slideBottom', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),

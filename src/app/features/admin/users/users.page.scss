@@ -14,6 +14,10 @@
   @apply border border-rose-400/30 bg-rose-400/[0.06];
 }
 
+.glass-card{
+  @apply transition-transform transition-opacity duration-200 ease-in-out;
+}
+
 /* Dummy-Tag (d) optisch markieren */
 .demo-tag{
   @apply mr-1 text-cp-blue font-semibold;
