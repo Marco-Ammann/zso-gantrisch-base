@@ -3,9 +3,11 @@ import { Injectable, inject, Injector, runInInjectionContext } from '@angular/co
 import { FirebaseApp } from '@angular/fire/app';
 import {
   Firestore, getFirestore,
-  collection, doc,
-  CollectionReference, DocumentReference
+  collection, doc, setDoc, updateDoc, deleteDoc, getDoc,
+  CollectionReference, DocumentReference, DocumentData
 } from '@angular/fire/firestore';
+import { Observable, from, of, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { APP_SETTINGS, AppSettings } from '../config/app-settings';
 import { LoggerService } from '@core/services/logger.service';
@@ -47,6 +49,70 @@ export class FirestoreService {
   doc<T = unknown>(path: string): DocumentReference<T> {
     return runInInjectionContext(this.injector, () =>
       doc(this.db, path) as DocumentReference<T>
+    );
+  }
+
+  /**
+   * Get a document from Firestore
+   * @param path Path to the document (e.g., 'users/123')
+   * @returns Observable with the document data or null if not found
+   */
+  getDoc<T = DocumentData>(path: string): Observable<T | null> {
+    const docRef = this.doc(path);
+    return from(getDoc(docRef)).pipe(
+      map(docSnap => docSnap.exists() ? docSnap.data() as T : null),
+      catchError(error => {
+        this.logger.error('FirestoreService', `Error getting document ${path}:`, error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Set a document in Firestore
+   * @param path Path to the document (e.g., 'users/123')
+   * @param data Document data to set
+   * @param merge Whether to merge with existing document
+   * @returns Observable that completes when the operation is done
+   */
+  setDoc<T = DocumentData>(path: string, data: T, merge = true): Observable<void> {
+    const docRef = this.doc(path);
+    return from(setDoc(docRef, data as any, { merge })).pipe(
+      catchError(error => {
+        this.logger.error('FirestoreService', `Error setting document ${path}:`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Update a document in Firestore
+   * @param path Path to the document (e.g., 'users/123')
+   * @param data Partial document data to update
+   * @returns Observable that completes when the operation is done
+   */
+  updateDoc<T = DocumentData>(path: string, data: Partial<T>): Observable<void> {
+    const docRef = this.doc(path);
+    return from(updateDoc(docRef, data as any)).pipe(
+      catchError(error => {
+        this.logger.error('FirestoreService', `Error updating document ${path}:`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Delete a document from Firestore
+   * @param path Path to the document (e.g., 'users/123')
+   * @returns Observable that completes when the operation is done
+   */
+  deleteDoc(path: string): Observable<void> {
+    const docRef = this.doc(path);
+    return from(deleteDoc(docRef)).pipe(
+      catchError(error => {
+        this.logger.error('FirestoreService', `Error deleting document ${path}:`, error);
+        return throwError(() => error);
+      })
     );
   }
 }

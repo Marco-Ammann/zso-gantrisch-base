@@ -71,22 +71,32 @@
 
   <!-- Bulk Actions Bar -->
   @if (selectedUsersCount > 0) {
-  <div class="glass-card p-4 flex items-center justify-between fixed bottom-4 inset-x-4 w-full max-w-full sm:max-w-7xl xl:max-w-8xl mx-auto z-40" [@slideBottom]>
-    <span class="text-white">{{ selectedUsersCount }} Benutzer ausgewählt</span>
-    <div class="flex gap-2">
-      <zso-button type="primary" size="sm" (click)="bulkApprove()">
-        <span class="material-symbols-outlined text-sm mr-1">check</span>
-        Alle genehmigen
+  <div class="glass-card p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2 w-full max-w-full sm:max-w-7xl xl:max-w-8xl mx-auto z-40 shadow-lg rounded-t-lg sm:rounded-lg" [@slideBottom]>
+    <div class="flex items-center justify-between w-full sm:w-auto mb-2 sm:mb-0">
+      <span class="text-white text-sm sm:text-base font-medium">{{ selectedUsersCount }} {{ selectedUsersCount === 1 ? 'Benutzer' : 'Benutzer' }} ausgewählt</span>
+      <button class="sm:hidden text-gray-300 hover:text-white" (click)="selectAll([], false)" aria-label="Auswahl aufheben">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+      <zso-button type="primary" size="sm" class="flex-1 sm:flex-none" (click)="bulkApprove()">
+        <span class="material-symbols-outlined text-sm sm:mr-1">check</span>
+        <span class="hidden sm:inline">Alle genehmigen</span>
+        <span class="sm:hidden">Genehmigen</span>
       </zso-button>
-      <zso-button type="danger" size="sm" (click)="bulkBlock()">
-        <span class="material-symbols-outlined text-sm mr-1">block</span>
-        Alle blockieren
+      <zso-button type="danger" size="sm" class="flex-1 sm:flex-none" (click)="bulkBlock()">
+        <span class="material-symbols-outlined text-sm sm:mr-1">block</span>
+        <span class="hidden sm:inline">Alle blockieren</span>
+        <span class="sm:hidden">Blockieren</span>
       </zso-button>
-      <zso-button type="neutral" size="sm" (click)="selectAll([], false)">
+      <zso-button type="neutral" size="sm" class="hidden sm:flex" (click)="selectAll([], false)">
         Auswahl aufheben
       </zso-button>
     </div>
   </div>
+  
+  <!-- Add bottom padding when bulk actions bar is visible on mobile -->
+  <div class="h-16 sm:h-0"></div>
   }
 
   <!-- Loading Indicator -->

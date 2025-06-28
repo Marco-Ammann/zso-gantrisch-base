@@ -1,160 +1,168 @@
 // src/app/core/auth/services/auth.service.ts
-import {
-  Injectable,
-  Inject,
-  inject,
-  Injector,
-  runInInjectionContext,
-} from '@angular/core';
-import {
-  Auth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  updateProfile,
-  authState,
-  setPersistence,
+import { Injectable, OnDestroy, Injector } from '@angular/core';
+import { 
+  Auth, 
+  User, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  createUserWithEmailAndPassword, 
+  sendPasswordResetEmail, 
+  sendEmailVerification, 
+  updateProfile, 
+  browserLocalPersistence, 
+  browserSessionPersistence, 
+  setPersistence, 
+  authState, 
+  UserCredential 
 } from '@angular/fire/auth';
-import { User, browserSessionPersistence } from 'firebase/auth';
+import { Observable, of, throwError, Subject, from, Subscription } from 'rxjs';
+import { catchError, map, shareReplay, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+
 import { FirestoreService } from '@core/services/firestore.service';
-import { setDoc, docData } from '@angular/fire/firestore';
-import { Observable, from, of, throwError } from 'rxjs';
-import { switchMap, map, shareReplay, catchError, tap } from 'rxjs/operators';
-
-import { APP_SETTINGS, AppSettings } from '@core/config/app-settings';
-import { UserService } from '@core/services/user.service';
 import { LoggerService } from '@core/services/logger.service';
+import { UserService } from '@core/services/user.service';
+import { UserDoc } from '@core/models/user-doc';
 
-/* ---------- Modelle ---------- */
 export interface RegisterData {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface AppUserCombined {
   auth: User;
-  doc: import('@core/models/user-doc').UserDoc;
+  doc: UserDoc;
 }
 
-/* ---------- Service ---------- */
 @Injectable({ providedIn: 'root' })
-export class AuthService {
-  private auth = inject(Auth);
-  private injector = inject(Injector);
-  private logger = inject(LoggerService);
-  private userService = inject(UserService);
-
-  readonly user$: Observable<User | null>;
-  readonly appUser$: Observable<AppUserCombined | null>;
+export class AuthService implements OnDestroy {
+  // User observable that combines Firebase Auth state with Firestore user doc
+  user$: Observable<User | null> = of(null);
+  appUser$: Observable<AppUserCombined | null> = of(null);
+  
+  // Subject for unsubscribing from observables
+  private readonly destroy$ = new Subject<void>();
+  private userSubscription?: Subscription;
 
   constructor(
-    private fs: FirestoreService,
-    @Inject(APP_SETTINGS) private settings: AppSettings
+    private readonly auth: Auth,
+    private readonly fs: FirestoreService,
+    private readonly logger: LoggerService,
+    private readonly userService: UserService,
+    private readonly injector: Injector
   ) {
-    this.user$ = runInInjectionContext(this.injector, () =>
-      authState(this.auth).pipe(shareReplay({ bufferSize: 1, refCount: false }))
-    );
+    this.initializeUserObservables();
+  }
 
-    this.appUser$ = this.user$.pipe(
-      switchMap((user) => {
-        if (!user) return of(null);
-        try {
-          const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(
-            `users/${user.uid}`
-          );
-          return runInInjectionContext(this.injector, () =>
-            docData<import('@core/models/user-doc').UserDoc>(ref).pipe(
-              map((doc) =>
-                doc ? ({ auth: user, doc } as AppUserCombined) : null
-              )
-            )
-          );
-        } catch (error) {
-          this.logger.error(
-            'AuthService',
-            'Error creating user document reference:',
-            error
-          );
-          return of(null);
+  private initializeUserObservables() {
+    // User observable from Firebase Auth
+    this.user$ = authState(this.auth).pipe(
+      tap(user => {
+        if (user) {
+          this.logger.log('AuthService', 'User auth state changed:', user.email);
+          // Update last active timestamp when auth state changes
+          this.userService.updateLastActiveAt(user.uid).subscribe({
+            error: err => this.logger.error('AuthService', 'Error updating last active:', err)
+          });
+        } else {
+          this.logger.log('AuthService', 'User signed out');
         }
       }),
-      shareReplay({ bufferSize: 1, refCount: false })
+      shareReplay(1),
+      takeUntil(this.destroy$)
     );
+
+    // Combined observable with Firestore user doc
+    this.appUser$ = this.user$.pipe(
+      switchMap(user => {
+        if (!user) {
+          return of(null);
+        }
+        
+        return this.fs.getDoc<UserDoc>(`users/${user.uid}`).pipe(
+          take(1),
+          map(userDoc => {
+            if (!userDoc) {
+              this.logger.warn('AuthService', `No user document found for uid: ${user.uid}`);
+              return null;
+            }
+            return { auth: user, doc: userDoc } as AppUserCombined;
+          }),
+          catchError(error => {
+            this.logger.error('AuthService', 'Error loading user document:', error);
+            return of(null);
+          })
+        );
+      }),
+      shareReplay(1)
+    );
+
+    // Subscribe to appUser$ to handle errors
+    this.userSubscription = this.appUser$.subscribe({
+      error: error => this.logger.error('AuthService', 'Error in user$ observable:', error)
+    });
   }
 
   /* ---------- Auth ---------- */
-  login(email: string, password: string, remember: boolean): Observable<void> {
-    this.logger.log('AuthService', 'Login attempt', { email, remember });
-
-    try {
-      return runInInjectionContext(this.injector, () => {
-        return from(
-          signInWithEmailAndPassword(this.auth, email, password)
-        ).pipe(
-          switchMap(() => {
-            this.logger.log(
-              'AuthService',
-              'Persistence set, attempting sign in'
-            );
-            return from(
-              signInWithEmailAndPassword(this.auth, email, password)
-            ).pipe(
-              map((result) => {
-                this.logger.log(
-                  'AuthService',
-                  'Sign in successful',
-                  result.user?.email
-                );
-                return result;
-              }),
-              catchError((error) => {
-                this.logger.error('AuthService', 'Sign in failed:', error);
-                return throwError(error);
-              })
-            );
-          }),
-          switchMap(() => {
-            this.logger.log(
-              'AuthService',
-              'Sign in successful, reloading user'
-            );
-            const user = this.auth.currentUser;
-            return user
-              ? from(user.reload()).pipe(
-                  tap(() => {
-                    this.userService
-                      .setAuthInfo(
-                        user.uid,
-                        user.providerData?.[0]?.providerId ||
-                          user.providerId ||
-                          '-',
-                        user.emailVerified,
-                        user.phoneNumber || null
-                      )
-                      .subscribe({ next: () => {}, error: () => {} });
-                  }),
-                  map(() => void 0)
-                )
-              : of(void 0);
-          }),
-          map(() => {
-            this.logger.log('AuthService', 'Login completed successfully');
-            return void 0;
+  login(email: string, password: string, rememberMe: boolean): Observable<void> {
+    this.logger.log('AuthService', `Login attempt for ${email}`);
+    
+    // Set persistence based on remember me
+    const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+    
+    return from(setPersistence(this.auth, persistence)).pipe(
+      switchMap(() => signInWithEmailAndPassword(this.auth, email, password)),
+      switchMap(({ user }) => {
+        // Update last login timestamp
+        return this.fs.updateDoc(`users/${user.uid}`, {
+          lastLoginAt: Date.now(),
+          updatedAt: Date.now()
+        }).pipe(
+          map(() => void 0),
+          catchError(error => {
+            this.logger.error('AuthService', 'Error updating last login:', error);
+            return of(void 0); // Don't fail login if update fails
           })
         );
-      });
-    } catch (error) {
-      this.logger.error('AuthService', 'Login error:', error);
-      return from(Promise.reject(error));
-    }
+      }),
+      tap(() => this.logger.log('AuthService', `Login successful for ${email}`)),
+      catchError(error => {
+        this.logger.error('AuthService', 'Login error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   logout(): Observable<void> {
-    return from(signOut(this.auth));
+    this.logger.log('AuthService', 'Logging out user');
+    
+    // Get current user before signing out
+    const user = this.auth.currentUser;
+    const uid = user?.uid;
+    
+    // Sign out from Firebase Auth
+    return from(signOut(this.auth)).pipe(
+      // Update last logout timestamp if we have a user
+      switchMap(() => {
+        if (!uid) return of(void 0);
+        
+        return this.fs.updateDoc(`users/${uid}`, {
+          lastLogoutAt: Date.now(),
+          updatedAt: Date.now()
+        }).pipe(
+          catchError(error => {
+            this.logger.error('AuthService', 'Error updating last logout:', error);
+            return of(void 0); // Don't fail logout if update fails
+          })
+        );
+      }),
+      tap(() => this.logger.log('AuthService', 'Logout successful')),
+      catchError(error => {
+        this.logger.error('AuthService', 'Logout error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   /* ---------- Registrierung ---------- */
@@ -162,19 +170,12 @@ export class AuthService {
     return from(
       createUserWithEmailAndPassword(this.auth, data.email, data.password)
     ).pipe(
-      switchMap((cred) => {
+      switchMap((cred: UserCredential) => {
         const uid = cred.user.uid;
         const user = cred.user;
-
-        const updateDisplay$ = from(
-          updateProfile(user, {
-            displayName: `${data.firstName} ${data.lastName}`,
-          })
-        );
-
-        const profileRef = this.fs.doc(`users/${uid}`);
-        const now = Date.now();
-        const profile = {
+        
+        // Create user document in Firestore
+        const userDoc: Omit<UserDoc, 'displayName'> = {
           uid,
           email: data.email,
           firstName: data.firstName,
@@ -182,82 +183,67 @@ export class AuthService {
           roles: ['user'],
           approved: false,
           blocked: false,
-          createdAt: now,
-          updatedAt: now,
-          lastLoginAt: now,
-          lastLogoutAt: now,
-          lastActiveAt: now,
-          lastInactiveAt: now,
-          // ----- Auth Info -----
-          authProvider:
-            user.providerData?.[0]?.providerId || user.providerId || '-',
-          emailVerified: user.emailVerified,
-          phoneNumber: user.phoneNumber || null,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          authProvider: 'password',
+          emailVerified: false
         };
-        const createProfile$ = runInInjectionContext(this.injector, () =>
-          from(setDoc(profileRef, profile))
-        );
-
-        const verify$ = from(
-          sendEmailVerification(user, {
-            url: this.settings.verifyRedirect,
-            handleCodeInApp: false,
-          })
-        );
-
-        return updateDisplay$.pipe(
-          switchMap(() => createProfile$),
-          switchMap(() => verify$)
+        
+        return this.fs.setDoc(`users/${uid}`, userDoc).pipe(
+          switchMap(() => from(updateProfile(user, {
+            displayName: `${data.firstName} ${data.lastName}`
+          }))),
+          switchMap(() => from(sendEmailVerification(user))),
+          map(() => void 0)
         );
       }),
-      map(() => void 0)
+      catchError((error: Error) => {
+        this.logger.error('AuthService', 'Registration error:', error);
+        return throwError(() => error);
+      })
     );
   }
 
-  /* ---------- E-Mail-Aktionen ---------- */
+  // Email actions
   resendVerificationEmail(): Observable<void> {
     const user = this.auth.currentUser;
     if (!user) {
-      return from(Promise.reject('Kein User angemeldet'));
+      return throwError(() => new Error('No user is currently signed in'));
     }
-
-    return from(
-      sendEmailVerification(user, {
-        url: this.settings.verifyRedirect,
-        handleCodeInApp: false,
-      })
-    ).pipe(map(() => void 0));
+    return from(sendEmailVerification(user));
   }
 
   resetPassword(email: string): Observable<void> {
-    return from(
-      sendPasswordResetEmail(this.auth, email, {
-        url: this.settings.resetRedirect,
-        handleCodeInApp: false,
-      })
-    ).pipe(map(() => void 0));
+    return from(sendPasswordResetEmail(this.auth, email));
   }
 
   refreshAndCheckEmail(): Observable<boolean> {
     const user = this.auth.currentUser;
-    if (!user) return of(false);
-
-    return from(
-      user.reload().then(() => {
-        if (user.emailVerified) {
-          // sync flag in Firestore (ignore result)
-          this.userService.updateEmailVerified(user.uid, true).subscribe({
-            next: () => {},
-            error: () => {},
-          });
-        }
-        return user.emailVerified;
-      })
+    if (!user) {
+      return of(false);
+    }
+    
+    return from(user.reload()).pipe(
+      map(() => user.emailVerified),
+      catchError(() => of(false))
     );
   }
 
-  /* ---------- Token ---------- */
-  getToken(): Promise<string> {
-    return this.auth.currentUser?.getIdToken() || Promise.resolve('');
+  getToken(forceRefresh = false): Observable<string | null> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return of(null);
+    }
+    return from(user.getIdToken(forceRefresh));
+  }
+
+  // Cleanup
+  ngOnDestroy(): void {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.logger.log('AuthService', 'Cleanup complete');
   }
 }

@@ -4,86 +4,94 @@
        [class.text-rose-400]="uploadError" [class.text-green-300]="!uploadError" [@toastSlide]>
     {{ uploadMsg }}
   </div>
+  
   <div class="max-w-6xl mx-auto space-y-6 mt-8 px-4">
     <zso-button type="neutral" size="sm" icon="arrow_back" aria-label="Zurück" (click)="back()"></zso-button>
     <!-- Header -->
-    <div class="glass-card p-6 overflow-visible z-30 relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-      <div class="flex items-center gap-4">
-        <!-- Avatar -------------------------------------------------- -->
-        <div class="relative group shrink-0">
-          <ng-container *ngIf="$any(user).photoUrl || $any(user).photoURL; else placeholder">
-            <img [src]="$any(user).photoUrl || $any(user).photoURL" alt="Avatar"
-                 class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full object-cover ring-2 ring-white/20" />
-          </ng-container>
-          <ng-template #placeholder>
-            <div class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
-              <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
+    <div class="glass-card p-4 sm:p-6 overflow-visible z-30 relative">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
+        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full">
+          <!-- Avatar -->
+          <div class="relative group shrink-0 self-center sm:self-auto">
+            <ng-container *ngIf="$any(user).photoUrl || $any(user).photoURL; else placeholder">
+              <img [src]="$any(user).photoUrl || $any(user).photoURL" alt="Avatar"
+                   class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full object-cover ring-2 ring-white/20" />
+            </ng-container>
+            <ng-template #placeholder>
+              <div class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
+                <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
+              </div>
+            </ng-template>
+            <!-- Upload button on hover -->
+            <label class="absolute bottom-1 right-1 hidden group-hover:flex items-center justify-center bg-black/60 rounded-full w-9 h-9 cursor-pointer hover:bg-cp-orange/80 transition-colors"
+                   title="Avatar hochladen oder ändern">
+              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
+              <span class="material-symbols-outlined text-xs text-white">photo_camera</span>
+            </label>
+          </div>
+          
+          <!-- User Info and Status -->
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-2xl font-semibold text-white truncate">{{ user.firstName }} {{ user.lastName }}</h2>
+                  <button class="icon-btn shrink-0" (click)="startEdit(user)" aria-label="Bearbeiten">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                  </button>
+                </div>
+                <p class="text-gray-300 truncate">{{ user.email }}</p>
+                
+                <!-- Status Badges - Moved here for better mobile flow -->
+                <div class="flex flex-wrap gap-2 mt-2 sm:mt-3">
+                  <span class="badge whitespace-nowrap" [ngClass]="user.approved ? 'bg-green-600/20 text-green-400' : 'bg-amber-500/20 text-amber-300'" [@badgeState]="user.approved ? 'approved' : 'pending'">
+                    {{ user.approved ? 'Genehmigt' : 'Ausstehend' }}
+                  </span>
+                  <span *ngIf="user.blocked" class="badge whitespace-nowrap bg-red-600/20 text-red-400" [@badgeAnim]>Gesperrt</span>
+                </div>
+              </div>
             </div>
-          </ng-template>
-          <!-- Upload button on hover -->
-          <label class="absolute bottom-1 right-1 hidden group-hover:flex items-center justify-center bg-black/60 rounded-full w-9 h-9 cursor-pointer hover:bg-cp-orange/80 transition-colors"
-                 title="Avatar hochladen oder ändern">
-            <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
-            <span class="material-symbols-outlined text-xs text-white">photo_camera</span>
-          </label>
+          </div>
         </div>
-        <!-- Name / Email ------------------------------------------- -->
-        <!-- Upload Feedback -->
-        
-        
-        <div class="flex-1">
-          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <h2 class="text-2xl font-semibold text-white">{{ user.firstName }} {{ user.lastName }}</h2>
-            <button class="icon-btn" (click)="startEdit(user)" aria-label="Bearbeiten">
-              <span class="material-symbols-outlined text-sm">edit</span>
+
+        <!-- Actions -->
+        <div class="flex flex-wrap items-center gap-1 mt-3 sm:mt-0 sm:ml-auto">
+          <div class="flex flex-wrap gap-1">
+            <zso-button *ngIf="!user.approved" type="primary" size="xs" icon="check" aria-label="Genehmigen" title="Benutzer genehmigen" (click)="approve(user.uid)"></zso-button>
+            <zso-button *ngIf="user.approved" type="neutral" size="xs" icon="backspace" aria-label="Genehmigung zurückziehen" title="Genehmigung zurückziehen" (click)="unapprove(user.uid)"></zso-button>
+            <zso-button *ngIf="!user.blocked" type="neutral" size="xs" icon="block" aria-label="Blockieren" title="Benutzer blockieren" (click)="block(user.uid, true)"></zso-button>
+            <zso-button *ngIf="user.blocked" type="primary" size="xs" icon="lock_open" aria-label="Entblocken" title="Benutzer entsperren" (click)="block(user.uid, false)"></zso-button>
+            
+            <!-- Actions Dropdown (CDK Overlay) -->
+            <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" class="icon-btn" (click)="menuOpen = !menuOpen" aria-label="Mehr Aktionen" title="Weitere Aktionen"
+                    aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
+              <span class="material-symbols-outlined text-sm transition-transform" [class.rotate-180]="menuOpen">expand_more</span>
             </button>
           </div>
-          <p class="text-gray-300">{{ user.email }}</p>
-        </div>
-        <!-- Status Badges -->
-        <div class="flex flex-wrap gap-2 mt-3">
-          <span class="badge" [ngClass]="user.approved ? 'bg-green-600/20 text-green-400' : 'bg-amber-500/20 text-amber-300'" [@badgeState]="user.approved ? 'approved' : 'pending'">
-            {{ user.approved ? 'Genehmigt' : 'Ausstehend' }}
-          </span>
-          <span *ngIf="user.blocked" class="badge bg-red-600/20 text-red-400" [@badgeAnim]>Gesperrt</span>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="flex flex-wrap items-center gap-1">
-        <zso-button *ngIf="!user.approved" type="primary" size="xs" icon="check" aria-label="Genehmigen" title="Benutzer genehmigen" (click)="approve(user.uid)"></zso-button>
-        <zso-button *ngIf="user.approved" type="neutral" size="xs" icon="backspace" aria-label="Genehmigung zurückziehen" title="Genehmigung zurückziehen" (click)="unapprove(user.uid)"></zso-button>
-        <zso-button *ngIf="!user.blocked" type="neutral" size="xs" icon="block" aria-label="Blockieren" title="Benutzer blockieren" (click)="block(user.uid, true)"></zso-button>
-        <zso-button *ngIf="user.blocked" type="primary" size="xs" icon="lock_open" aria-label="Entblocken" title="Benutzer entsperren" (click)="block(user.uid, false)"></zso-button>
-        <!-- Actions Dropdown (CDK Overlay) -->
-        <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" class="icon-btn" (click)="menuOpen = !menuOpen" aria-label="Mehr Aktionen" title="Weitere Aktionen"
-                aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
-          <span class="material-symbols-outlined text-sm transition-transform" [class.rotate-180]="menuOpen">expand_more</span>
-        </button>
-
-        <ng-template
-          cdkConnectedOverlay
-          [cdkConnectedOverlayOrigin]="menuOrigin"
-          [cdkConnectedOverlayOpen]="menuOpen"
-          [cdkConnectedOverlayPositions]="positions"
-          cdkConnectedOverlayHasBackdrop
-          cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-          (backdropClick)="menuOpen=false"
-          (detach)="menuOpen=false">
-          <ul class="dropdown-menu">
-            <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort&nbsp;zurücksetzen</button></li>
-            <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Verifizierungs-Mail&nbsp;erneut&nbsp;senden</button></li>
-            <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail-Adresse&nbsp;ändern</button></li>
-            <li>
-              <label class="dropdown-item underline-sweep cursor-pointer">
-                <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid); menuOpen=false" />
-                Avatar&nbsp;ändern
-              </label>
-            </li>
-          </ul>
-        </ng-template>
-
-      </div>
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="menuOrigin"
+        [cdkConnectedOverlayOpen]="menuOpen"
+        [cdkConnectedOverlayPositions]="positions"
+        cdkConnectedOverlayHasBackdrop
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        (backdropClick)="menuOpen=false"
+        (detach)="menuOpen=false">
+        <ul class="dropdown-menu">
+          <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort&nbsp;zurücksetzen</button></li>
+          <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Verifizierungs-Mail&nbsp;erneut&nbsp;senden</button></li>
+          <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail-Adresse&nbsp;ändern</button></li>
+          <li>
+            <label class="dropdown-item underline-sweep cursor-pointer">
+              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid); menuOpen=false" />
+              Avatar&nbsp;ändern
+            </label>
+          </li>
+        </ul>
+      </ng-template>
     </div>
 
     <!-- Datenkarten ------------------------------------------------------------------ -->
@@ -154,47 +162,70 @@
         </div>
       </div>
 
-      <!-- Aktivität -->
-      <div class="glass-card p-6 space-y-4">
-        <h3 class="text-lg font-semibold">Aktivität</h3>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p class="label">Erstellt</p>
-            <p class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+      <!-- Aktivität & Rollen Section -->
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <!-- Aktivität Card -->
+        <div class="glass-card p-6 space-y-4 lg:col-span-1">
+          <h3 class="text-lg font-semibold mb-4">Aktivität</h3>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <p class="text-sm text-gray-400">Erstellt</p>
+                <p class="text-sm font-medium">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm text-gray-400">Aktualisiert</p>
+                <p class="text-sm font-medium">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm text-gray-400">Letzter Login</p>
+                <p class="text-sm font-medium">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-sm text-gray-400">Letzte Aktivität</p>
+                <p class="text-sm font-medium">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p class="label">Zuletzt aktualisiert</p>
-            <p class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
-          </div>
-          <div>
-            <p class="label">Letzter Login</p>
-            <p class="value">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
-          </div>
-          <div>
-            <p class="label">Letzte Aktivität</p>
-            <p class="value">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
+        </div>
+
+        <!-- Rollen Card -->
+        <div class="glass-card p-6 space-y-4 lg:col-span-2">
+          <h3 class="text-lg font-semibold mb-4">Rollen & Berechtigungen</h3>
+          <div class="space-y-4">
+            <div class="bg-black/10 p-4 rounded-lg border border-white/5">
+              <zso-role-select
+                [roleOptions]="availableRoles"
+                [selected]="user.roles"
+                (selectedChange)="updateRoles($event, user.uid)">
+              </zso-role-select>
+            </div>
+            <div *ngIf="user.roles?.length" class="mt-2">
+              <p class="text-sm text-gray-400 mb-2">Aktive Rollen:</p>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let role of user.roles" 
+                      class="px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/20">
+                  {{ role }}
+                </span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">
+              Wählen Sie eine oder mehrere Rollen aus, um die Berechtigungen des Benutzers zu verwalten.
+            </p>
           </div>
         </div>
       </div>
-
-      <!-- Rollen -->
-      <div class="glass-card p-6 md:col-span-2 xl:col-span-3">
-        <h3 class="text-lg font-semibold mb-2">Rollen</h3>
-        <zso-role-select
-          [roleOptions]="availableRoles"
-          [selected]="user.roles"
-          (selectedChange)="updateRoles($event, user.uid)"></zso-role-select>
-      </div>
     </div>
   </div>
+  
+  <zso-user-edit-dialog
+    [user]="editUser"
+    [visible]="dialogVisible"
+    (saved)="onDialogSaved($event)"
+    (closed)="onDialogClosed()">
+  </zso-user-edit-dialog>
 </ng-container>
 
 <ng-template #loading>
   <div class="text-center text-gray-400 py-10">Lade Benutzer…</div>
 </ng-template>
-
-<zso-user-edit-dialog
-  [user]="editUser"
-  [visible]="dialogVisible"
-  (saved)="onDialogSaved($event)"
-  (closed)="onDialogClosed()"></zso-user-edit-dialog>
