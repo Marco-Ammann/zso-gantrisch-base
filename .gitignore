@@ -63,3 +63,6 @@ environment*.ts
 environment.development.ts
 environment.production.ts
 environment.ts
+
+package-lock.json
+dist
