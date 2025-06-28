@@ -1,5 +1,11 @@
 // src/app/core/auth/services/auth.service.ts
-import { Injectable, Inject, inject, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Injectable,
+  Inject,
+  inject,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import {
   Auth,
   signInWithEmailAndPassword,
@@ -9,7 +15,7 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   authState,
-  setPersistence
+  setPersistence,
 } from '@angular/fire/auth';
 import { User, browserSessionPersistence } from 'firebase/auth';
 import { FirestoreService } from '@core/services/firestore.service';
@@ -49,25 +55,30 @@ export class AuthService {
     private fs: FirestoreService,
     @Inject(APP_SETTINGS) private settings: AppSettings
   ) {
-
-    this.user$ = runInInjectionContext(this.injector, () => 
-      authState(this.auth).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      )
+    this.user$ = runInInjectionContext(this.injector, () =>
+      authState(this.auth).pipe(shareReplay({ bufferSize: 1, refCount: false }))
     );
 
     this.appUser$ = this.user$.pipe(
-      switchMap(user => {
+      switchMap((user) => {
         if (!user) return of(null);
         try {
-          const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(`users/${user.uid}`);
+          const ref = this.fs.doc<import('@core/models/user-doc').UserDoc>(
+            `users/${user.uid}`
+          );
           return runInInjectionContext(this.injector, () =>
             docData<import('@core/models/user-doc').UserDoc>(ref).pipe(
-              map(doc => (doc ? ({ auth: user, doc } as AppUserCombined) : null))
+              map((doc) =>
+                doc ? ({ auth: user, doc } as AppUserCombined) : null
+              )
             )
           );
         } catch (error) {
-          this.logger.error('AuthService', 'Error creating user document reference:', error);
+          this.logger.error(
+            'AuthService',
+            'Error creating user document reference:',
+            error
+          );
           return of(null);
         }
       }),
@@ -78,37 +89,57 @@ export class AuthService {
   /* ---------- Auth ---------- */
   login(email: string, password: string, remember: boolean): Observable<void> {
     this.logger.log('AuthService', 'Login attempt', { email, remember });
-    
+
     try {
       return runInInjectionContext(this.injector, () => {
-        return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+        return from(
+          signInWithEmailAndPassword(this.auth, email, password)
+        ).pipe(
           switchMap(() => {
-            this.logger.log('AuthService', 'Persistence set, attempting sign in');
-            return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+            this.logger.log(
+              'AuthService',
+              'Persistence set, attempting sign in'
+            );
+            return from(
+              signInWithEmailAndPassword(this.auth, email, password)
+            ).pipe(
               map((result) => {
-                this.logger.log('AuthService', 'Sign in successful', result.user?.email);
+                this.logger.log(
+                  'AuthService',
+                  'Sign in successful',
+                  result.user?.email
+                );
                 return result;
               }),
-              catchError(error => {
+              catchError((error) => {
                 this.logger.error('AuthService', 'Sign in failed:', error);
                 return throwError(error);
               })
             );
           }),
           switchMap(() => {
-            this.logger.log('AuthService', 'Sign in successful, reloading user');
+            this.logger.log(
+              'AuthService',
+              'Sign in successful, reloading user'
+            );
             const user = this.auth.currentUser;
-            return user ? from(user.reload()).pipe(
-              tap(() => {
-                this.userService.setAuthInfo(
-                  user.uid,
-                  user.providerData?.[0]?.providerId || user.providerId || '-',
-                  user.emailVerified,
-                  user.phoneNumber || null
-                ).subscribe({ next: () => {}, error: () => {} });
-              }),
-              map(() => void 0)
-            ) : of(void 0);
+            return user
+              ? from(user.reload()).pipe(
+                  tap(() => {
+                    this.userService
+                      .setAuthInfo(
+                        user.uid,
+                        user.providerData?.[0]?.providerId ||
+                          user.providerId ||
+                          '-',
+                        user.emailVerified,
+                        user.phoneNumber || null
+                      )
+                      .subscribe({ next: () => {}, error: () => {} });
+                  }),
+                  map(() => void 0)
+                )
+              : of(void 0);
           }),
           map(() => {
             this.logger.log('AuthService', 'Login completed successfully');
@@ -128,13 +159,17 @@ export class AuthService {
 
   /* ---------- Registrierung ---------- */
   register(data: RegisterData): Observable<void> {
-    return from(createUserWithEmailAndPassword(this.auth, data.email, data.password)).pipe(
-      switchMap(cred => {
+    return from(
+      createUserWithEmailAndPassword(this.auth, data.email, data.password)
+    ).pipe(
+      switchMap((cred) => {
         const uid = cred.user.uid;
         const user = cred.user;
 
         const updateDisplay$ = from(
-          updateProfile(user, { displayName: `${data.firstName} ${data.lastName}` })
+          updateProfile(user, {
+            displayName: `${data.firstName} ${data.lastName}`,
+          })
         );
 
         const profileRef = this.fs.doc(`users/${uid}`);
@@ -154,18 +189,19 @@ export class AuthService {
           lastActiveAt: now,
           lastInactiveAt: now,
           // ----- Auth Info -----
-          authProvider: user.providerData?.[0]?.providerId || user.providerId || '-',
+          authProvider:
+            user.providerData?.[0]?.providerId || user.providerId || '-',
           emailVerified: user.emailVerified,
           phoneNumber: user.phoneNumber || null,
         };
-        const createProfile$ = runInInjectionContext(this.injector, () => 
+        const createProfile$ = runInInjectionContext(this.injector, () =>
           from(setDoc(profileRef, profile))
         );
 
         const verify$ = from(
           sendEmailVerification(user, {
             url: this.settings.verifyRedirect,
-            handleCodeInApp: false
+            handleCodeInApp: false,
           })
         );
 
@@ -184,20 +220,20 @@ export class AuthService {
     if (!user) {
       return from(Promise.reject('Kein User angemeldet'));
     }
-    
+
     return from(
-      sendEmailVerification(user, { 
-        url: this.settings.verifyRedirect, 
-        handleCodeInApp: false 
+      sendEmailVerification(user, {
+        url: this.settings.verifyRedirect,
+        handleCodeInApp: false,
       })
     ).pipe(map(() => void 0));
   }
 
   resetPassword(email: string): Observable<void> {
     return from(
-      sendPasswordResetEmail(this.auth, email, { 
-        url: this.settings.resetRedirect, 
-        handleCodeInApp: false 
+      sendPasswordResetEmail(this.auth, email, {
+        url: this.settings.resetRedirect,
+        handleCodeInApp: false,
       })
     ).pipe(map(() => void 0));
   }
@@ -205,17 +241,19 @@ export class AuthService {
   refreshAndCheckEmail(): Observable<boolean> {
     const user = this.auth.currentUser;
     if (!user) return of(false);
-    
-    return from(user.reload().then(() => {
-      if (user.emailVerified) {
-        // sync flag in Firestore (ignore result)
-        this.userService.updateEmailVerified(user.uid, true).subscribe({
+
+    return from(
+      user.reload().then(() => {
+        if (user.emailVerified) {
+          // sync flag in Firestore (ignore result)
+          this.userService.updateEmailVerified(user.uid, true).subscribe({
             next: () => {},
-            error: () => {}
+            error: () => {},
           });
-      }
-      return user.emailVerified;
-    }));
+        }
+        return user.emailVerified;
+      })
+    );
   }
 
   /* ---------- Token ---------- */
