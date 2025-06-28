@@ -45,3 +45,21 @@ Thumbs.db
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Project description
+project-description.md
+
+# TODO Implementation Guide
+todo-implementation-guide.md
+
+# Project structure
+project-structure.txt
+
+# Project zip
+projekt.zip
+
+# environment files
+environment*.ts
+environment.development.ts
+environment.production.ts
+environment.ts
