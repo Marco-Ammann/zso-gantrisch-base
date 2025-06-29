@@ -62,15 +62,36 @@
               <p class="text-gray-300 mb-3">{{ user.email }}</p>
               
               <!-- Status Badges -->
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-1.5">
                 @if (user.approved) {
-                  <span class="badge badge--approved">Zugang erlaubt</span>
+                  <span class="badge badge--approved">
+                    <span class="material-symbols-outlined text-xs mr-1">verified</span>
+                    Zugang erlaubt
+                  </span>
                 } @else {
-                  <span class="badge badge--pending">Zugang verweigert</span>
+                  <span class="badge badge--pending">
+                    <span class="material-symbols-outlined text-xs mr-1">schedule</span>
+                    Zugang verweigert
+                  </span>
                 }
                 
                 @if (user.emailVerified) {
-                  <span class="badge badge--verified">E-Mail bestätigt</span>
+                  <span class="badge badge--verified">
+                    <span class="material-symbols-outlined text-xs mr-1">verified_user</span>
+                    E-Mail bestätigt
+                  </span>
+                } @else {
+                  <span class="badge badge--unverified">
+                    <span class="material-symbols-outlined text-xs mr-1">mail</span>
+                    E-Mail ausstehend
+                  </span>
+                }
+
+                @if (user.blocked) {
+                  <span class="badge badge--blocked">
+                    <span class="material-symbols-outlined text-xs mr-1">block</span>
+                    Gesperrt
+                  </span>
                 }
               </div>
             </div>
@@ -79,7 +100,7 @@
             <div class="flex flex-col items-end gap-3">
               <div class="flex items-center gap-3">
                 <span class="text-sm text-gray-400">Zugang:</span>
-                <label class="toggle-switch">
+                <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
                   <input type="checkbox" 
                          [checked]="user.approved" 
                          (change)="toggleAccess(user.uid, $any($event.target).checked)"
@@ -196,20 +217,42 @@
             <div class="flex justify-between items-center">
               <span class="label">E-Mail verifiziert</span>
               @if (user.emailVerified) {
-                <span class="text-green-400 text-sm">✓ Ja</span>
+                <span class="badge badge--verified">
+                  <span class="material-symbols-outlined text-xs mr-1">verified_user</span>
+                  Ja
+                </span>
               } @else {
-                <span class="text-rose-400 text-sm">✗ Nein</span>
+                <span class="badge badge--unverified">
+                  <span class="material-symbols-outlined text-xs mr-1">mail</span>
+                  Nein
+                </span>
               }
             </div>
 
             <div class="flex justify-between items-center">
               <span class="label">Zugang</span>
               @if (user.approved) {
-                <span class="text-green-400 text-sm">✓ Erlaubt</span>
+                <span class="badge badge--approved">
+                  <span class="material-symbols-outlined text-xs mr-1">verified</span>
+                  Erlaubt
+                </span>
               } @else {
-                <span class="text-rose-400 text-sm">✗ Verweigert</span>
+                <span class="badge badge--pending">
+                  <span class="material-symbols-outlined text-xs mr-1">schedule</span>
+                  Verweigert
+                </span>
               }
             </div>
+
+            @if (user.blocked) {
+              <div class="flex justify-between items-center">
+                <span class="label">Status</span>
+                <span class="badge badge--blocked">
+                  <span class="material-symbols-outlined text-xs mr-1">block</span>
+                  Gesperrt
+                </span>
+              </div>
+            }
 
             <div class="pt-3 border-t border-gray-800">
               <div class="flex justify-between items-center mb-2">

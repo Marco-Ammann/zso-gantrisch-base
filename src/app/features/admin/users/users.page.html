@@ -29,17 +29,23 @@
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="flex items-center gap-3 text-sm">
-      <span class="px-3 py-1.5 rounded-full bg-gray-800 text-gray-300">
-        {{ stats.total }} Gesamt
-      </span>
-      <span class="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300">
-        {{ stats.pending }} Wartend
-      </span>
-      <span class="px-3 py-1.5 rounded-full bg-green-500/20 text-green-300">
-        {{ stats.approved }} Genehmigt
-      </span>
+    <!-- Refined Stats with Icons -->
+    <div class="flex items-center gap-2 text-sm">
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-800/80 text-gray-300"
+        title="Gesamtanzahl Benutzer">
+        <span class="material-symbols-outlined text-sm">people</span>
+        <span>{{ stats.total }}</span>
+      </div>
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-300"
+        title="Warten auf Genehmigung">
+        <span class="material-symbols-outlined text-sm">schedule</span>
+        <span>{{ stats.pending }}</span>
+      </div>
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-500/15 text-green-300"
+        title="Genehmigt und aktiv">
+        <span class="material-symbols-outlined text-sm">verified</span>
+        <span>{{ stats.approved }}</span>
+      </div>
     </div>
   </div>
 
@@ -83,7 +89,7 @@
   @if (pendingUsers.length > 0) {
   <div class="space-y-4">
     <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-amber-400 text-xl">hourglass_empty</span>
+      <span class="material-symbols-outlined text-amber-400 text-xl">schedule</span>
       <h2 class="text-xl font-semibold text-white">
         Wartende Genehmigungen
         <span class="text-sm font-normal text-gray-400 ml-2">({{ pendingUsers.length }})</span>
@@ -110,31 +116,44 @@
             }
             <!-- Pending indicator -->
             <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full 
-                            border-2 border-gray-900 animate-pulse"></div>
+                            border-2 border-gray-900 animate-pulse" title="Warten auf Genehmigung"></div>
           </div>
 
           <!-- User Info -->
           <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-white truncate">
-              {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60">
-                (du)</span>}
+            <h3 class="font-semibold text-white truncate flex items-center gap-1">
+              {{ user.firstName }} {{ user.lastName }}
+              @if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
+              @if (user.emailVerified) {
+                <span class="material-symbols-outlined text-cp-orange text-sm" title="E-Mail-Adresse wurde bestätigt">verified</span>
+              } @else {
+                <span class="material-symbols-outlined text-gray-500 text-sm" title="E-Mail-Adresse wurde noch nicht bestätigt">mail</span>
+              }
             </h3>
             <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
           </div>
         </div>
 
+        <!-- Status Badges -->
+        <div class="flex flex-wrap gap-1.5 mb-4">
+          @if (!user.approved) {
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300" title="Dieser Benutzer wartet auf Genehmigung">
+              <span class="material-symbols-outlined text-xs mr-1">schedule</span>
+              Wartend
+            </span>
+          } @else {
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400" title="Dieser Benutzer hat Zugriff auf die Anwendung">
+              <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
+              Genehmigt
+            </span>
+          }
+        </div>
+
         <!-- Meta Info -->
         <div class="mb-4 text-xs text-gray-500">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">calendar_today</span>
-              Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
-            </div>
-            @if (user.emailVerified) {
-            <span class="text-green-400">✓ E-Mail bestätigt</span>
-            } @else {
-            <span class="text-amber-400">⏳ E-Mail ausstehend</span>
-            }
+          <div class="flex items-center gap-1.5" title="Registrierungsdatum">
+            <span class="material-symbols-outlined text-sm">calendar_today</span>
+            Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
           </div>
         </div>
 
@@ -142,15 +161,19 @@
         <div class="flex items-center justify-between pt-4 border-t border-gray-800">
           <div class="flex items-center gap-2">
             <span class="text-sm text-gray-400">Zugang:</span>
-            <label class="toggle-switch">
-              <input type="checkbox" [checked]="false" (change)="approve(user)" [disabled]="isLoading" />
+            <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
+              <input type="checkbox" 
+                     [checked]="user.approved" 
+                     (change)="user.approved ? unapprove(user) : approve(user)" 
+                     [disabled]="isLoading" />
               <span class="toggle-slider"></span>
             </label>
           </div>
 
-          <button (click)="viewDetails(user)" class="p-2 rounded-lg bg-gray-800 text-gray-400 
-                       hover:bg-gray-700 hover:text-white transition-all duration-200" title="Details anzeigen">
-            <span class="material-symbols-outlined">arrow_forward</span>
+          <button (click)="viewDetails(user)"
+            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200 flex items-center justify-center"
+            title="Benutzerdetails anzeigen">
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </div>
       </div>
@@ -162,14 +185,7 @@
   <!-- Approved Users Section -->
   @if (approvedUsers.length > 0) {
   <div class="space-y-4">
-    <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-green-400 text-xl">verified_user</span>
-      <h2 class="text-xl font-semibold text-white">
-        Genehmigte Benutzer
-        <span class="text-sm font-normal text-gray-400 ml-2">({{ approvedUsers.length }})</span>
-      </h2>
-    </div>
-
+    <h3 class="text-lg font-medium text-white">Genehmigte Benutzer</h3>
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
       @for (user of approvedUsers; track user.uid) {
       <div class="glass-card p-5 user-card" [@itemFade]>
@@ -188,40 +204,36 @@
               </span>
             </div>
             }
-            <!-- Approved indicator -->
-            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full 
-                            border-2 border-gray-900"></div>
           </div>
 
           <!-- User Info -->
           <div class="flex-1 min-w-0">
             <h3 class="font-semibold text-white truncate flex items-center gap-1">
               {{ user.firstName }} {{ user.lastName }}
+              @if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
               @if (user.emailVerified) {
-              <span class="material-symbols-outlined text-green-400 text-sm" title="E-Mail verifiziert">verified</span>
-              }
-              @if (isCurrentUser(user.uid)) {
-              <span class="opacity-60"> (du)</span>
+                <span class="material-symbols-outlined text-cp-orange text-sm" title="E-Mail-Adresse wurde bestätigt">verified</span>
+              } @else {
+                <span class="material-symbols-outlined text-gray-500 text-sm" title="E-Mail-Adresse wurde noch nicht bestätigt">mail</span>
               }
             </h3>
             <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
           </div>
         </div>
 
-        <!-- Role & Meta Info -->
-        <div class="space-y-2 mb-4">
-          <!-- Roles -->
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-500">Rolle:</span>
-            <zso-role-select [roleOptions]="['user', 'admin']" [selected]="user.roles"
-              (selectedChange)="updateRoles(user, $event)">
-            </zso-role-select>
-          </div>
+        <!-- Status Badges -->
+        <div class="flex flex-wrap gap-1.5 mb-4">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400" title="Dieser Benutzer hat Zugriff auf die Anwendung">
+            <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
+            Genehmigt
+          </span>
+        </div>
 
-          <!-- Last Login -->
-          <div class="flex items-center justify-between text-xs text-gray-500">
-            <span>Letzter Login:</span>
-            <span>{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yy') : 'Noch nie' }}</span>
+        <!-- Meta Info -->
+        <div class="mb-4 text-xs text-gray-500">
+          <div class="flex items-center gap-1.5" title="Registrierungsdatum">
+            <span class="material-symbols-outlined text-sm">calendar_today</span>
+            Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
           </div>
         </div>
 
@@ -229,18 +241,19 @@
         <div class="flex items-center justify-between pt-4 border-t border-gray-800">
           <div class="flex items-center gap-2">
             <span class="text-sm text-gray-400">Zugang:</span>
-            <!-- Toggle mit Tooltip -->
             <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
-              <input type="checkbox" [checked]="user.approved"
-                (change)="user.approved ? unapprove(user) : approve(user)" [disabled]="isLoading" />
+              <input type="checkbox" 
+                     [checked]="user.approved" 
+                     (change)="user.approved ? unapprove(user) : approve(user)" 
+                     [disabled]="isLoading" />
               <span class="toggle-slider"></span>
             </label>
           </div>
 
           <button (click)="viewDetails(user)"
-            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
-            title="Details anzeigen">
-            <span class="material-symbols-outlined">arrow_forward</span>
+            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200 flex items-center justify-center"
+            title="Benutzerdetails anzeigen">
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </div>
       </div>
@@ -263,6 +276,6 @@
     </p>
   </div>
   }
-  <zso-confirmation-dialog #confirmDialog></zso-confirmation-dialog>
 
+  <zso-confirmation-dialog #confirmDialog></zso-confirmation-dialog>
 </div>

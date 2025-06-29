@@ -144,38 +144,54 @@ export class UsersPage implements OnInit, OnDestroy {
     this.loadUsers();
   }
 
-  // User actions
+  // User actions with proper confirmation handling
   approve(user: UserDoc): void {
+    const originalApproved = user.approved;
+    user.approved = true;
+    
     this.showConfirmation(
       `Zugang für ${user.firstName} ${user.lastName} gewähren?`,
+      'Der Benutzer kann die Anwendung verwenden.',
       'primary',
+      'Zugang gewähren',
       () => {
-        // Array-Update statt filterUsers()
         this.pendingUsers = this.pendingUsers.filter(u => u.uid !== user.uid);
-        user.approved = true;
         this.approvedUsers = [...this.approvedUsers, user];
         this.cdr.markForCheck();
         
         this.userService.approve(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
+          next: () => {
+            this.logger.log('UsersPage', `User approved: ${user.uid}`);
+          },
           error: (error) => {
             // Rollback
             this.approvedUsers = this.approvedUsers.filter(u => u.uid !== user.uid);
             user.approved = false;
             this.pendingUsers = [...this.pendingUsers, user];
             this.cdr.markForCheck();
-            this.errorMsg = `Fehler beim Genehmigen`;
+            this.errorMsg = `Fehler beim Genehmigen von ${user.firstName} ${user.lastName}`;
+            this.logger.error('UsersPage', 'Approve failed:', error);
           }
         });
+      },
+      () => {
+        user.approved = originalApproved;
+        this.cdr.detectChanges();
       }
     );
   }
 
   unapprove(user: UserDoc): void {
+    const originalApproved = user.approved;
+    user.approved = false;
+    
     this.showConfirmation(
       `Zugang für ${user.firstName} ${user.lastName} entziehen?`,
+      'Der Benutzer kann die Anwendung nicht mehr verwenden.',
       'danger',
+      'Zugang entziehen',
       () => {
         this.approvedUsers = this.approvedUsers.filter(u => u.uid !== user.uid);
         user.approved = false;
@@ -185,17 +201,27 @@ export class UsersPage implements OnInit, OnDestroy {
         this.userService.unapprove(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
+          next: () => {
+            this.logger.log('UsersPage', `User unapproved: ${user.uid}`);
+          },
           error: (error) => {
+            // Rollback
             this.pendingUsers = this.pendingUsers.filter(u => u.uid !== user.uid);
             user.approved = true;
             this.approvedUsers = [...this.approvedUsers, user];
             this.cdr.markForCheck();
-            this.errorMsg = `Fehler beim Entziehen`;
+            this.errorMsg = `Fehler beim Entziehen für ${user.firstName} ${user.lastName}`;
+            this.logger.error('UsersPage', 'Unapprove failed:', error);
           }
         });
+      },
+      () => {
+        user.approved = originalApproved;
+        this.cdr.detectChanges();
       }
     );
   }
+
   updateRoles(user: UserDoc, roles: string[]): void {
     if (!roles || roles.length === 0) {
       this.errorMsg = 'Mindestens eine Rolle muss ausgewählt werden.';
@@ -243,20 +269,28 @@ export class UsersPage implements OnInit, OnDestroy {
   }
 
   private showConfirmation(
+    title: string,
     message: string,
     type: 'primary' | 'danger',
-    onConfirm: () => void
+    confirmText: string,
+    onConfirm: () => void,
+    onCancel?: () => void
   ): void {
-    this.confirmation.title = 'Bestätigung';
+    this.confirmation.title = title;
     this.confirmation.message = message;
-    this.confirmation.confirmText = 'Bestätigen';
+    this.confirmation.confirmText = confirmText;
     this.confirmation.confirmType = type;
     this.confirmation.visible = true;
 
+    // Subscribe only once and handle both confirm and cancel
     this.confirmation.confirmed.pipe(
       takeUntil(this.destroy$)
     ).subscribe((confirmed) => {
-      if (confirmed) onConfirm();
+      if (confirmed) {
+        onConfirm();
+      } else if (onCancel) {
+        onCancel();
+      }
     });
   }
 }
