@@ -1,308 +1,504 @@
-<div class="w-full max-w-full sm:max-w-7xl xl:max-w-8xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-10 space-y-6">
+<!-- src/app/features/admin/users/users.page.html -->
+<div class="min-h-screen bg-gray-900">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6">
 
-  <!-- Error Banner -->
-  @if (errorMsg) {
-  <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <span class="material-symbols-outlined text-rose-400 mr-2">error</span>
-        <span class="text-rose-400 font-medium">{{ errorMsg }}</span>
+    <!-- Error Alert -->
+    @if (errorMsg) {
+      <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10" [@itemFade]>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-rose-400">error</span>
+            <span class="text-rose-300 text-sm sm:text-base">{{ errorMsg }}</span>
+          </div>
+          <button (click)="errorMsg = null" 
+                  class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition-colors">
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
       </div>
-      <button (click)="errorMsg = null" class="text-rose-400 hover:text-rose-300">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-  </div>
-  }
+    }
 
-  <!-- Page Header -->
-  <div class="flex items-center gap-3">
-    <span class="material-symbols-outlined text-2xl text-cp-orange">group</span>
-    <h1 class="text-2xl font-bold tracking-tight">Benutzerverwaltung</h1>
-  </div>
-
-  <!-- Toolbar -->
-  <div class="glass-card flex flex-wrap items-center gap-4 p-4 sm:p-5">
-    <!-- Search -->
-    <div class="relative flex-auto min-w-[12rem] sm:w-80">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-      <input type="text" [(ngModel)]="search" (ngModelChange)="onSearchChange($event)" placeholder="Benutzer suchen"
-        class="glass-input pl-10 w-full rounded-full bg-white/5 hover:bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cp-orange transition-colors py-2" />
-    </div>
-
-    <!-- Filters & Controls -->
-    <div class="flex items-center flex-wrap gap-4 ml-auto">
-
-      <!-- Block Filter -->
-      <button type="button" class="pill underline-sweep flex items-center gap-1"
-        [ngClass]="{'bg-rose-500/10': showOnlyBlocked}" (click)="showOnlyBlocked = !showOnlyBlocked">
-        <span class="material-symbols-outlined text-sm">block</span>
-        Gesperrt
-      </button>
-
-      <!-- Sort Dropdown -->
-      <div class="relative">
-        <select [(ngModel)]="sortBy" (change)="onSortChange(sortBy)" class="pill sort-select appearance-none pr-8">
-          <option value="newest">Neueste zuerst</option>
-          <option value="oldest">Älteste zuerst</option>
-          <option value="name">Nach Name</option>
-          <option value="blocked">Gesperrte zuerst</option>
-        </select>
-        <span
-          class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 peer-focus:text-cp-orange transition-colors">
-          expand_more
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-xl bg-cp-orange/10 backdrop-blur-sm">
+          <span class="material-symbols-outlined text-2xl text-cp-orange">group</span>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Benutzerverwaltung</h1>
+          <p class="text-xs sm:text-sm text-gray-400 mt-0.5">Verwalte Benutzer und Berechtigungen</p>
+        </div>
+      </div>
+      
+      <!-- Stats Pills -->
+      <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-800 text-gray-300 whitespace-nowrap">
+          {{ stats.total }} Total
         </span>
-      </div>
-
-      <!-- Statistics -->
-      <div class="text-sm text-white/80 hidden sm:block">
-        <span>📊 {{ stats.total }} Gesamt</span>
-        <span class="text-amber-300 ml-2">⏳ {{ stats.pending }}</span>
-        <span class="text-rose-400 ml-2">🚫 {{ stats.blocked }}</span>
-        <span class="text-green-400 ml-2">✅ {{ stats.active }}</span>
-      </div>
-
-      <!-- Refresh Button -->
-      <zso-button type="neutral" size="sm" (click)="refresh()" title="Aktualisieren" [loading]="isLoading">
-        <span class="material-symbols-outlined text-base">refresh</span>
-      </zso-button>
-    </div>
-  </div>
-
-  <!-- Bulk Actions Bar -->
-  @if (selectedUsersCount > 0) {
-  <div class="glass-card p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2 w-full max-w-full sm:max-w-7xl xl:max-w-8xl mx-auto z-40 shadow-lg rounded-t-lg sm:rounded-lg" [@slideBottom]>
-    <div class="flex items-center justify-between w-full sm:w-auto mb-2 sm:mb-0">
-      <span class="text-white text-sm sm:text-base font-medium">{{ selectedUsersCount }} {{ selectedUsersCount === 1 ? 'Benutzer' : 'Benutzer' }} ausgewählt</span>
-      <button class="sm:hidden text-gray-300 hover:text-white" (click)="selectAll([], false)" aria-label="Auswahl aufheben">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
-      <zso-button type="primary" size="sm" class="flex-1 sm:flex-none" (click)="bulkApprove()">
-        <span class="material-symbols-outlined text-sm sm:mr-1">check</span>
-        <span class="hidden sm:inline">Alle genehmigen</span>
-        <span class="sm:hidden">Genehmigen</span>
-      </zso-button>
-      <zso-button type="danger" size="sm" class="flex-1 sm:flex-none" (click)="bulkBlock()">
-        <span class="material-symbols-outlined text-sm sm:mr-1">block</span>
-        <span class="hidden sm:inline">Alle blockieren</span>
-        <span class="sm:hidden">Blockieren</span>
-      </zso-button>
-      <zso-button type="neutral" size="sm" class="hidden sm:flex" (click)="selectAll([], false)">
-        Auswahl aufheben
-      </zso-button>
-    </div>
-  </div>
-  
-  <!-- Add bottom padding when bulk actions bar is visible on mobile -->
-  <div class="h-16 sm:h-0"></div>
-  }
-
-  <!-- Loading Indicator -->
-  @if (isLoading) {
-  <div class="glass-card p-4">
-    <div class="flex items-center justify-center">
-      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-cp-orange mr-3"></div>
-      <span class="text-white">Lade Benutzerdaten...</span>
-    </div>
-  </div>
-  }
-
-  <!-- Users Content -->
-
-  <!-- UNAPPROVED Users Section (Wartende/Nicht genehmigte) -->
-  @if (filteredUsers.pending && filteredUsers.pending.length > 0) {
-  <div class="space-y-4">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <span class="material-symbols-outlined text-cp-orange">hourglass_top</span>
-        Wartende Benutzer ({{ filteredUsers.pending.length }})
-      </h2>
-      <div class="flex items-center gap-2">
-        <zso-checkbox [ngModel]="areAllUsersSelected(filteredUsers.pending)"
-          (ngModelChange)="selectAll(filteredUsers.pending, $event)" label="Alle auswählen">
-        </zso-checkbox>
+        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-amber-500/20 text-amber-300 whitespace-nowrap">
+          {{ stats.pending }} Wartend
+        </span>
+        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-green-500/20 text-green-300 whitespace-nowrap">
+          {{ stats.active }} Aktiv
+        </span>
+        @if (stats.blocked > 0) {
+          <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-rose-500/20 text-rose-300 whitespace-nowrap">
+            {{ stats.blocked }} Gesperrt
+          </span>
+        }
       </div>
     </div>
 
-    <!-- Users Grid -->
-    <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(19rem,1fr))]">
-      @for (user of filteredUsers.pending; track user.uid) {
-      
-
-      <!-- User Card -->
-      <div
-        class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
-        [ngClass]="{'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)}">
-
-        <!-- Selection Checkbox -->
-        <zso-checkbox class="absolute top-4 right-4" [ngModel]="isUserSelected(user.uid)"
-          (ngModelChange)="selectUser(user.uid, $event)" label="">
-        </zso-checkbox>
-
-        <!-- Avatar -->
-        <div class="flex items-center gap-4">
-          <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
-            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-              class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
-          </ng-container>
-          <ng-template #placeholder>
-            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center ring-1 ring-white/20">
-              <span class="material-symbols-outlined text-lg text-gray-400">person</span>
-            </div>
-          </ng-template>
+    <!-- Search & Filter Bar -->
+    <div class="glass-card p-3 sm:p-4 space-y-3">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1 min-w-0">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-lg sm:text-xl">
+            search
+          </span>
+          <input 
+            type="search" 
+            [(ngModel)]="search" 
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Name oder E-Mail..." 
+            class="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl bg-gray-800 text-white placeholder-gray-500 
+                   border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 
+                   transition-all duration-200 outline-none"
+          />
         </div>
-        <!-- User Info -->
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pr-4 min-w-0 flex-shrink">
-          <div>
-            <h3 class="text-lg font-semibold text-white break-words">
-              @if (isDemoUser(user.firstName)) {
-              <span class="demo-tag">(d)</span>
-              }
-              {{ getCleanFirstName(user.firstName) }} {{ user.lastName }}
-            </h3>
-            <p class="text-sm text-gray-300 break-all whitespace-normal">{{ user.email }}</p>
-            <p class="meta">
-              Registriert: {{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}
-            </p>
-            <p class="meta">Rolle: {{ user.roles.join(', ') }}</p>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center gap-2 flex-nowrap overflow-x-auto">
+          <!-- Blocked Filter Toggle -->
+          <button 
+            type="button" 
+            (click)="showOnlyBlocked = !showOnlyBlocked"
+            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-medium transition-all duration-200 whitespace-nowrap text-sm sm:text-base
+                   {{ showOnlyBlocked ? 'bg-rose-500/20 text-rose-300 border-rose-500/50' : 'bg-gray-800 text-gray-300 border-gray-700' }}
+                   border hover:border-cp-orange/50 flex items-center gap-1.5 sm:gap-2"
+          >
+            <span class="material-symbols-outlined text-base sm:text-lg">block</span>
+            <span class="hidden sm:inline">Nur Gesperrte</span>
+            <span class="sm:hidden">Gesperrt</span>
+          </button>
+
+          <!-- Sort Dropdown -->
+          <select 
+            [(ngModel)]="sortBy" 
+            (change)="onSortChange(sortBy)"
+            class="px-3 sm:px-4 py-2 sm:py-2.5 pr-8 sm:pr-10 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 
+                   focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all 
+                   duration-200 outline-none appearance-none cursor-pointer text-sm sm:text-base"
+          >
+            <option value="newest">Neueste</option>
+            <option value="oldest">Älteste</option>
+            <option value="name">Name</option>
+            <option value="blocked">Gesperrt</option>
+          </select>
+
+          <!-- Refresh Button -->
+          <button 
+            (click)="refresh()" 
+            [disabled]="isLoading"
+            class="p-2 sm:p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 
+                   hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Aktualisieren"
+          >
+            <span class="material-symbols-outlined text-lg sm:text-xl {{ isLoading ? 'animate-spin' : '' }}">
+              refresh
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="glass-card p-6 sm:p-8 text-center">
+        <div class="inline-flex items-center gap-3">
+          <div class="w-5 h-5 border-2 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin"></div>
+          <span class="text-gray-300 text-sm sm:text-base">Lade Benutzerdaten...</span>
+        </div>
+      </div>
+    }
+
+    <!-- Pending Users Section -->
+    @if (filteredUsers.pending.length > 0) {
+      <div class="space-y-4">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-amber-400 text-xl sm:text-2xl">hourglass_empty</span>
+            <h2 class="text-lg sm:text-xl font-semibold text-white">
+              Wartende Genehmigungen
+              <span class="text-xs sm:text-sm font-normal text-gray-400 ml-1 sm:ml-2">({{ filteredUsers.pending.length }})</span>
+            </h2>
           </div>
-
-          <zso-role-select [roleOptions]="['user','admin']" [selected]="getUserRoles(user)"
-            (selectedChange)="askRoleChange(user, $event)">
-          </zso-role-select>
+          
+          <label class="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-400 hover:text-gray-300 cursor-pointer">
+            <input 
+              type="checkbox"
+              [checked]="areAllUsersSelected(filteredUsers.pending)"
+              (change)="selectAll(filteredUsers.pending, $any($event.target).checked)"
+              class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
+                     focus:ring-2 focus:ring-cp-orange/20"
+            />
+            <span class="hidden sm:inline">Alle auswählen</span>
+            <span class="sm:hidden">Alle</span>
+          </label>
         </div>
 
-        <!-- Actions -->
-        <div class="flex flex-wrap gap-2 pt-2">
-          <button title="Genehmigen" (click)="approve(user)" class="btn-approve glow-green" [disabled]="isLoading">
-            <span class="material-symbols-outlined text-lg">check</span>
-          </button>
-          <button title="Blockieren" (click)="toggleActive(user)" class="btn-block glow-red" [disabled]="isLoading">
-            <span class="material-symbols-outlined text-lg">block</span>
-          </button>
-          <button title="Details" (click)="details(user)" class="btn-neutral">
-            <span class="material-symbols-outlined text-lg">person</span>
-          </button>
-        </div>
-      </div>
-      }
-    </div>
-  </div>
-  }
+        <!-- User Cards Grid -->
+        <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          @for (user of filteredUsers.pending; track user.uid) {
+            <div 
+              class="glass-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+                     {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
+                     {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
+              [@itemFade]
+            >
+              <!-- Card Header -->
+              <div class="flex items-start justify-between mb-3 sm:mb-4">
+                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <!-- Avatar -->
+                  <div class="relative flex-shrink-0">
+                    @if (user.photoUrl || user.photoURL) {
+                      <img 
+                        [src]="user.photoUrl || user.photoURL" 
+                        alt="Avatar"
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-gray-700"
+                      />
+                    } @else {
+                      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                                  flex items-center justify-center ring-2 ring-gray-700">
+                        <span class="text-gray-400 font-medium text-xs sm:text-sm">
+                          {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+                        </span>
+                      </div>
+                    }
+                    <!-- Status Indicator -->
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-amber-500 rounded-full 
+                                border-2 border-gray-900 animate-pulse"></div>
+                  </div>
+                  
+                  <!-- User Info -->
+                  <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-white truncate text-sm sm:text-base">
+                      {{ user.firstName }} {{ user.lastName }}
+                      @if (isDemoUser(user.firstName)) {
+                        <span class="text-xs text-cp-blue ml-1">(Demo)</span>
+                      }
+                    </h3>
+                    <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
+                  </div>
+                </div>
 
-  <!-- APPROVED Users Section (Genehmigte Benutzer) -->
-  @if (filteredUsers.rest && filteredUsers.rest.length > 0) {
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-bold text-white">
-        Genehmigte Benutzer ({{ filteredUsers.rest.length }})
-      </h2>
-      <div class="flex items-center gap-2">
-        <zso-checkbox [ngModel]="areAllUsersSelected(filteredUsers.rest)"
-          (ngModelChange)="selectAll(filteredUsers.rest, $event)" label="Alle auswählen">
-        </zso-checkbox>
-      </div>
-    </div>
+                <!-- Selection Checkbox -->
+                <input 
+                  type="checkbox"
+                  [checked]="isUserSelected(user.uid)"
+                  (change)="selectUser(user.uid, $any($event.target).checked)"
+                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
+                         focus:ring-2 focus:ring-cp-orange/20 flex-shrink-0"
+                />
+              </div>
 
-    <div class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(19rem,1fr))]">
-      @for (user of filteredUsers.rest; track user.uid) {
-      
+              <!-- Meta Info -->
+              <div class="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
+                <div class="flex items-center gap-1.5 sm:gap-2 text-xs text-gray-500">
+                  <span class="material-symbols-outlined text-sm sm:text-base">calendar_today</span>
+                  Registriert {{ user.createdAt | date:'dd.MM.yyyy' }}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-300">
+                    Genehmigung ausstehend
+                  </span>
+                </div>
+              </div>
 
-      <div
-        class="glass-card shimmer-once p-6 flex flex-col overflow-hidden gap-4 relative transition-all duration-200 hover:shadow-xl hover:bg-white/5"
-        [ngClass]="{
-                 'user-card--blocked': user.blocked,
-                 'ring-2 ring-cp-orange': isUserSelected(user.uid), 'ring-2 ring-teal-400': isCurrentUser(user.uid)
-               }">
-
-        <!-- Selection Checkbox -->
-        <zso-checkbox class="absolute top-4 right-4" [ngModel]="isUserSelected(user.uid)"
-          (ngModelChange)="selectUser(user.uid, $event)" label="">
-        </zso-checkbox>
-
-        <!-- Avatar -->
-        <div class="flex items-center gap-4">
-          <ng-container *ngIf="user.photoUrl || user.photoURL; else placeholder">
-            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-              class="h-12 w-12 rounded-full object-cover ring-1 ring-white/20" />
-          </ng-container>
-          <ng-template #placeholder>
-            <div class="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center ring-1 ring-white/20">
-              <span class="material-symbols-outlined text-lg text-gray-400">person</span>
+              <!-- Actions -->
+              <div class="flex items-center gap-1.5 sm:gap-2 pt-3 sm:pt-4 border-t border-gray-800">
+                <button 
+                  (click)="approve(user)"
+                  [disabled]="isLoading"
+                  class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-green-500/10 text-green-400 
+                         hover:bg-green-500/20 transition-all duration-200 font-medium text-xs sm:text-sm
+                         disabled:opacity-50 disabled:cursor-not-allowed flex items-center 
+                         justify-center gap-1.5 sm:gap-2"
+                >
+                  <span class="material-symbols-outlined text-base sm:text-lg">check_circle</span>
+                  Genehmigen
+                </button>
+                
+                <button 
+                  (click)="toggleActive(user)"
+                  [disabled]="isLoading"
+                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
+                         hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-200
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Blockieren"
+                >
+                  <span class="material-symbols-outlined text-base sm:text-lg">block</span>
+                </button>
+                
+                <button 
+                  (click)="details(user)"
+                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
+                         hover:bg-gray-700 hover:text-white transition-all duration-200"
+                  title="Details"
+                >
+                  <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
+                </button>
+              </div>
             </div>
-          </ng-template>
-        </div>
-        <!-- User Info -->
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pr-4 min-w-0 flex-shrink">
-          <div>
-            <h3 class="text-lg font-semibold text-white break-words">
-              @if (isDemoUser(user.firstName)) {
-              <span class="demo-tag">(d)</span>
-              }
-              {{ getCleanFirstName(user.firstName) }} {{ user.lastName }}
-              @if (user.blocked) {
-              <span class="badge badge--suspended">Gesperrt</span>
-              }
-            </h3>
-            <p class="text-sm text-gray-300 break-all whitespace-normal">{{ user.email }}</p>
-            <p class="meta">
-              Registriert: {{ user.createdAt | date:'dd.MM.yyyy' }}
-              @if (wasUserUpdated(user)) {
-              <span>• Geändert: {{ user.updatedAt | date:'dd.MM.yyyy' }}</span>
-              }
-            </p>
-            <p class="meta">Rolle: {{ user.roles.join(', ') }}</p>
-            @if (user.lastLoginAt) {
-            <p class="meta">
-              Letzter Login: {{ user.lastLoginAt | date:'dd.MM.yyyy HH:mm' }}
-            </p>
-            }
-          </div>
-
-          <zso-role-select [roleOptions]="['user','admin']" [selected]="getUserRoles(user)"
-            (selectedChange)="askRoleChange(user, $event)">
-          </zso-role-select>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex flex-wrap gap-2 pt-2">
-          @if (user.blocked) {
-          <button title="Entsperren" (click)="toggleActive(user)" class="btn-approve glow-green" [disabled]="isLoading">
-            <span class="material-symbols-outlined text-lg">lock_open</span>
-          </button>
-          } @else {
-           <button title="Genehmigung zurückziehen" (click)="unapprove(user)" class="btn-neutral" [disabled]="isLoading">
-             <span class="material-symbols-outlined text-lg">backspace</span>
-           </button>
-           <button title="Blockieren" (click)="toggleActive(user)" class="btn-block glow-red" [disabled]="isLoading">
-             <span class="material-symbols-outlined text-lg">block</span>
-           </button>
           }
-          <button title="Details" (click)="details(user)" class="btn-neutral">
-            <span class="material-symbols-outlined text-lg">person</span>
-          </button>
         </div>
       </div>
-      }
-    </div>
+    }
+
+    <!-- Active Users Section -->
+    @if (filteredUsers.rest.length > 0) {
+      <div class="space-y-4">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-green-400 text-xl sm:text-2xl">verified_user</span>
+            <h2 class="text-lg sm:text-xl font-semibold text-white">
+              Aktive Benutzer
+              <span class="text-xs sm:text-sm font-normal text-gray-400 ml-1 sm:ml-2">({{ filteredUsers.rest.length }})</span>
+            </h2>
+          </div>
+          
+          <label class="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-400 hover:text-gray-300 cursor-pointer">
+            <input 
+              type="checkbox"
+              [checked]="areAllUsersSelected(filteredUsers.rest)"
+              (change)="selectAll(filteredUsers.rest, $any($event.target).checked)"
+              class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
+                     focus:ring-2 focus:ring-cp-orange/20"
+            />
+            <span class="hidden sm:inline">Alle auswählen</span>
+            <span class="sm:hidden">Alle</span>
+          </label>
+        </div>
+
+        <!-- User Cards Grid -->
+        <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          @for (user of filteredUsers.rest; track user.uid) {
+            <div 
+              class="glass-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+                     {{ user.blocked ? 'bg-rose-500/5 border-rose-500/20' : '' }}
+                     {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
+                     {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
+              [@itemFade]
+            >
+              <!-- Card Header -->
+              <div class="flex items-start justify-between mb-3 sm:mb-4">
+                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <!-- Avatar -->
+                  <div class="relative flex-shrink-0">
+                    @if (user.photoUrl || user.photoURL) {
+                      <img 
+                        [src]="user.photoUrl || user.photoURL" 
+                        alt="Avatar"
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-gray-700"
+                      />
+                    } @else {
+                      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                                  flex items-center justify-center ring-2 ring-gray-700">
+                        <span class="text-gray-400 font-medium text-xs sm:text-sm">
+                          {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+                        </span>
+                      </div>
+                    }
+                    <!-- Status Indicator -->
+                    @if (!user.blocked) {
+                      <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full 
+                                  border-2 border-gray-900"></div>
+                    }
+                  </div>
+                  
+                  <!-- User Info -->
+                  <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-white truncate text-sm sm:text-base">
+                      {{ user.firstName }} {{ user.lastName }}
+                      @if (isDemoUser(user.firstName)) {
+                        <span class="text-xs text-cp-blue ml-1">(Demo)</span>
+                      }
+                    </h3>
+                    <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
+                  </div>
+                </div>
+
+                <!-- Selection Checkbox -->
+                <input 
+                  type="checkbox"
+                  [checked]="isUserSelected(user.uid)"
+                  (change)="selectUser(user.uid, $any($event.target).checked)"
+                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
+                         focus:ring-2 focus:ring-cp-orange/20 flex-shrink-0"
+                />
+              </div>
+
+              <!-- Meta Info -->
+              <div class="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm sm:text-base">schedule</span>
+                    <span class="truncate">
+                      {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yy') : 'Nie eingeloggt' }}
+                    </span>
+                  </span>
+                </div>
+                
+                <!-- Status & Role Badges -->
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  @if (user.blocked) {
+                    <span class="px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-rose-500/20 text-rose-300">
+                      Gesperrt
+                    </span>
+                  } @else {
+                    <span class="px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-300">
+                      Aktiv
+                    </span>
+                  }
+                  
+                  <!-- Roles -->
+                  <zso-role-select 
+                    [roleOptions]="['user', 'admin']"
+                    [selected]="getUserRoles(user)"
+                    (selectedChange)="askRoleChange(user, $event)"
+                    class="ml-auto"
+                  >
+                  </zso-role-select>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-1.5 sm:gap-2 pt-3 sm:pt-4 border-t border-gray-800">
+                @if (user.blocked) {
+                  <button 
+                    (click)="toggleActive(user)"
+                    [disabled]="isLoading"
+                    class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-green-500/10 text-green-400 
+                           hover:bg-green-500/20 transition-all duration-200 font-medium text-xs sm:text-sm
+                           disabled:opacity-50 disabled:cursor-not-allowed flex items-center 
+                           justify-center gap-1.5 sm:gap-2"
+                  >
+                    <span class="material-symbols-outlined text-base sm:text-lg">lock_open</span>
+                    Entsperren
+                  </button>
+                } @else {
+                  <button 
+                    (click)="toggleActive(user)"
+                    [disabled]="isLoading"
+                    class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-gray-800 text-gray-400 
+                           hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-200 
+                           font-medium text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed 
+                           flex items-center justify-center gap-1.5 sm:gap-2"
+                  >
+                    <span class="material-symbols-outlined text-base sm:text-lg">block</span>
+                    Blockieren
+                  </button>
+                }
+                
+                <button 
+                  (click)="unapprove(user)"
+                  [disabled]="isLoading"
+                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
+                         hover:bg-amber-500/10 hover:text-amber-400 transition-all duration-200
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Genehmigung zurückziehen"
+                >
+                  <span class="material-symbols-outlined text-base sm:text-lg">cancel</span>
+                </button>
+                
+                <button 
+                  (click)="details(user)"
+                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
+                         hover:bg-gray-700 hover:text-white transition-all duration-200"
+                  title="Details"
+                >
+                  <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (filteredUsers.all.length === 0 && !isLoading) {
+      <div class="glass-card p-8 sm:p-12 text-center">
+        <span class="material-symbols-outlined text-5xl sm:text-6xl text-gray-400 mb-4 block">search_off</span>
+        <h3 class="text-lg sm:text-xl font-medium text-white mb-2">Keine Benutzer gefunden</h3>
+        <p class="text-gray-400 text-sm sm:text-base">Versuche einen anderen Suchbegriff oder ändere die Filter.</p>
+      </div>
+    }
+
+    <!-- Bulk Actions Bar -->
+    @if (selectedUsersCount > 0) {
+      <div class="fixed bottom-0 left-0 right-0 sm:bottom-4 sm:left-1/2 sm:-translate-x-1/2 
+                  w-full sm:max-w-2xl z-40" [@slideBottom]>
+        <div class="glass-card p-3 sm:p-4 mx-3 sm:mx-0 mb-3 sm:mb-0 rounded-xl sm:rounded-2xl 
+                    shadow-xl border border-gray-700">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center justify-between w-full sm:w-auto">
+              <span class="text-white text-sm sm:text-base font-medium">
+                {{ selectedUsersCount }} {{ selectedUsersCount === 1 ? 'Benutzer' : 'Benutzer' }} ausgewählt
+              </span>
+              <button class="sm:hidden text-gray-300 hover:text-white p-1" 
+                      (click)="selectAll([], false)" 
+                      aria-label="Auswahl aufheben">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button 
+                (click)="bulkApprove()"
+                class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-green-500/10 text-green-400 
+                       hover:bg-green-500/20 transition-all duration-200 font-medium text-sm
+                       flex items-center justify-center gap-1.5"
+              >
+                <span class="material-symbols-outlined text-base">check</span>
+                <span class="hidden sm:inline">Alle genehmigen</span>
+                <span class="sm:hidden">Genehmigen</span>
+              </button>
+              
+              <button 
+                (click)="bulkBlock()"
+                class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 
+                       hover:bg-rose-500/20 transition-all duration-200 font-medium text-sm
+                       flex items-center justify-center gap-1.5"
+              >
+                <span class="material-symbols-outlined text-base">block</span>
+                <span class="hidden sm:inline">Alle blockieren</span>
+                <span class="sm:hidden">Blockieren</span>
+              </button>
+              
+              <button 
+                (click)="selectAll([], false)"
+                class="hidden sm:flex px-4 py-2 rounded-lg bg-gray-800 text-gray-300 
+                       hover:bg-gray-700 transition-all duration-200 font-medium text-sm
+                       items-center justify-center"
+              >
+                Aufheben
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom spacing for mobile bulk actions -->
+      <div class="h-20 sm:h-0"></div>
+    }
+
+    <!-- Confirmation Dialog -->
+    <zso-confirmation-dialog></zso-confirmation-dialog>
+
   </div>
-  }
-
-  <!-- Empty State -->
-  @if ((!filteredUsers.pending || filteredUsers.pending.length === 0) && (!filteredUsers.rest ||
-  filteredUsers.rest.length === 0)) {
-  <div class="glass-card p-12 text-center">
-    <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
-    <h3 class="text-xl font-medium text-white mb-2">Keine Benutzer gefunden</h3>
-    <p class="text-gray-400">Versuche einen anderen Suchbegriff oder ändere die Filter.</p>
-  </div>
-  }
-
-  <!-- Confirmation Dialog -->
-  <zso-confirmation-dialog></zso-confirmation-dialog>
-
 </div>
