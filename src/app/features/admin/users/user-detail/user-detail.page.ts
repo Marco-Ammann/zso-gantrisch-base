@@ -3,7 +3,7 @@ import { CommonModule, DatePipe, NgIf, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OverlayModule, ConnectedPosition } from '@angular/cdk/overlay';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 
 import { Router } from '@angular/router';
@@ -55,10 +55,8 @@ import { LoggerService } from '@core/services/logger.service';
         )
       ])
     ]),
-
   ],
-  styleUrls: ['./user-detail.page.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./user-detail.page.scss']
 })
 export class UserDetailPage {
   private route = inject(ActivatedRoute);
@@ -75,6 +73,11 @@ export class UserDetailPage {
   uploading = false;
   uploadMsg: string | null = null;
   uploadError = false;
+
+  // Public observable for current user ID
+  currentUserId$ = this.authService.user$.pipe(
+    map(user => user?.uid || null)
+  );
 
   positions: ConnectedPosition[] = [
     { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
@@ -127,12 +130,6 @@ export class UserDetailPage {
     this.dialogVisible = false;
   }
 
-  
-
-  
-
-  // legacy prompt method removed
-
   editNames(user: UserDoc): void {
     this.startEdit(user);
   }
@@ -142,8 +139,7 @@ export class UserDetailPage {
     this.userService.resetPassword(email).subscribe();
   }
 
-  /* ---------- Misc ---------- */
-resendVerificationEmail(): void {
+  resendVerificationEmail(): void {
     this.logger.log('UserDetailPage', 'resendVerificationEmail');
     this.authService.resendVerificationEmail().subscribe();
   }
@@ -161,48 +157,48 @@ resendVerificationEmail(): void {
   }
 
   onFileSelected(event: Event, uid: string): void {
-  const input = event.target as HTMLInputElement; // event always provided by template
+    const input = event.target as HTMLInputElement;
 
-  if (!input.files?.length) return;
-  const file = input.files[0];
+    if (!input.files?.length) return;
+    const file = input.files[0];
 
-  // Validate file size (max 2 MB)
-  const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
-  if (file.size > MAX_SIZE) {
-    this.uploadMsg = 'Bild zu groß (max. 2 MB).';
-    this.uploadError = true;
-    return;
-  }
+    // Validate file size (max 2 MB)
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+    if (file.size > MAX_SIZE) {
+      this.uploadMsg = 'Bild zu groß (max. 2 MB).';
+      this.uploadError = true;
+      return;
+    }
 
-  this.uploading = true;
-  this.uploadMsg = 'Bild wird hochgeladen…';
-  this.uploadError = false;
+    this.uploading = true;
+    this.uploadMsg = 'Bild wird hochgeladen…';
+    this.uploadError = false;
 
-  const storage = getStorage();
-  const path = `users/${uid}/avatar_${Date.now()}`;
-  const storageRef = ref(storage, path);
-  this.logger.log('UserDetailPage', 'uploadImage', path);
+    const storage = getStorage();
+    const path = `users/${uid}/avatar_${Date.now()}`;
+    const storageRef = ref(storage, path);
+    this.logger.log('UserDetailPage', 'uploadImage', path);
 
-  uploadBytes(storageRef, file)
-    .then(() => getDownloadURL(storageRef))
-    .then((url: string) => this.userService.setPhotoUrl(uid, url).subscribe({
-      next: () => {
-        this.uploadMsg = 'Bild aktualisiert.';
-        setTimeout(() => (this.uploadMsg = null), 3000);
-        this.uploadError = false;
-      },
-      error: () => {
-        this.uploadMsg = 'Fehler beim Speichern des Bildes.';
+    uploadBytes(storageRef, file)
+      .then(() => getDownloadURL(storageRef))
+      .then((url: string) => this.userService.setPhotoUrl(uid, url).subscribe({
+        next: () => {
+          this.uploadMsg = 'Bild aktualisiert.';
+          setTimeout(() => (this.uploadMsg = null), 3000);
+          this.uploadError = false;
+        },
+        error: () => {
+          this.uploadMsg = 'Fehler beim Speichern des Bildes.';
+          setTimeout(() => (this.uploadMsg = null), 4000);
+          this.uploadError = true;
+        }
+      }))
+      .catch((err: unknown) => {
+        this.logger.error?.('UserDetailPage', 'upload failed', err);
+        this.uploadMsg = 'Upload fehlgeschlagen.';
         setTimeout(() => (this.uploadMsg = null), 4000);
         this.uploadError = true;
-      }
-    }))
-    .catch((err: unknown) => {
-      this.logger.error?.('UserDetailPage', 'upload failed', err);
-      this.uploadMsg = 'Upload fehlgeschlagen.';
-      setTimeout(() => (this.uploadMsg = null), 4000);
-      this.uploadError = true;
-    })
-    .finally(() => (this.uploading = false));
-}
+      })
+      .finally(() => (this.uploading = false));
+  }
 }

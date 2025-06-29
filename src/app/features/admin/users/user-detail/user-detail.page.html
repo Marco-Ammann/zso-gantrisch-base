@@ -1,231 +1,335 @@
+<!-- src/app/features/admin/users/user-detail/user-detail.page.html -->
 <ng-container *ngIf="user$ | async as user; else loading">
   <!-- Upload Toast -->
-  <div *ngIf="!uploading && uploadMsg" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-3 px-5"
-       [class.text-rose-400]="uploadError" [class.text-green-300]="!uploadError" [@toastSlide]>
+  <div *ngIf="!uploading && uploadMsg"
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-3 px-5 rounded-xl"
+    [class.text-rose-400]="uploadError" [class.text-green-400]="!uploadError" [@toastSlide]>
     {{ uploadMsg }}
   </div>
-  
-  <div class="max-w-6xl mx-auto space-y-6 mt-8 px-4">
-    <zso-button type="neutral" size="sm" icon="arrow_back" aria-label="Zurück" (click)="back()"></zso-button>
-    <!-- Header -->
-    <div class="glass-card p-4 sm:p-6 overflow-visible z-30 relative">
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
-        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full">
-          <!-- Avatar -->
-          <div class="relative group shrink-0 self-center sm:self-auto">
-            <ng-container *ngIf="$any(user).photoUrl || $any(user).photoURL; else placeholder">
-              <img [src]="$any(user).photoUrl || $any(user).photoURL" alt="Avatar"
-                   class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full object-cover ring-2 ring-white/20" />
-            </ng-container>
-            <ng-template #placeholder>
-              <div class="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full bg-white/10 flex items-center justify-center ring-2 ring-white/20">
-                <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
-              </div>
-            </ng-template>
-            <!-- Upload button on hover -->
-            <label class="absolute bottom-1 right-1 hidden group-hover:flex items-center justify-center bg-black/60 rounded-full w-9 h-9 cursor-pointer hover:bg-cp-orange/80 transition-colors"
-                   title="Avatar hochladen oder ändern">
-              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
-              <span class="material-symbols-outlined text-xs text-white">photo_camera</span>
-            </label>
-          </div>
-          
-          <!-- User Info and Status -->
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h2 class="text-2xl font-semibold text-white truncate">{{ user.firstName }} {{ user.lastName }}</h2>
-                  <button class="icon-btn shrink-0" (click)="startEdit(user)" aria-label="Bearbeiten">
-                    <span class="material-symbols-outlined text-sm">edit</span>
-                  </button>
-                </div>
-                <p class="text-gray-300 truncate">{{ user.email }}</p>
-                
-                <!-- Status Badges - Moved here for better mobile flow -->
-                <div class="flex flex-wrap gap-2 mt-2 sm:mt-3">
-                  <span class="badge whitespace-nowrap" [ngClass]="user.approved ? 'bg-green-600/20 text-green-400' : 'bg-amber-500/20 text-amber-300'" [@badgeState]="user.approved ? 'approved' : 'pending'">
-                    {{ user.approved ? 'Genehmigt' : 'Ausstehend' }}
-                  </span>
-                  <span *ngIf="user.blocked" class="badge whitespace-nowrap bg-red-600/20 text-red-400" [@badgeAnim]>Gesperrt</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Actions -->
-        <div class="flex flex-wrap items-center gap-1 mt-3 sm:mt-0 sm:ml-auto">
-          <div class="flex flex-wrap gap-1">
-            <zso-button *ngIf="!user.approved" type="primary" size="xs" icon="check" aria-label="Genehmigen" title="Benutzer genehmigen" (click)="approve(user.uid)"></zso-button>
-            <zso-button *ngIf="user.approved" type="neutral" size="xs" icon="backspace" aria-label="Genehmigung zurückziehen" title="Genehmigung zurückziehen" (click)="unapprove(user.uid)"></zso-button>
-            <zso-button *ngIf="!user.blocked" type="neutral" size="xs" icon="block" aria-label="Blockieren" title="Benutzer blockieren" (click)="block(user.uid, true)"></zso-button>
-            <zso-button *ngIf="user.blocked" type="primary" size="xs" icon="lock_open" aria-label="Entblocken" title="Benutzer entsperren" (click)="block(user.uid, false)"></zso-button>
-            
-            <!-- Actions Dropdown (CDK Overlay) -->
-            <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" class="icon-btn" (click)="menuOpen = !menuOpen" aria-label="Mehr Aktionen" title="Weitere Aktionen"
-                    aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
-              <span class="material-symbols-outlined text-sm transition-transform" [class.rotate-180]="menuOpen">expand_more</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <ng-template
-        cdkConnectedOverlay
-        [cdkConnectedOverlayOrigin]="menuOrigin"
-        [cdkConnectedOverlayOpen]="menuOpen"
-        [cdkConnectedOverlayPositions]="positions"
-        cdkConnectedOverlayHasBackdrop
-        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-        (backdropClick)="menuOpen=false"
-        (detach)="menuOpen=false">
-        <ul class="dropdown-menu">
-          <li><button class="dropdown-item underline-sweep" (click)="resetPassword(user.email); menuOpen=false">Passwort&nbsp;zurücksetzen</button></li>
-          <li><button class="dropdown-item underline-sweep" (click)="resendVerificationEmail(); menuOpen=false">Verifizierungs-Mail&nbsp;erneut&nbsp;senden</button></li>
-          <li><button class="dropdown-item underline-sweep" (click)="changeEmail(user.uid, user.email); menuOpen=false">E-Mail-Adresse&nbsp;ändern</button></li>
-          <li>
-            <label class="dropdown-item underline-sweep cursor-pointer">
-              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid); menuOpen=false" />
-              Avatar&nbsp;ändern
-            </label>
-          </li>
-        </ul>
-      </ng-template>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+      <button (click)="back()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 text-gray-300 
+                     hover:bg-gray-700 hover:text-white transition-all duration-200">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <span class="text-sm font-medium">Zurück</span>
+      </button>
     </div>
 
-    <!-- Datenkarten ------------------------------------------------------------------ -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-      <!-- Persönliche Informationen -->
-      <div class="glass-card p-6 space-y-4 md:col-span-2">
-        <h3 class="text-lg font-semibold">Persönliche Informationen</h3>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p class="label">E-Mail</p>
-            <p class="value flex flex-col sm:flex-row items-start sm:items-center gap-1 text-gray-300 text-sm">
-              <span class="material-symbols-outlined text-sm">mail</span>
-              <a [href]="'mailto:' + user.email" class="hover:underline break-all">{{ user.email }}</a>
-            </p>
-          </div>
-          <div>
-            <p class="label">Telefon</p>
-            <p class="value flex flex-col sm:flex-row items-start sm:items-center gap-1 text-gray-300 text-sm">
-              <ng-container *ngIf="$any(user).phoneNumber; else noPhone">
-                <span class="material-symbols-outlined text-sm">call</span>
-                <a [href]="'tel:' + ($any(user).phoneNumber | swissPhone)" class="hover:underline">
-                  {{ $any(user).phoneNumber | swissPhone }}
-                </a>
-              </ng-container>
-              <ng-template #noPhone>-</ng-template>
-            </p>
-          </div>
-          <div>
-            <p class="label">Geburtsdatum</p>
-            <p class="value">{{ $any(user).birthDate ? ($any(user).birthDate | date:'dd.MM.yyyy') : '-' }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status & Auth -->
-      <div class="glass-card p-6 space-y-4">
-        <h3 class="text-lg font-semibold">Status &amp; Auth</h3>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p class="label">Auth Provider</p>
-            <p class="value">{{ $any(user).authProvider || '-' }}</p>
-          </div>
-          <div>
-            <p class="label">E-Mail verifiziert</p>
-            <p class="value">
-              <span *ngIf="$any(user).emailVerified; else notVer">✅</span>
-              <ng-template #notVer>❌</ng-template>
-            </p>
-          </div>
-          <div>
-            <p class="label">Genehmigt</p>
-            <p class="value">
-              <span *ngIf="user.approved; else notApp">✅</span>
-              <ng-template #notApp>❌</ng-template>
-            </p>
-          </div>
-          <div>
-            <p class="label">Blockiert</p>
-            <p class="value">
-              <span *ngIf="user.blocked; else notBlocked">✅</span>
-              <ng-template #notBlocked>❌</ng-template>
-            </p>
-          </div>
-          <div>
-            <p class="label">UID</p>
-            <p class="value select-all text-xs text-gray-400 break-all">{{ user.uid }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Aktivität & Rollen Section -->
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <!-- Aktivität Card -->
-        <div class="glass-card p-6 space-y-4 lg:col-span-1">
-          <h3 class="text-lg font-semibold mb-4">Aktivität</h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1">
-                <p class="text-sm text-gray-400">Erstellt</p>
-                <p class="text-sm font-medium">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+    <!-- Header Card -->
+    <div class="glass-card p-6 sm:p-8 mb-6">
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <!-- Avatar Section -->
+        <div class="flex flex-col items-center lg:items-start">
+          <div class="relative group">
+            <div class="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white/10 bg-gray-800">
+              @if (user.photoUrl || user.photoURL) {
+              <img [src]="user.photoUrl || user.photoURL" alt="Avatar" class="w-full h-full object-cover" />
+              } @else {
+              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
+                <span class="material-symbols-outlined text-5xl text-gray-400">person</span>
               </div>
-              <div class="space-y-1">
-                <p class="text-sm text-gray-400">Aktualisiert</p>
-                <p class="text-sm font-medium">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-sm text-gray-400">Letzter Login</p>
-                <p class="text-sm font-medium">{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-sm text-gray-400">Letzte Aktivität</p>
-                <p class="text-sm font-medium">{{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '-' }}</p>
-              </div>
+              }
             </div>
+
+            <!-- Upload Overlay -->
+            <label class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 
+                          group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
+              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
+              <div class="text-center">
+                <span class="material-symbols-outlined text-3xl text-white mb-1">photo_camera</span>
+                <p class="text-xs text-white">Ändern</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Quick Status -->
+          <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+            @if (user.approved) {
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400">
+              Genehmigt
+            </span>
+            } @else {
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-300">
+              Ausstehend
+            </span>
+            }
+
+            @if (user.blocked) {
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-rose-500/20 text-rose-300">
+              Gesperrt
+            </span>
+            }
+
           </div>
         </div>
 
-        <!-- Rollen Card -->
-        <div class="glass-card p-6 space-y-4 lg:col-span-2">
-          <h3 class="text-lg font-semibold mb-4">Rollen & Berechtigungen</h3>
-          <div class="space-y-4">
-            <div class="bg-black/10 p-4 rounded-lg border border-white/5">
-              <zso-role-select
-                [roleOptions]="availableRoles"
-                [selected]="user.roles"
-                (selectedChange)="updateRoles($event, user.uid)">
-              </zso-role-select>
-            </div>
-            <div *ngIf="user.roles?.length" class="mt-2">
-              <p class="text-sm text-gray-400 mb-2">Aktive Rollen:</p>
-              <div class="flex flex-wrap gap-2">
-                <span *ngFor="let role of user.roles" 
-                      class="px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/20">
-                  {{ role }}
+        <!-- User Info Section -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="flex flex-col sm:flex-row items-center lg:items-start justify-between gap-4">
+            <div>
+              <h1
+                class="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center lg:justify-start gap-3">
+                {{ user.firstName }} {{ user.lastName }}
+                @if (user.uid === (currentUserId$ | async)) {
+                <span class="text-xs text-gray-400">
+                  (Du)
                 </span>
+                }
+                <button (click)="startEdit(user)" class="p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+                  title="Bearbeiten">
+                  <span class="material-symbols-outlined text-xl">edit</span>
+                </button>
+              </h1>
+              <p class="text-lg text-gray-300 mt-1">{{ user.email }}</p>
+
+              <!-- Roles -->
+              <div class="mt-4">
+                <p class="text-sm text-gray-400 mb-2">Rollen</p>
+                <zso-role-select [roleOptions]="['user', 'admin']" [selected]="user.roles"
+                  (selectedChange)="updateRoles($event, user.uid)" class="inline-block">
+                </zso-role-select>
               </div>
             </div>
-            <p class="text-xs text-gray-500 mt-3">
-              Wählen Sie eine oder mehrere Rollen aus, um die Berechtigungen des Benutzers zu verwalten.
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
+              @if (!user.approved) {
+              <button (click)="approve(user.uid)" class="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 
+                               transition-all duration-200 font-medium text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                Genehmigen
+              </button>
+              } @else {
+              <button (click)="unapprove(user.uid)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-amber-500/10 
+                               hover:text-amber-400 transition-all duration-200 font-medium text-sm 
+                               flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">cancel</span>
+                Genehmigung entziehen
+              </button>
+              }
+
+              @if (!user.blocked) {
+              <button (click)="block(user.uid, true)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-rose-500/10 
+                               hover:text-rose-400 transition-all duration-200 font-medium text-sm 
+                               flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">block</span>
+                Blockieren
+              </button>
+              } @else {
+              <button (click)="block(user.uid, false)" class="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 
+                               transition-all duration-200 font-medium text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">lock_open</span>
+                Entsperren
+              </button>
+              }
+
+              <!-- More Actions Dropdown -->
+              <div class="relative">
+                <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" (click)="menuOpen = !menuOpen" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 
+                               hover:text-white transition-all duration-200" [attr.aria-expanded]="menuOpen">
+                  <span class="material-symbols-outlined text-lg">more_vert</span>
+                </button>
+
+                <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="menuOrigin"
+                  [cdkConnectedOverlayOpen]="menuOpen" [cdkConnectedOverlayPositions]="positions"
+                  cdkConnectedOverlayHasBackdrop cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+                  (backdropClick)="menuOpen=false" (detach)="menuOpen=false">
+                  <ul class="dropdown-menu min-w-[200px] mt-2">
+                    <li>
+                      <button class="dropdown-item" (click)="resetPassword(user.email); menuOpen=false">
+                        <span class="material-symbols-outlined text-base mr-2">lock_reset</span>
+                        Passwort zurücksetzen
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item" (click)="resendVerificationEmail(); menuOpen=false">
+                        <span class="material-symbols-outlined text-base mr-2">mail</span>
+                        Verifizierungs-Mail senden
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item" (click)="changeEmail(user.uid, user.email); menuOpen=false">
+                        <span class="material-symbols-outlined text-base mr-2">alternate_email</span>
+                        E-Mail-Adresse ändern
+                      </button>
+                    </li>
+                    <li>
+                      <label class="dropdown-item cursor-pointer">
+                        <input type="file" accept="image/*" hidden
+                          (change)="onFileSelected($event, user.uid); menuOpen=false" />
+                        <span class="material-symbols-outlined text-base mr-2">add_a_photo</span>
+                        Avatar hochladen
+                      </label>
+                    </li>
+                  </ul>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <!-- Personal Information -->
+      <div class="glass-card p-6 lg:col-span-2">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl text-cp-orange">person</span>
+          Persönliche Informationen
+        </h3>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p class="text-sm text-gray-400 mb-1">Vorname</p>
+            <p class="text-white">{{ user.firstName }}</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-400 mb-1">Nachname</p>
+            <p class="text-white">{{ user.lastName }}</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-400 mb-1">E-Mail</p>
+            <a [href]="'mailto:' + user.email" class="text-cp-orange hover:text-cp-orange/80 transition-colors">
+              {{ user.email }}
+            </a>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-400 mb-1">Telefon</p>
+            <p class="text-white">
+              @if (user.phoneNumber) {
+              <a [href]="'tel:' + (user.phoneNumber | swissPhone)" class="text-cp-orange hover:text-cp-orange/80">
+                {{ user.phoneNumber | swissPhone }}
+              </a>
+              } @else {
+              <span class="text-gray-500">Nicht angegeben</span>
+              }
+            </p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-400 mb-1">Geburtsdatum</p>
+            <p class="text-white">
+              {{ user.birthDate ? (user.birthDate | date:'dd.MM.yyyy') : 'Nicht angegeben' }}
+            </p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-400 mb-1">UID</p>
+            <p class="text-xs text-gray-500 font-mono">{{ user.uid }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Status -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl text-cp-orange">security</span>
+          Account Status
+        </h3>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between py-2 border-b border-gray-800">
+            <span class="text-sm text-gray-400">E-Mail verifiziert</span>
+            <span class="text-sm">
+              @if (user.emailVerified) {
+              <span class="text-green-400">✓ Ja</span>
+              } @else {
+              <span class="text-rose-400">✗ Nein</span>
+              }
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-2 border-b border-gray-800">
+            <span class="text-sm text-gray-400">Genehmigt</span>
+            <span class="text-sm">
+              @if (user.approved) {
+              <span class="text-green-400">✓ Ja</span>
+              } @else {
+              <span class="text-amber-400">⏳ Ausstehend</span>
+              }
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-2 border-b border-gray-800">
+            <span class="text-sm text-gray-400">Blockiert</span>
+            <span class="text-sm">
+              @if (user.blocked) {
+              <span class="text-rose-400">⛔ Ja</span>
+              } @else {
+              <span class="text-green-400">✓ Nein</span>
+              }
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-2">
+            <span class="text-sm text-gray-400">Auth Provider</span>
+            <span class="text-sm text-white">{{ user.authProvider || 'password' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Timeline -->
+      <div class="glass-card p-6 lg:col-span-3">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl text-cp-orange">schedule</span>
+          Aktivitäts-Timeline
+        </h3>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-green-500"></div>
+            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
+            <p class="text-sm text-gray-400 mb-1">Registriert</p>
+            <p class="text-white text-sm">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+          </div>
+
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-blue-500"></div>
+            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
+            <p class="text-sm text-gray-400 mb-1">Letzte Aktualisierung</p>
+            <p class="text-white text-sm">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+          </div>
+
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-amber-500"></div>
+            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
+            <p class="text-sm text-gray-400 mb-1">Letzter Login</p>
+            <p class="text-white text-sm">
+              {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : 'Noch nie' }}
+            </p>
+          </div>
+
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-purple-500"></div>
+            <p class="text-sm text-gray-400 mb-1">Letzte Aktivität</p>
+            <p class="text-white text-sm">
+              {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : 'Unbekannt' }}
             </p>
           </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <zso-user-edit-dialog
-    [user]="editUser"
-    [visible]="dialogVisible"
-    (saved)="onDialogSaved($event)"
+
+  <!-- Edit Dialog -->
+  <zso-user-edit-dialog [user]="editUser" [visible]="dialogVisible" (saved)="onDialogSaved($event)"
     (closed)="onDialogClosed()">
   </zso-user-edit-dialog>
 </ng-container>
 
+<!-- Loading State -->
 <ng-template #loading>
-  <div class="text-center text-gray-400 py-10">Lade Benutzer…</div>
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+      <div class="w-12 h-12 border-3 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin mx-auto mb-4">
+      </div>
+      <p class="text-gray-400">Lade Benutzerdaten...</p>
+    </div>
+  </div>
 </ng-template>

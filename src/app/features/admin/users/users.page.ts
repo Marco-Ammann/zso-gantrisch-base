@@ -210,16 +210,17 @@ export class UsersPage implements OnInit, OnDestroy {
 
   /* ----------------------------- Data Loading */
   private loadUsers(): void {
-    if (this.isLoading) return; // Prevent duplicate calls
+    if (this.isLoading) return; 
     this.isLoading = true;
     this.errorMsg = null;
+    this.logger.log(this.COMPONENT_NAME, 'Starting user data load');
 
     this.userService.getAll().pipe(
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       takeUntil(this.destroy$)
     ).subscribe({
       next: (realUsers) => {
-        // Merge real users with dummy data
+        this.logger.log(this.COMPONENT_NAME, 'Received users:', realUsers.length);
         this.allUsers = [
           ...realUsers,
           ...this.dummyUsers.filter(d => !realUsers.some(u => u.uid === d.uid))
@@ -230,9 +231,9 @@ export class UsersPage implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.logger.error(this.COMPONENT_NAME, 'Failed to load users:', error);
-        this.allUsers = [...this.dummyUsers]; // Fallback to dummy data
+        this.allUsers = [...this.dummyUsers];
         this.applyFiltersAndSort();
-        this.errorMsg = 'Fehler beim Laden der Benutzer';
+        this.errorMsg = 'Fehler beim Laden der Benutzer. Dummy-Daten werden angezeigt.';
         this.isLoading = false;
       }
     });

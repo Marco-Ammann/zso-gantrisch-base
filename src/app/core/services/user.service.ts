@@ -1,9 +1,9 @@
 // src/app/core/services/user.service.ts
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
-import { collection, collectionData, doc, updateDoc } from '@angular/fire/firestore';
-import { Observable, from, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { collection, collectionData, doc, updateDoc, query, orderBy } from '@angular/fire/firestore';
+import { Observable, from, of, throwError } from 'rxjs';
+import { switchMap, catchError, map } from 'rxjs/operators';
 
 import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
@@ -21,10 +21,26 @@ export class UserService {
   constructor(private firestoreService: FirestoreService) {}
 
   getAll(): Observable<UserDoc[]> {
-    this.logger.log('UserService', 'getAll');
+    this.logger.log('UserService', 'getAll called');
     return runInInjectionContext(this.injector, () => {
-      const usersCollection = collection(this.firestoreService.db, 'users');
-      return collectionData(usersCollection, { idField: 'uid' }) as Observable<UserDoc[]>;
+      try {
+        const usersCollection = collection(this.firestoreService.db, 'users');
+        const usersQuery = query(usersCollection, orderBy('createdAt', 'desc'));
+        
+        return collectionData(usersQuery, { idField: 'uid' }).pipe(
+          map(users => {
+            this.logger.log('UserService', `Loaded ${users.length} users`);
+            return users as UserDoc[];
+          }),
+          catchError(error => {
+            this.logger.error('UserService', 'Error loading users:', error);
+            return of([]);
+          })
+        );
+      } catch (error) {
+        this.logger.error('UserService', 'Error creating query:', error);
+        return of([]);
+      }
     });
   }
 
@@ -38,7 +54,12 @@ export class UserService {
         updatedAt: Date.now() 
       }).then(() => {
         this.logger.log('UserService', `User ${uid} approved`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error approving user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -51,7 +72,12 @@ export class UserService {
         updatedAt: Date.now() 
       }).then(() => {
         this.logger.log('UserService', `User ${uid} ${blocked ? 'blocked' : 'unblocked'}`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error ${blocked ? 'blocking' : 'unblocking'} user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -64,7 +90,12 @@ export class UserService {
         updatedAt: Date.now() 
       }).then(() => {
         this.logger.log('UserService', `Roles updated for user ${uid}`, roles);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error updating roles for user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -80,7 +111,12 @@ export class UserService {
         updatedAt: Date.now()
       }).then(() => {
         this.logger.log('UserService', `Email updated for user ${uid}`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error updating email for user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -97,7 +133,12 @@ export class UserService {
         updatedAt: Date.now()
       }).then(() => {
         this.logger.log('UserService', `Names updated for user ${uid}`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error updating names for user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -118,7 +159,12 @@ export class UserService {
         updatedAt: Date.now()
       }).then(() => {
         this.logger.log('UserService', `Phone number updated for user ${uid}`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error updating phone for user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -131,7 +177,12 @@ export class UserService {
         updatedAt: Date.now()
       }).then(() => {
         this.logger.log('UserService', `Photo URL saved for user ${uid}`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error updating photo for user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -144,7 +195,12 @@ export class UserService {
         updatedAt: Date.now() 
       }).then(() => {
         this.logger.log('UserService', `User ${uid} unapproved`);
-      }))
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error unapproving user ${uid}:`, error);
+          return throwError(() => error);
+        })
+      )
     );
   }
 
@@ -154,6 +210,10 @@ export class UserService {
       switchMap(() => {
         this.logger.log('UserService', 'Password reset email sent to', email);
         return of(undefined);
+      }),
+      catchError(error => {
+        this.logger.error('UserService', 'Error sending password reset:', error);
+        return throwError(() => error);
       })
     );
   }
