@@ -195,13 +195,12 @@
                   </div>
                 </div>
 
-                <!-- Selection Checkbox -->
-                <input 
-                  type="checkbox"
-                  [checked]="isUserSelected(user.uid)"
-                  (change)="selectUser(user.uid, $any($event.target).checked)"
-                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
-                         focus:ring-2 focus:ring-cp-orange/20 flex-shrink-0"
+                <!-- User Selection Checkbox -->
+                <zso-checkbox 
+                  [label]="isUserSelected(user.uid) ? 'Ausgewählt' : 'Auswählen'"
+                  [ngModel]="getSelectionState(user.uid)"
+                  (ngModelChange)="setSelectionState(user.uid, $event)"
+                  class="ml-auto"
                 />
               </div>
 
@@ -220,28 +219,25 @@
 
               <!-- Actions -->
               <div class="flex items-center gap-1.5 sm:gap-2 pt-3 sm:pt-4 border-t border-gray-800">
-                <button 
+                <zso-button 
                   (click)="approve(user)"
                   [disabled]="isLoading"
-                  class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-green-500/10 text-green-400 
-                         hover:bg-green-500/20 transition-all duration-200 font-medium text-xs sm:text-sm
-                         disabled:opacity-50 disabled:cursor-not-allowed flex items-center 
-                         justify-center gap-1.5 sm:gap-2"
+                  type="primary"
+                  size="sm"
                 >
-                  <span class="material-symbols-outlined text-base sm:text-lg">check_circle</span>
-                  Genehmigen
-                </button>
+                  <span class="material-symbols-outlined text-sm">check_circle</span>
+                  <span class="hidden sm:inline">Genehmigen</span>
+                </zso-button>
                 
-                <button 
+                <zso-button 
                   (click)="toggleActive(user)"
                   [disabled]="isLoading"
-                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
-                         hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-200
-                         disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Blockieren"
+                  type="danger"
+                  size="sm"
                 >
-                  <span class="material-symbols-outlined text-base sm:text-lg">block</span>
-                </button>
+                  <span class="material-symbols-outlined text-sm">block</span>
+                  <span class="hidden sm:inline">Blockieren</span>
+                </zso-button>
                 
                 <button 
                   (click)="details(user)"
@@ -332,13 +328,12 @@
                   </div>
                 </div>
 
-                <!-- Selection Checkbox -->
-                <input 
-                  type="checkbox"
-                  [checked]="isUserSelected(user.uid)"
-                  (change)="selectUser(user.uid, $any($event.target).checked)"
-                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-gray-600 bg-gray-800 text-cp-orange 
-                         focus:ring-2 focus:ring-cp-orange/20 flex-shrink-0"
+                <!-- User Selection Checkbox -->
+                <zso-checkbox 
+                  [label]="isUserSelected(user.uid) ? 'Ausgewählt' : 'Auswählen'"
+                  [ngModel]="getSelectionState(user.uid)"
+                  (ngModelChange)="setSelectionState(user.uid, $event)"
+                  class="ml-auto"
                 />
               </div>
 
@@ -379,41 +374,36 @@
               <!-- Actions -->
               <div class="flex items-center gap-1.5 sm:gap-2 pt-3 sm:pt-4 border-t border-gray-800">
                 @if (user.blocked) {
-                  <button 
+                  <zso-button 
                     (click)="toggleActive(user)"
                     [disabled]="isLoading"
-                    class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-green-500/10 text-green-400 
-                           hover:bg-green-500/20 transition-all duration-200 font-medium text-xs sm:text-sm
-                           disabled:opacity-50 disabled:cursor-not-allowed flex items-center 
-                           justify-center gap-1.5 sm:gap-2"
+                    type="primary"
+                    size="sm"
                   >
-                    <span class="material-symbols-outlined text-base sm:text-lg">lock_open</span>
-                    Entsperren
-                  </button>
+                    <span class="material-symbols-outlined text-sm">lock_open</span>
+                    <span class="hidden sm:inline">Freigeben</span>
+                  </zso-button>
                 } @else {
-                  <button 
+                  <zso-button 
                     (click)="toggleActive(user)"
                     [disabled]="isLoading"
-                    class="flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-gray-800 text-gray-400 
-                           hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-200 
-                           font-medium text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed 
-                           flex items-center justify-center gap-1.5 sm:gap-2"
+                    type="danger"
+                    size="sm"
                   >
-                    <span class="material-symbols-outlined text-base sm:text-lg">block</span>
-                    Blockieren
-                  </button>
+                    <span class="material-symbols-outlined text-sm">block</span>
+                    <span class="hidden sm:inline">Blockieren</span>
+                  </zso-button>
                 }
                 
-                <button 
+                <zso-button 
                   (click)="unapprove(user)"
                   [disabled]="isLoading"
-                  class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
-                         hover:bg-amber-500/10 hover:text-amber-400 transition-all duration-200
-                         disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Genehmigung zurückziehen"
+                  type="danger"
+                  size="sm"
                 >
-                  <span class="material-symbols-outlined text-base sm:text-lg">cancel</span>
-                </button>
+                  <span class="material-symbols-outlined text-sm">cancel</span>
+                  <span class="hidden sm:inline">Genehmigung zurückziehen</span>
+                </zso-button>
                 
                 <button 
                   (click)="details(user)"
@@ -458,27 +448,23 @@
             </div>
             
             <div class="flex gap-2 w-full sm:w-auto">
-              <button 
+              <zso-button 
                 (click)="bulkApprove()"
-                class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-green-500/10 text-green-400 
-                       hover:bg-green-500/20 transition-all duration-200 font-medium text-sm
-                       flex items-center justify-center gap-1.5"
+                type="primary"
+                size="sm"
               >
-                <span class="material-symbols-outlined text-base">check</span>
+                <span class="material-symbols-outlined text-sm">check</span>
                 <span class="hidden sm:inline">Alle genehmigen</span>
-                <span class="sm:hidden">Genehmigen</span>
-              </button>
+              </zso-button>
               
-              <button 
+              <zso-button 
                 (click)="bulkBlock()"
-                class="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 
-                       hover:bg-rose-500/20 transition-all duration-200 font-medium text-sm
-                       flex items-center justify-center gap-1.5"
+                type="danger"
+                size="sm"
               >
-                <span class="material-symbols-outlined text-base">block</span>
+                <span class="material-symbols-outlined text-sm">block</span>
                 <span class="hidden sm:inline">Alle blockieren</span>
-                <span class="sm:hidden">Blockieren</span>
-              </button>
+              </zso-button>
               
               <button 
                 (click)="selectAll([], false)"

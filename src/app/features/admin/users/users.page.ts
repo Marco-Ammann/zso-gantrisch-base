@@ -1,8 +1,9 @@
 // src/app/features/admin/users/users.page.ts
-import { Component, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, ViewChild, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AppUserCombined as AppUser } from '@core/auth/services/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, Subject, takeUntil, take, map, startWith, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -30,7 +31,6 @@ interface UsersPageState {
     CommonModule,
     FormsModule,
     RouterModule,
-
     ZsoButton,
     ZsoCheckbox,
     ZsoRoleSelect,
@@ -60,6 +60,7 @@ interface UsersPageState {
 
   ],
   styleUrls: ['./users.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersPage implements OnInit, OnDestroy {
   private readonly COMPONENT_NAME = 'UsersPage';
@@ -105,6 +106,8 @@ export class UsersPage implements OnInit, OnDestroy {
   ];
 
   /* ----------------------------- Component State */
+  isLoading = false;
+  errorMsg: string | null = null;
   private readonly pageState$ = new BehaviorSubject<UsersPageState>({
     search: '',
     sortBy: 'newest',
@@ -120,8 +123,6 @@ export class UsersPage implements OnInit, OnDestroy {
     rest: [],
     all: []
   };
-  isLoading = false;
-  errorMsg: string | null = null;
 
   // Search and Filter
   private readonly searchTerm$ = new BehaviorSubject<string>('');
@@ -177,22 +178,26 @@ export class UsersPage implements OnInit, OnDestroy {
 
   /* ----------------------------- Lifecycle */
   ngOnInit(): void {
-    this.logger.log(this.COMPONENT_NAME, 'Component initialized');
+    this.logger.log(this.COMPONENT_NAME, 'Initializing UsersPage');
     
-    // Setup search with debounce
+    // Get current user UID
+    this.authService.appUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((user: AppUser | null) => {
+      this.currentUid = user?.auth.uid || null;
+    });
+
+    // Initial load
+    this.loadUsers();
+
+    // Set up search debounce
     this.searchTerm$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       takeUntil(this.destroy$)
-    ).subscribe(() => {
+    ).subscribe(search => {
       this.applyFiltersAndSort();
     });
-
-    // Load initial data
-    this.loadUsers();
-
-    // Fetch current user UID once
-    this.authService.appUser$.pipe(take(1)).subscribe(u => this.currentUid = u?.auth.uid ?? null);
   }
 
   ngOnDestroy(): void {
@@ -205,6 +210,7 @@ export class UsersPage implements OnInit, OnDestroy {
 
   /* ----------------------------- Data Loading */
   private loadUsers(): void {
+    if (this.isLoading) return; // Prevent duplicate calls
     this.isLoading = true;
     this.errorMsg = null;
 
@@ -495,5 +501,13 @@ export class UsersPage implements OnInit, OnDestroy {
 
   get selectedUsersCount(): number {
     return this.pageState$.value.selectedUsers.size;
+  }
+
+  getSelectionState(uid: string): boolean {
+    return this.pageState$.value.selectedUsers.has(uid);
+  }
+
+  setSelectionState(uid: string, selected: boolean): void {
+    this.selectUser(uid, selected);
   }
 }
