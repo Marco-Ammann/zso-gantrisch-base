@@ -1,154 +1,98 @@
 <!-- src/app/features/admin/users/user-detail/user-detail.page.html -->
 <ng-container *ngIf="user$ | async as user; else loading">
   <!-- Upload Toast -->
-  <div *ngIf="!uploading && uploadMsg"
-    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-3 px-5 rounded-xl"
-    [class.text-rose-400]="uploadError" [class.text-green-400]="!uploadError" [@toastSlide]>
+  <div *ngIf="uploadMsg"
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-2 px-4 rounded-lg text-sm"
+    [class.text-rose-400]="uploadError" 
+    [class.text-green-400]="!uploadError" 
+    [@toastSlide]>
     {{ uploadMsg }}
   </div>
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Back Button -->
-    <div class="mb-6">
-      <button (click)="back()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800 text-gray-300 
-                     hover:bg-gray-700 hover:text-white transition-all duration-200">
-        <span class="material-symbols-outlined text-lg">arrow_back</span>
-        <span class="text-sm font-medium">Zurück</span>
-      </button>
-    </div>
+    <button (click)="back()" 
+            class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 
+                   hover:bg-gray-700 hover:text-white transition-colors">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      <span class="text-sm font-medium">Zurück zur Übersicht</span>
+    </button>
 
-    <!-- Header Card -->
-    <div class="glass-card p-6 sm:p-8 mb-6">
-      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+    <!-- User Header -->
+    <div class="glass-card p-6 mb-6">
+      <div class="flex flex-col md:flex-row gap-6">
         <!-- Avatar Section -->
-        <div class="flex flex-col items-center lg:items-start">
-          <div class="relative group avatar-ring-hover">
-            <div class="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white/10 bg-gray-800">
+        <div class="flex flex-col items-center md:items-start">
+          <div class="relative group">
+            <div class="w-24 h-24 rounded-full overflow-hidden ring-2 ring-gray-700 bg-gray-800">
               @if (user.photoUrl || user.photoURL) {
-              <img [src]="user.photoUrl || user.photoURL" alt="Avatar" class="w-full h-full object-cover" />
+                <img [src]="user.photoUrl || user.photoURL" alt="Avatar" 
+                     class="w-full h-full object-cover" />
               } @else {
-              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
-                <span class="material-symbols-outlined text-5xl text-gray-400">person</span>
-              </div>
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
+                  <span class="text-gray-400 text-2xl font-medium">
+                    {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+                  </span>
+                </div>
               }
             </div>
-
-            <!-- Upload Overlay -->
-            <label class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 
-                          group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
+            
+            <!-- Upload Button -->
+            <label class="absolute -bottom-1 -right-1 w-8 h-8 bg-cp-orange rounded-full flex items-center 
+                          justify-center cursor-pointer hover:bg-cp-orange/80 transition-colors">
               <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
-              <div class="text-center">
-                <span class="material-symbols-outlined text-3xl text-white mb-1">photo_camera</span>
-                <p class="text-xs text-white">Ändern</p>
-              </div>
+              <span class="material-symbols-outlined text-white text-sm">photo_camera</span>
             </label>
-          </div>
-
-          <!-- Quick Status -->
-          <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
-            @if (user.approved) {
-            <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400">
-              Genehmigt
-            </span>
-            } @else {
-            <span class="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-300">
-              Ausstehend
-            </span>
-            }
-
-            @if (user.blocked) {
-            <span class="px-3 py-1 text-xs font-medium rounded-full bg-rose-500/20 text-rose-300">
-              Gesperrt
-            </span>
-            } @else {
-            <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/20 text-blue-300">
-              Aktiv
-            </span>
-            }
-
-            @if (user.emailVerified) {
-            <span class="px-3 py-1 text-xs font-medium rounded-full bg-purple-500/20 text-purple-300">
-              E-Mail bestätigt
-            </span>
-            }
           </div>
         </div>
 
-        <!-- User Info Section -->
-        <div class="flex-1 text-center lg:text-left">
-          <div class="flex flex-col sm:flex-row items-center lg:items-start justify-between gap-4">
+        <!-- User Info -->
+        <div class="flex-1">
+          <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
-              <h1 class="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center lg:justify-start gap-3">
-                {{ user.firstName }} {{ user.lastName }}
-                @if (user.uid === (currentUserId$ | async)) {
-                <span class="text-xs text-gray-400">(Du)</span>
-                }
+              <div class="flex items-center gap-2 mb-2">
+                <h1 class="text-2xl font-bold text-white">
+                  {{ user.firstName }} {{ user.lastName }}@if (user.uid === (currentUserId$ | async)) {<span class="opacity-60"> (du)</span>}
+                </h1>
                 <button (click)="startEdit(user)" class="icon-btn" title="Bearbeiten">
-                  <span class="material-symbols-outlined text-xl">edit</span>
+                  <span class="material-symbols-outlined text-base">edit</span>
                 </button>
-              </h1>
-              <p class="text-lg text-gray-300 mt-1">{{ user.email }}</p>
-
-              <!-- Roles -->
-              <div class="mt-4">
-                <p class="text-sm text-gray-400 mb-2">Rollen</p>
-                <zso-role-select 
-                  [roleOptions]="['user', 'admin']" 
-                  [selected]="user.roles"
-                  (selectedChange)="updateRoles($event, user.uid)" 
-                  class="inline-block">
-                </zso-role-select>
+              </div>
+              
+              <p class="text-gray-300 mb-3">{{ user.email }}</p>
+              
+              <!-- Status Badges -->
+              <div class="flex flex-wrap gap-2">
+                @if (user.approved) {
+                  <span class="badge badge--approved">Zugang erlaubt</span>
+                } @else {
+                  <span class="badge badge--pending">Zugang verweigert</span>
+                }
+                
+                @if (user.emailVerified) {
+                  <span class="badge badge--verified">E-Mail bestätigt</span>
+                }
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
-              @if (!user.approved) {
-              <zso-button 
-                (click)="approve(user.uid)" 
-                [disabled]="isLoading"
-                type="primary"
-                size="sm"
-                icon="check_circle">
-                Genehmigen
-              </zso-button>
-              } @else {
-              <zso-button 
-                (click)="unapprove(user.uid)" 
-                [disabled]="isLoading"
-                type="danger"
-                size="sm"
-                icon="cancel">
-                Genehmigung entziehen
-              </zso-button>
-              }
+            <!-- Access Toggle -->
+            <div class="flex flex-col items-end gap-3">
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-400">Zugang:</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" 
+                         [checked]="user.approved" 
+                         (change)="toggleAccess(user.uid, $any($event.target).checked)"
+                         [disabled]="isLoading" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
 
-              @if (!user.blocked) {
-              <zso-button 
-                (click)="block(user.uid, true)" 
-                [disabled]="isLoading"
-                type="danger"
-                size="sm"
-                icon="block">
-                Blockieren
-              </zso-button>
-              } @else {
-              <zso-button 
-                (click)="block(user.uid, false)" 
-                [disabled]="isLoading"
-                type="primary"
-                size="sm"
-                icon="lock_open">
-                Entsperren
-              </zso-button>
-              }
-
-              <!-- More Actions Dropdown -->
+              <!-- More Menu -->
               <div class="relative">
                 <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" 
                         (click)="menuOpen = !menuOpen" 
-                        class="icon-btn" 
-                        [attr.aria-expanded]="menuOpen">
+                        class="icon-btn">
                   <span class="material-symbols-outlined">more_vert</span>
                 </button>
 
@@ -157,10 +101,8 @@
                            [cdkConnectedOverlayOpen]="menuOpen" 
                            [cdkConnectedOverlayPositions]="positions"
                            cdkConnectedOverlayHasBackdrop 
-                           cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-                           (backdropClick)="menuOpen=false" 
-                           (detach)="menuOpen=false">
-                  <ul class="dropdown-menu min-w-[200px] mt-2">
+                           (backdropClick)="menuOpen=false">
+                  <ul class="dropdown-menu">
                     <li>
                       <button class="dropdown-item" (click)="resetPassword(user.email); menuOpen=false">
                         <span class="material-symbols-outlined text-base mr-2">lock_reset</span>
@@ -170,22 +112,14 @@
                     <li>
                       <button class="dropdown-item" (click)="resendVerificationEmail(); menuOpen=false">
                         <span class="material-symbols-outlined text-base mr-2">mail</span>
-                        Verifizierungs-Mail senden
+                        Verifizierungs-Mail
                       </button>
                     </li>
                     <li>
                       <button class="dropdown-item" (click)="changeEmail(user.uid, user.email); menuOpen=false">
                         <span class="material-symbols-outlined text-base mr-2">alternate_email</span>
-                        E-Mail-Adresse ändern
+                        E-Mail ändern
                       </button>
-                    </li>
-                    <li>
-                      <label class="dropdown-item cursor-pointer">
-                        <input type="file" accept="image/*" hidden
-                          (change)="onFileSelected($event, user.uid); menuOpen=false" />
-                        <span class="material-symbols-outlined text-base mr-2">add_a_photo</span>
-                        Avatar hochladen
-                      </label>
                     </li>
                   </ul>
                 </ng-template>
@@ -197,43 +131,42 @@
     </div>
 
     <!-- Info Grid -->
-    <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
+    <div class="grid gap-6 md:grid-cols-2">
       <!-- Personal Information -->
-      <div class="glass-card p-6 lg:col-span-2">
+      <div class="glass-card p-6">
         <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl text-cp-orange">person</span>
-          Persönliche Informationen
+          <span class="material-symbols-outlined text-cp-orange">person</span>
+          Persönliche Daten
         </h3>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p class="label">Vorname</p>
-            <p class="value">{{ user.firstName }}</p>
-          </div>
-
-          <div>
-            <p class="label">Nachname</p>
-            <p class="value">{{ user.lastName }}</p>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="label">Vorname</p>
+              <p class="value">{{ user.firstName }}</p>
+            </div>
+            <div>
+              <p class="label">Nachname</p>
+              <p class="value">{{ user.lastName }}</p>
+            </div>
           </div>
 
           <div>
             <p class="label">E-Mail</p>
-            <a [href]="'mailto:' + user.email" class="text-cp-orange hover:text-cp-orange/80 transition-colors">
+            <a [href]="'mailto:' + user.email" class="text-cp-orange hover:text-cp-orange/80">
               {{ user.email }}
             </a>
           </div>
 
           <div>
             <p class="label">Telefon</p>
-            <p class="value">
-              @if (user.phoneNumber) {
-              <a [href]="'tel:' + (user.phoneNumber | swissPhone)" class="text-cp-orange hover:text-cp-orange/80">
+            @if (user.phoneNumber) {
+              <a [href]="'tel:' + user.phoneNumber" class="text-cp-orange hover:text-cp-orange/80">
                 {{ user.phoneNumber | swissPhone }}
               </a>
-              } @else {
+            } @else {
               <span class="text-gray-500">Nicht angegeben</span>
-              }
-            </p>
+            }
           </div>
 
           <div>
@@ -244,97 +177,89 @@
           </div>
 
           <div>
-            <p class="label">UID</p>
-            <p class="text-xs text-gray-500 font-mono">{{ user.uid }}</p>
+            <p class="label">Benutzer-ID</p>
+            <p class="text-xs text-gray-500 font-mono break-all">{{ user.uid }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Account Status -->
-      <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl text-cp-orange">security</span>
-          Account Status
-        </h3>
+      <!-- Account & System Info -->
+      <div class="space-y-6">
+        <!-- Account Status -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">security</span>
+            Account Status
+          </h3>
 
-        <div class="space-y-3">
-          <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="label">E-Mail verifiziert</span>
-            <span class="text-sm">
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="label">E-Mail verifiziert</span>
               @if (user.emailVerified) {
-              <span class="text-green-400">✓ Ja</span>
+                <span class="text-green-400 text-sm">✓ Ja</span>
               } @else {
-              <span class="text-rose-400">✗ Nein</span>
+                <span class="text-rose-400 text-sm">✗ Nein</span>
               }
-            </span>
-          </div>
+            </div>
 
-          <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="label">Genehmigt</span>
-            <span class="text-sm">
+            <div class="flex justify-between items-center">
+              <span class="label">Zugang</span>
               @if (user.approved) {
-              <span class="text-green-400">✓ Ja</span>
+                <span class="text-green-400 text-sm">✓ Erlaubt</span>
               } @else {
-              <span class="text-amber-400">⏳ Ausstehend</span>
+                <span class="text-rose-400 text-sm">✗ Verweigert</span>
               }
-            </span>
-          </div>
+            </div>
 
-          <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="label">Blockiert</span>
-            <span class="text-sm">
-              @if (user.blocked) {
-              <span class="text-rose-400">⛔ Ja</span>
-              } @else {
-              <span class="text-green-400">✓ Nein</span>
-              }
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between py-2">
-            <span class="label">Auth Provider</span>
-            <span class="value">{{ user.authProvider || 'password' }}</span>
+            <div class="pt-3 border-t border-gray-800">
+              <div class="flex justify-between items-center mb-2">
+                <span class="label">Rollen</span>
+              </div>
+              <zso-role-select 
+                [roleOptions]="['user', 'admin']" 
+                [selected]="user.roles"
+                (selectedChange)="updateRoles($event, user.uid)">
+              </zso-role-select>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Activity Timeline -->
-      <div class="glass-card p-6 lg:col-span-3">
-        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-xl text-cp-orange">schedule</span>
-          Aktivitäts-Timeline
-        </h3>
+        <!-- System Info -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">info</span>
+            System-Info
+          </h3>
 
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="relative pl-8">
-            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-green-500"></div>
-            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="label">Registriert</p>
-            <p class="value text-sm">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
-          </div>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="label">Auth Provider</span>
+              <span class="value">{{ user.authProvider || 'password' }}</span>
+            </div>
 
-          <div class="relative pl-8">
-            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-blue-500"></div>
-            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="label">Letzte Aktualisierung</p>
-            <p class="value text-sm">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
-          </div>
+            <div class="flex justify-between">
+              <span class="label">Registriert</span>
+              <span class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+            </div>
 
-          <div class="relative pl-8">
-            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-amber-500"></div>
-            <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="label">Letzter Login</p>
-            <p class="value text-sm">
-              {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : 'Noch nie' }}
-            </p>
-          </div>
+            <div class="flex justify-between">
+              <span class="label">Letztes Update</span>
+              <span class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+            </div>
 
-          <div class="relative pl-8">
-            <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-purple-500"></div>
-            <p class="label">Letzte Aktivität</p>
-            <p class="value text-sm">
-              {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : 'Unbekannt' }}
-            </p>
+            <div class="flex justify-between">
+              <span class="label">Letzter Login</span>
+              <span class="value">
+                {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : 'Noch nie' }}
+              </span>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="label">Letzte Aktivität</span>
+              <span class="value">
+                {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : 'Unbekannt' }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -354,8 +279,7 @@
 <ng-template #loading>
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
-      <div class="w-12 h-12 border-3 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin mx-auto mb-4">
-      </div>
+      <div class="w-12 h-12 border-3 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin mx-auto mb-4"></div>
       <p class="text-gray-400">Lade Benutzerdaten...</p>
     </div>
   </div>

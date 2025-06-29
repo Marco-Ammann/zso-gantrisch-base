@@ -125,10 +125,7 @@
               <!-- User Info -->
               <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-white truncate">
-                  {{ user.firstName }} {{ user.lastName }}
-                  @if (isCurrentUser(user.uid)) {
-                    <span class="text-xs bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded ml-1">(Du)</span>
-                  }
+                  {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
                 </h3>
                 <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
               </div>
@@ -136,24 +133,31 @@
 
             <!-- Meta Info -->
             <div class="mb-4 text-xs text-gray-500">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">calendar_today</span>
-                Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm">calendar_today</span>
+                  Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
+                </div>
+                @if (user.emailVerified) {
+                  <span class="text-green-400">✓ E-Mail bestätigt</span>
+                } @else {
+                  <span class="text-amber-400">⏳ E-Mail ausstehend</span>
+                }
               </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-2 pt-4 border-t border-gray-800">
-              <zso-button 
-                (click)="approve(user)"
-                [disabled]="isLoading"
-                type="primary"
-                size="sm"
-                icon="check_circle"
-                class="flex-1"
-              >
-                Genehmigen
-              </zso-button>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-400">Zugang:</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" 
+                         [checked]="false" 
+                         (change)="approve(user)"
+                         [disabled]="isLoading" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
               
               <button 
                 (click)="viewDetails(user)"
@@ -207,10 +211,7 @@
               <!-- User Info -->
               <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-white truncate">
-                  {{ user.firstName }} {{ user.lastName }}
-                  @if (isCurrentUser(user.uid)) {
-                    <span class="text-xs bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded ml-1">(Du)</span>
-                  }
+                  {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
                 </h3>
                 <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
               </div>
@@ -237,24 +238,19 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-2 pt-4 border-t border-gray-800">
-              <zso-button 
-                (click)="unapprove(user)"
-                [disabled]="isLoading"
-                type="danger"
-                size="sm"
-                icon="cancel"
-                class="flex-1"
-              >
-                Zurückziehen
-              </zso-button>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-400">Zugang:</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" 
+                         [checked]="true" 
+                         (change)="unapprove(user)"
+                         [disabled]="isLoading" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
               
-              <button 
-                (click)="viewDetails(user)"
-                class="p-2 rounded-lg bg-gray-800 text-gray-400 
-                       hover:bg-gray-700 hover:text-white transition-all duration-200"
-                title="Details anzeigen"
-              >
+              <button (click)="viewDetails(user)" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200" title="Details anzeigen">
                 <span class="material-symbols-outlined">arrow_forward</span>
               </button>
             </div>

@@ -16,7 +16,6 @@ import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
 import { UserEditDialogComponent } from '@shared/components/user-edit-dialog/user-edit-dialog';
-import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { SwissPhonePipe } from '@shared/pipes/swiss-phone.pipe';
 import { LoggerService } from '@core/services/logger.service';
 
@@ -33,7 +32,6 @@ import { LoggerService } from '@core/services/logger.service';
     FormsModule, 
     ZsoRoleSelect, 
     UserEditDialogComponent, 
-    ZsoButton, 
     SwissPhonePipe
   ],
   templateUrl: './user-detail.page.html',
@@ -94,6 +92,36 @@ export class UserDetailPage implements OnDestroy {
   }
 
   // User management actions
+  toggleAccess(uid: string, approved: boolean): void {
+    this.isLoading = true;
+    if (approved) {
+      this.userService.approve(uid).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.logger.log('UserDetailPage', 'User access granted', uid);
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.logger.error('UserDetailPage', 'Grant access failed:', error);
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.userService.unapprove(uid).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.logger.log('UserDetailPage', 'User access revoked', uid);
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.logger.error('UserDetailPage', 'Revoke access failed:', error);
+          this.isLoading = false;
+        }
+      });
+    }
+  }
   approve(uid: string): void {
     this.isLoading = true;
     this.userService.approve(uid).pipe(

@@ -7,13 +7,36 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
 
 import { AuthService } from '@core/auth/services/auth.service';
+import { AppFooter } from '@shared/components/app-footer/app-footer';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector   : 'zso-main-shell',
   standalone : true,
-  imports    : [CommonModule, RouterModule, OverlayModule],
+  imports    : [CommonModule, RouterModule, OverlayModule, AppFooter],
   templateUrl: './main-shell.html',
-  styleUrls  : ['./main-shell.scss']
+  styleUrls  : ['./main-shell.scss'],
+  animations: [
+    trigger('mobileSlide', [
+      state('closed', style({ height: '0px', opacity: 0 })),
+      state('open', style({ height: '*', opacity: 1 })),
+      transition('closed => open', [
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ]),
+      transition('open => closed', [
+        animate('250ms cubic-bezier(0.4, 0.0, 1, 1)')
+      ])
+    ]),
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.95)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'scale(0.95)' }))
+      ])
+    ])
+  ]
 })
 export class MainShell {
   readonly auth   = inject(AuthService);

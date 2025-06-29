@@ -3,15 +3,18 @@
   display: block; 
 }
 
-// Utility classes using existing styles.css patterns
-.label {
-  @apply text-gray-400 text-sm;
+// Badge styles
+.badge {
+  @apply px-2 py-1 text-xs font-medium rounded-full;
+  
+  &--approved { @apply bg-green-500/20 text-green-400; }
+  &--pending { @apply bg-amber-500/20 text-amber-300; }
+  &--blocked { @apply bg-rose-500/20 text-rose-300; }
+  &--active { @apply bg-blue-500/20 text-blue-300; }
+  &--verified { @apply bg-purple-500/20 text-purple-300; }
 }
 
-.value {
-  @apply text-white;
-}
-
+// Icon button inherits from styles.css
 .icon-btn {
   @apply inline-flex items-center justify-center w-8 h-8 rounded-lg 
          bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white 

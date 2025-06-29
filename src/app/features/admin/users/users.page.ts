@@ -1,5 +1,5 @@
 // src/app/features/admin/users/users.page.ts
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,7 @@ import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'zso-users-page',
@@ -21,7 +22,8 @@ import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
     FormsModule,
     RouterModule,
     ZsoButton,
-    ZsoRoleSelect
+    ZsoRoleSelect,
+    ConfirmationDialogComponent
   ],
   templateUrl: './users.page.html',
   styleUrls: ['./users.page.scss'],
@@ -54,6 +56,8 @@ export class UsersPage implements OnInit, OnDestroy {
 
   // Current user UID for highlighting
   currentUid: string | null = null;
+  
+  @ViewChild(ConfirmationDialogComponent) confirmation!: ConfirmationDialogComponent;
 
   ngOnInit(): void {
     this.logger.log('UsersPage', 'Initializing');
@@ -143,39 +147,60 @@ export class UsersPage implements OnInit, OnDestroy {
 
   // User actions
   approve(user: UserDoc): void {
-    this.isLoading = true;
-    this.userService.approve(user.uid).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        this.logger.log('UsersPage', `User ${user.firstName} ${user.lastName} approved`);
-        this.loadUsers();
-      },
-      error: (error) => {
-        this.logger.error('UsersPage', 'Approve failed:', error);
-        this.errorMsg = `Fehler beim Genehmigen von ${user.firstName} ${user.lastName}`;
-        this.isLoading = false;
-        this.cdr.markForCheck();
+    this.showConfirmation(
+      `Zugang für ${user.firstName} ${user.lastName} gewähren?`,
+      'primary',
+      () => {
+        // Optimistic update - sofort UI ändern
+        user.approved = true;
+        this.filterUsers();
+        
+        this.userService.approve(user.uid).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            this.logger.log('UsersPage', `User approved`);
+            // Daten neu laden für Konsistenz
+            this.loadUsers();
+          },
+          error: (error) => {
+            // Bei Fehler zurücksetzen
+            user.approved = false;
+            this.filterUsers();
+            this.errorMsg = `Fehler beim Genehmigen`;
+            this.logger.error('UsersPage', 'Approve failed:', error);
+          }
+        });
       }
-    });
+    );
   }
 
   unapprove(user: UserDoc): void {
-    this.isLoading = true;
-    this.userService.unapprove(user.uid).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        this.logger.log('UsersPage', `User ${user.firstName} ${user.lastName} unapproved`);
-        this.loadUsers();
-      },
-      error: (error) => {
-        this.logger.error('UsersPage', 'Unapprove failed:', error);
-        this.errorMsg = `Fehler beim Zurückziehen der Genehmigung von ${user.firstName} ${user.lastName}`;
-        this.isLoading = false;
-        this.cdr.markForCheck();
+    this.showConfirmation(
+      `Zugang für ${user.firstName} ${user.lastName} entziehen?`,
+      'danger',
+      () => {
+        // Optimistic update
+        user.approved = false;
+        this.filterUsers();
+        
+        this.userService.unapprove(user.uid).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            this.logger.log('UsersPage', `User unapproved`);
+            this.loadUsers();
+          },
+          error: (error) => {
+            // Bei Fehler zurücksetzen
+            user.approved = true;
+            this.filterUsers();
+            this.errorMsg = `Fehler beim Entziehen`;
+            this.logger.error('UsersPage', 'Unapprove failed:', error);
+          }
+        });
       }
-    });
+    );
   }
 
   updateRoles(user: UserDoc, roles: string[]): void {
@@ -222,5 +247,23 @@ export class UsersPage implements OnInit, OnDestroy {
 
   get hasResults(): boolean {
     return this.pendingUsers.length > 0 || this.approvedUsers.length > 0;
+  }
+
+  private showConfirmation(
+    message: string,
+    type: 'primary' | 'danger',
+    onConfirm: () => void
+  ): void {
+    this.confirmation.title = 'Bestätigung';
+    this.confirmation.message = message;
+    this.confirmation.confirmText = 'Bestätigen';
+    this.confirmation.confirmType = type;
+    this.confirmation.visible = true;
+
+    this.confirmation.confirmed.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((confirmed) => {
+      if (confirmed) onConfirm();
+    });
   }
 }
