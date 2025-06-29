@@ -154,7 +154,7 @@
         <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           @for (user of filteredUsers.pending; track user.uid) {
             <div 
-              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+              class="glass-card p-4 sm:p-5 transition-all duration-300
                      {{ user.blocked ? 'blocked' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
@@ -256,115 +256,6 @@
       </div>
     }
 
-    <!-- Approved Users Section -->
-    @if (filteredUsers.rest.length > 0) {
-      <div class="space-y-4">
-        <!-- Section Header -->
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-2 sm:gap-3">
-            <span class="material-symbols-outlined text-green-400">verified</span>
-            <h2 class="text-lg sm:text-xl font-medium text-white">Genehmigte Benutzer</h2>
-            <span class="px-2.5 py-1 rounded-full bg-green-500/20 text-green-300 text-xs sm:text-sm">
-              {{ filteredUsers.rest.length }}
-            </span>
-          </div>
-
-          <label class="flex items-center gap-2 text-xs sm:text-sm text-gray-300 cursor-pointer">
-            <zso-checkbox 
-              [ngModel]="areAllUsersSelected(filteredUsers.rest)" 
-              (ngModelChange)="selectAll(filteredUsers.rest, $event)"
-              class="!h-4 !w-4"
-            />
-            <span class="hidden sm:inline">Alle auswählen</span>
-            <span class="sm:hidden">Alle</span>
-          </label>
-        </div>
-
-        <!-- User Cards Grid -->
-        <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-          @for (user of filteredUsers.rest; track user.uid) {
-            <div 
-              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
-                     {{ user.blocked ? 'blocked' : '' }}
-                     {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
-                     {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
-              [@itemFade]
-            >
-              <!-- Card Header -->
-              <div class="flex items-start justify-between mb-3 sm:mb-4">
-                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                  <!-- Avatar -->
-                  <div class="relative flex-shrink-0">
-                    @if (user.photoUrl || user.photoURL) {
-                      <img 
-                        [src]="user.photoUrl || user.photoURL" 
-                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
-                        alt=""
-                      />
-                    } @else {
-                      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                        <span class="material-symbols-outlined text-xl">person</span>
-                      </div>
-                    }
-                  </div>
-                  
-                  <!-- User Info -->
-                  <div class="min-w-0">
-                    <h3 class="text-sm sm:text-base font-medium text-white truncate">
-                      {{ getCleanFirstName(user.firstName) }} {{ user.lastName }}
-                      @if (isCurrentUser(user.uid)) {
-                        <span class="text-xs bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded ml-1">(du)</span>
-                      }
-                    </h3>
-                    <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
-                    @if (user.roles && user.roles.length > 0) {
-                      <div class="flex flex-wrap gap-1 mt-1">
-                        @for (role of user.roles; track role) {
-                          <span class="px-1.5 py-0.5 rounded text-xs bg-gray-800 text-gray-300">
-                            {{ role }}
-                          </span>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex items-center gap-1 sm:gap-2">
-                  @if (isUserSelected(user.uid)) {
-                    <zso-checkbox 
-                      [ngModel]="true" 
-                      (ngModelChange)="selectUser(user.uid, $event)"
-                      class="!h-4 !w-4"
-                    />
-                  } @else {
-                    <zso-button 
-                      (click)="toggleActive(user)" 
-                      [disabled]="isLoading"
-                      type="danger"
-                      size="sm"
-                      class="card-button"
-                    >
-                      <span class="material-symbols-outlined text-sm">block</span>
-                      <span class="hidden sm:inline">Blockieren</span>
-                    </zso-button>
-                  }
-                  
-                  <button 
-                    (click)="details(user)"
-                    class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
-                           hover:bg-gray-700 hover:text-white transition-all duration-200"
-                    title="Details"
-                  >
-                    <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
 
     <!-- Active Users Section -->
     @if (filteredUsers.rest.length > 0) {
@@ -396,7 +287,7 @@
         <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           @for (user of filteredUsers.rest; track user.uid) {
             <div 
-              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+              class="glass-card p-4 sm:p-5 transition-all duration-300
                      {{ user.blocked ? 'blocked' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
@@ -517,9 +408,11 @@
                   type="danger"
                   size="sm"
                   class="card-button"
+                  tooltip="zurückziehen"
+                  tooltipPosition="top"
                 >
                   <span class="material-symbols-outlined text-sm">cancel</span>
-                  <span class="hidden sm:inline">Genehmigung zurückziehen</span>
+                  <span class="hidden sm:inline">zurückziehen</span>
                 </zso-button>
                 
                 <button 

@@ -49,9 +49,13 @@
 @layer components {
   /* Glass Card Grundstil */
   .glass-card {
-    @apply relative overflow-hidden backdrop-blur-lg bg-white/10 dark:bg-white/10
+    @apply relative overflow-hidden backdrop-blur-lg bg-white/5 dark:bg-white/5
            border border-white/10 rounded-2xl shadow-lg;
     z-index: 10;
+  }
+
+  .glass-card:hover {
+    @apply bg-white/10;
   }
 
   /* Native Checkbox Styling */

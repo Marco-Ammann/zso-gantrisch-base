@@ -14,10 +14,14 @@ import { NgClass } from '@angular/common';
       [attr.type]="htmlType"
       [disabled]="disabled || loading"
       (click)="click.emit()"
+      [attr.data-tooltip]="tooltip"
+      [attr.data-tooltip-position]="tooltipPosition"
       [ngClass]="classes"
       class="px-5 py-3 rounded-xl flex items-center justify-center gap-2
              font-semibold transition-all animate-pop-in"
+
     >
+
       <!-- Lade-Spinner ------------------------------------------------ -->
       @if (loading) {
       <svg
@@ -61,7 +65,7 @@ export class ZsoButton {
   @Input() type: 'primary' | 'danger' | 'neutral' = 'primary';
   /* Größe */
   @Input() size: 'xs' | 'sm' | 'md' | 'lg' = 'md';
-  /* Icon-Name z. B. "check", "block", "refresh"  */
+  /* Icon-Name z. B. "check", "block", "refresh", "lock", "lock_open", "lock_outline", "hourglass_empty"  */
   @Input() icon?: string;
 
   /* weitere Optionen */
@@ -69,6 +73,8 @@ export class ZsoButton {
   @Input() fullWidth = false;
   @Input() loading = false;
   @Input() disabled = false;
+  @Input() tooltip?: string;
+  @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
 
   @Output() click = new EventEmitter<void>();
 
@@ -92,16 +98,16 @@ export class ZsoButton {
 
     switch (this.size) {
       case 'xs':
-        c.push('text-xs py-1.5 px-3');
+        c.push('text-xs py-1.5 px-2');
         break;
       case 'sm':
-        c.push('text-sm py-2 px-4');
+        c.push('text-sm py-2 px-3');
         break;
       case 'md':
-        c.push('text-base py-3 px-5');
+        c.push('text-base py-3 px-4');
         break;
       case 'lg':
-        c.push('text-lg py-4 px-6');
+        c.push('text-lg py-4 px-5');
         break;
     }
     return c.join(' ');
