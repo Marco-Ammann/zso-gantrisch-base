@@ -1,5 +1,5 @@
 // src/app/core/auth/services/auth.service.ts
-import { Injectable, OnDestroy, Injector } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { 
   Auth, 
   User, 
@@ -15,8 +15,8 @@ import {
   authState, 
   UserCredential 
 } from '@angular/fire/auth';
-import { Observable, of, throwError, Subject, from, Subscription } from 'rxjs';
-import { catchError, map, shareReplay, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { Observable, of, throwError, Subject, from, BehaviorSubject, combineLatest } from 'rxjs';
+import { catchError, map, shareReplay, switchMap, take, takeUntil, tap, distinctUntilChanged, filter } from 'rxjs/operators';
 
 import { FirestoreService } from '@core/services/firestore.service';
 import { LoggerService } from '@core/services/logger.service';
@@ -37,92 +37,126 @@ export interface AppUserCombined {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService implements OnDestroy {
-  // User observable that combines Firebase Auth state with Firestore user doc
-  user$: Observable<User | null> = of(null);
-  appUser$: Observable<AppUserCombined | null> = of(null);
-  
-  // Subject for unsubscribing from observables
+  // State management mit BehaviorSubjects für bessere Performance
+  private readonly authState$ = new BehaviorSubject<User | null>(null);
+  private readonly userDoc$ = new BehaviorSubject<UserDoc | null>(null);
   private readonly destroy$ = new Subject<void>();
-  private userSubscription?: Subscription;
+  
+  // Öffentliche Observables (rückwärtskompatibel)
+  readonly user$: Observable<User | null>;
+  readonly appUser$: Observable<AppUserCombined | null>;
+  
+  // Cache für Performance
+  private lastActiveUpdate = 0;
+  private readonly UPDATE_INTERVAL = 5 * 60 * 1000; // 5 Minuten
 
   constructor(
     private readonly auth: Auth,
     private readonly fs: FirestoreService,
     private readonly logger: LoggerService,
-    private readonly userService: UserService,
-    private readonly injector: Injector
+    private readonly userService: UserService
   ) {
-    this.initializeUserObservables();
+    this.initializeAuth();
+    this.user$ = this.authState$.asObservable();
+    this.appUser$ = this.createAppUserObservable();
   }
 
-  private initializeUserObservables() {
-    // User observable from Firebase Auth
-    this.user$ = authState(this.auth).pipe(
-      tap(user => {
+  private initializeAuth(): void {
+    // Firebase Auth State abonnieren
+    authState(this.auth).pipe(
+      takeUntil(this.destroy$),
+      distinctUntilChanged((a, b) => a?.uid === b?.uid)
+    ).subscribe({
+      next: user => {
+        this.authState$.next(user);
+        
         if (user) {
-          this.logger.log('AuthService', 'User auth state changed:', user.email);
-          // Update last active timestamp when auth state changes
-          this.userService.updateLastActiveAt(user.uid).subscribe({
-            error: err => this.logger.error('AuthService', 'Error updating last active:', err)
-          });
+          this.logger.log('AuthService', 'User authenticated:', user.email);
+          this.loadUserDoc(user.uid);
+          this.updateLastActiveIfNeeded(user.uid);
         } else {
           this.logger.log('AuthService', 'User signed out');
+          this.userDoc$.next(null);
         }
-      }),
-      shareReplay(1),
-      takeUntil(this.destroy$)
-    );
-
-    // Combined observable with Firestore user doc
-    this.appUser$ = this.user$.pipe(
-      switchMap(user => {
-        if (!user) {
-          return of(null);
-        }
-        
-        return this.fs.getDoc<UserDoc>(`users/${user.uid}`).pipe(
-          take(1),
-          map(userDoc => {
-            if (!userDoc) {
-              this.logger.warn('AuthService', `No user document found for uid: ${user.uid}`);
-              return null;
-            }
-            return { auth: user, doc: userDoc } as AppUserCombined;
-          }),
-          catchError(error => {
-            this.logger.error('AuthService', 'Error loading user document:', error);
-            return of(null);
-          })
-        );
-      }),
-      shareReplay(1)
-    );
-
-    // Subscribe to appUser$ to handle errors
-    this.userSubscription = this.appUser$.subscribe({
-      error: error => this.logger.error('AuthService', 'Error in user$ observable:', error)
+      },
+      error: error => {
+        this.logger.error('AuthService', 'Auth state error:', error);
+        this.authState$.next(null);
+        this.userDoc$.next(null);
+      }
     });
   }
 
-  /* ---------- Auth ---------- */
+  private createAppUserObservable(): Observable<AppUserCombined | null> {
+    return combineLatest([
+      this.authState$,
+      this.userDoc$
+    ]).pipe(
+      map(([auth, doc]) => {
+        if (!auth || !doc) return null;
+        return { auth, doc } as AppUserCombined;
+      }),
+      distinctUntilChanged((a, b) => 
+        a?.auth.uid === b?.auth.uid && 
+        a?.doc.updatedAt === b?.doc.updatedAt
+      ),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+  }
+
+  private loadUserDoc(uid: string): void {
+    this.fs.getDoc<UserDoc>(`users/${uid}`).pipe(
+      take(1),
+      catchError(error => {
+        this.logger.error('AuthService', 'Error loading user doc:', error);
+        return of(null);
+      })
+    ).subscribe({
+      next: doc => {
+        if (doc) {
+          this.userDoc$.next(doc);
+        } else {
+          this.logger.warn('AuthService', `No user document found for uid: ${uid}`);
+        }
+      }
+    });
+  }
+
+  private updateLastActiveIfNeeded(uid: string): void {
+    const now = Date.now();
+    if (now - this.lastActiveUpdate > this.UPDATE_INTERVAL) {
+      this.lastActiveUpdate = now;
+      
+      this.userService.updateLastActiveAt(uid).pipe(
+        take(1),
+        catchError(error => {
+          this.logger.error('AuthService', 'Error updating last active:', error);
+          return of(null);
+        })
+      ).subscribe();
+    }
+  }
+
+  // Public methods (rückwärtskompatibel)
+  
   login(email: string, password: string, rememberMe: boolean): Observable<void> {
     this.logger.log('AuthService', `Login attempt for ${email}`);
     
-    // Set persistence based on remember me
     const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
     
     return from(setPersistence(this.auth, persistence)).pipe(
       switchMap(() => signInWithEmailAndPassword(this.auth, email, password)),
       switchMap(({ user }) => {
-        // Update last login timestamp
+        // Update last login
         return this.fs.updateDoc(`users/${user.uid}`, {
           lastLoginAt: Date.now(),
           updatedAt: Date.now()
         }).pipe(
+          tap(() => this.loadUserDoc(user.uid)), // Reload user doc
           map(() => void 0),
           catchError(error => {
             this.logger.error('AuthService', 'Error updating last login:', error);
-            return of(void 0); // Don't fail login if update fails
+            return of(void 0);
           })
         );
       }),
@@ -137,13 +171,9 @@ export class AuthService implements OnDestroy {
   logout(): Observable<void> {
     this.logger.log('AuthService', 'Logging out user');
     
-    // Get current user before signing out
-    const user = this.auth.currentUser;
-    const uid = user?.uid;
+    const uid = this.auth.currentUser?.uid;
     
-    // Sign out from Firebase Auth
     return from(signOut(this.auth)).pipe(
-      // Update last logout timestamp if we have a user
       switchMap(() => {
         if (!uid) return of(void 0);
         
@@ -153,11 +183,15 @@ export class AuthService implements OnDestroy {
         }).pipe(
           catchError(error => {
             this.logger.error('AuthService', 'Error updating last logout:', error);
-            return of(void 0); // Don't fail logout if update fails
+            return of(void 0);
           })
         );
       }),
-      tap(() => this.logger.log('AuthService', 'Logout successful')),
+      tap(() => {
+        this.authState$.next(null);
+        this.userDoc$.next(null);
+        this.logger.log('AuthService', 'Logout successful');
+      }),
       catchError(error => {
         this.logger.error('AuthService', 'Logout error:', error);
         return throwError(() => error);
@@ -165,19 +199,16 @@ export class AuthService implements OnDestroy {
     );
   }
 
-  /* ---------- Registrierung ---------- */
   register(data: RegisterData): Observable<void> {
     return from(
       createUserWithEmailAndPassword(this.auth, data.email, data.password)
     ).pipe(
       switchMap((cred: UserCredential) => {
-        const uid = cred.user.uid;
-        const user = cred.user;
+        const { uid, email } = cred.user;
         
-        // Create user document in Firestore
-        const userDoc: Omit<UserDoc, 'displayName'> = {
+        const userDoc: UserDoc = {
           uid,
-          email: data.email,
+          email: email || data.email,
           firstName: data.firstName,
           lastName: data.lastName,
           roles: ['user'],
@@ -190,21 +221,21 @@ export class AuthService implements OnDestroy {
         };
         
         return this.fs.setDoc(`users/${uid}`, userDoc).pipe(
-          switchMap(() => from(updateProfile(user, {
+          switchMap(() => from(updateProfile(cred.user, {
             displayName: `${data.firstName} ${data.lastName}`
           }))),
-          switchMap(() => from(sendEmailVerification(user))),
+          switchMap(() => from(sendEmailVerification(cred.user))),
           map(() => void 0)
         );
       }),
-      catchError((error: Error) => {
+      catchError(error => {
         this.logger.error('AuthService', 'Registration error:', error);
         return throwError(() => error);
       })
     );
   }
 
-  // Email actions
+  // Email verification methods
   resendVerificationEmail(): Observable<void> {
     const user = this.auth.currentUser;
     if (!user) {
@@ -219,31 +250,41 @@ export class AuthService implements OnDestroy {
 
   refreshAndCheckEmail(): Observable<boolean> {
     const user = this.auth.currentUser;
-    if (!user) {
-      return of(false);
-    }
+    if (!user) return of(false);
     
     return from(user.reload()).pipe(
       map(() => user.emailVerified),
+      tap(verified => {
+        if (verified && this.userDoc$.value) {
+          // Update local state
+          this.userDoc$.next({
+            ...this.userDoc$.value,
+            emailVerified: true
+          });
+        }
+      }),
       catchError(() => of(false))
     );
   }
 
-  getToken(forceRefresh = false): Observable<string | null> {
+  async getToken(forceRefresh = false): Promise<string | null> {
     const user = this.auth.currentUser;
-    if (!user) {
-      return of(null);
+    if (!user) return null;
+    
+    try {
+      return await user.getIdToken(forceRefresh);
+    } catch (error) {
+      this.logger.error('AuthService', 'Error getting token:', error);
+      return null;
     }
-    return from(user.getIdToken(forceRefresh));
   }
 
   // Cleanup
   ngOnDestroy(): void {
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
-    }
     this.destroy$.next();
     this.destroy$.complete();
-    this.logger.log('AuthService', 'Cleanup complete');
+    this.authState$.complete();
+    this.userDoc$.complete();
+    this.logger.log('AuthService', 'Service destroyed and cleaned up');
   }
 }
