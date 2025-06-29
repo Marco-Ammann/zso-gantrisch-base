@@ -3,7 +3,7 @@ import { CommonModule, DatePipe, NgIf, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OverlayModule, ConnectedPosition } from '@angular/cdk/overlay';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { trigger, transition, style, animate, keyframes } from '@angular/animations';
 
 import { Router } from '@angular/router';
@@ -56,7 +56,8 @@ import { LoggerService } from '@core/services/logger.service';
       ])
     ]),
   ],
-  styleUrls: ['./user-detail.page.scss']
+  styleUrls: ['./user-detail.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserDetailPage {
   private route = inject(ActivatedRoute);

@@ -59,10 +59,10 @@ project-structure.txt
 projekt.zip
 
 # environment files
-environment*.ts
-environment.development.ts
-environment.production.ts
-environment.ts
+# environment*.ts
+# environment.development.ts
+# environment.production.ts
+# environment.ts
 
-package-lock.json
-dist
+# package-lock.json
+# dist

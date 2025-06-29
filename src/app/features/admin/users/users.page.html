@@ -32,17 +32,17 @@
       
       <!-- Stats Pills -->
       <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-gray-800 text-gray-300 whitespace-nowrap">
+        <span class="px-2.5 py-1 sm:py-1.5 rounded-full bg-gray-800 text-gray-300 whitespace-nowrap">
           {{ stats.total }} Total
         </span>
-        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-amber-500/20 text-amber-300 whitespace-nowrap">
+        <span class="px-2.5 py-1 sm:py-1.5 rounded-full bg-amber-500/20 text-amber-300 whitespace-nowrap">
           {{ stats.pending }} Wartend
         </span>
-        <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-green-500/20 text-green-300 whitespace-nowrap">
+        <span class="px-2.5 py-1 sm:py-1.5 rounded-full bg-green-500/20 text-green-300 whitespace-nowrap">
           {{ stats.active }} Aktiv
         </span>
         @if (stats.blocked > 0) {
-          <span class="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-rose-500/20 text-rose-300 whitespace-nowrap">
+          <span class="px-2.5 py-1 sm:py-1.5 rounded-full bg-rose-500/20 text-rose-300 whitespace-nowrap">
             {{ stats.blocked }} Gesperrt
           </span>
         }
@@ -116,9 +116,9 @@
 
     <!-- Loading State -->
     @if (isLoading) {
-      <div class="glass-card p-6 sm:p-8 text-center">
+      <div class="glass-card p-6 sm:p-8 text-center" [@itemFade]>
         <div class="inline-flex items-center gap-3">
-          <div class="w-5 h-5 border-2 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin"></div>
+          <div class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"></div>
           <span class="text-gray-300 text-sm sm:text-base">Lade Benutzerdaten...</span>
         </div>
       </div>
@@ -154,7 +154,7 @@
         <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           @for (user of filteredUsers.pending; track user.uid) {
             <div 
-              class="glass-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
               [@itemFade]
@@ -197,9 +197,8 @@
 
                 <!-- User Selection Checkbox -->
                 <zso-checkbox 
-                  [label]="isUserSelected(user.uid) ? 'Ausgewählt' : 'Auswählen'"
-                  [ngModel]="getSelectionState(user.uid)"
-                  (ngModelChange)="setSelectionState(user.uid, $event)"
+                  [ngModel]="isUserSelected(user.uid)" 
+                  (ngModelChange)="selectUser(user.uid, $event)"
                   class="ml-auto"
                 />
               </div>
@@ -224,6 +223,7 @@
                   [disabled]="isLoading"
                   type="primary"
                   size="sm"
+                  class="card-button"
                 >
                   <span class="material-symbols-outlined text-sm">check_circle</span>
                   <span class="hidden sm:inline">Genehmigen</span>
@@ -234,6 +234,7 @@
                   [disabled]="isLoading"
                   type="danger"
                   size="sm"
+                  class="card-button"
                 >
                   <span class="material-symbols-outlined text-sm">block</span>
                   <span class="hidden sm:inline">Blockieren</span>
@@ -247,6 +248,112 @@
                 >
                   <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
                 </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Approved Users Section -->
+    @if (filteredUsers.rest.length > 0) {
+      <div class="space-y-4">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-green-400">verified</span>
+            <h2 class="text-lg sm:text-xl font-medium text-white">Genehmigte Benutzer</h2>
+            <span class="px-2.5 py-1 rounded-full bg-green-500/20 text-green-300 text-xs sm:text-sm">
+              {{ filteredUsers.rest.length }}
+            </span>
+          </div>
+
+          <label class="flex items-center gap-2 text-xs sm:text-sm text-gray-300 cursor-pointer">
+            <zso-checkbox 
+              [ngModel]="areAllUsersSelected(filteredUsers.rest)" 
+              (ngModelChange)="selectAll(filteredUsers.rest, $event)"
+              class="!h-4 !w-4"
+            />
+            <span class="hidden sm:inline">Alle auswählen</span>
+            <span class="sm:hidden">Alle</span>
+          </label>
+        </div>
+
+        <!-- User Cards Grid -->
+        <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          @for (user of filteredUsers.rest; track user.uid) {
+            <div 
+              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+                     {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
+                     {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
+              [@itemFade]
+            >
+              <!-- Card Header -->
+              <div class="flex items-start justify-between mb-3 sm:mb-4">
+                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <!-- Avatar -->
+                  <div class="relative flex-shrink-0">
+                    @if (user.photoUrl || user.photoURL) {
+                      <img 
+                        [src]="user.photoUrl || user.photoURL" 
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
+                        alt=""
+                      />
+                    } @else {
+                      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                        <span class="material-symbols-outlined text-xl">person</span>
+                      </div>
+                    }
+                  </div>
+                  
+                  <!-- User Info -->
+                  <div class="min-w-0">
+                    <h3 class="text-sm sm:text-base font-medium text-white truncate">
+                      {{ getCleanFirstName(user.firstName) }} {{ user.lastName }}
+                    </h3>
+                    <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
+                    @if (user.roles && user.roles.length > 0) {
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        @for (role of user.roles; track role) {
+                          <span class="px-1.5 py-0.5 rounded text-xs bg-gray-800 text-gray-300">
+                            {{ role }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-1 sm:gap-2">
+                  @if (isUserSelected(user.uid)) {
+                    <zso-checkbox 
+                      [ngModel]="true" 
+                      (ngModelChange)="selectUser(user.uid, $event)"
+                      class="!h-4 !w-4"
+                    />
+                  } @else {
+                    <zso-button 
+                      (click)="toggleActive(user)" 
+                      [disabled]="isLoading"
+                      type="danger"
+                      size="sm"
+                      class="card-button"
+                    >
+                      <span class="material-symbols-outlined text-sm">block</span>
+                      <span class="hidden sm:inline">Blockieren</span>
+                    </zso-button>
+                  }
+                  
+                  <button 
+                    (click)="details(user)"
+                    class="p-1.5 sm:p-2 rounded-lg bg-gray-800 text-gray-400 
+                           hover:bg-gray-700 hover:text-white transition-all duration-200"
+                    title="Details"
+                  >
+                    <span class="material-symbols-outlined text-base sm:text-lg">arrow_forward</span>
+                  </button>
+                </div>
               </div>
             </div>
           }
@@ -284,7 +391,7 @@
         <div class="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           @for (user of filteredUsers.rest; track user.uid) {
             <div 
-              class="glass-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+              class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
                      {{ user.blocked ? 'bg-rose-500/5 border-rose-500/20' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
@@ -330,9 +437,8 @@
 
                 <!-- User Selection Checkbox -->
                 <zso-checkbox 
-                  [label]="isUserSelected(user.uid) ? 'Ausgewählt' : 'Auswählen'"
-                  [ngModel]="getSelectionState(user.uid)"
-                  (ngModelChange)="setSelectionState(user.uid, $event)"
+                  [ngModel]="isUserSelected(user.uid)" 
+                  (ngModelChange)="selectUser(user.uid, $event)"
                   class="ml-auto"
                 />
               </div>
@@ -379,6 +485,7 @@
                     [disabled]="isLoading"
                     type="primary"
                     size="sm"
+                    class="card-button"
                   >
                     <span class="material-symbols-outlined text-sm">lock_open</span>
                     <span class="hidden sm:inline">Freigeben</span>
@@ -389,6 +496,7 @@
                     [disabled]="isLoading"
                     type="danger"
                     size="sm"
+                    class="card-button"
                   >
                     <span class="material-symbols-outlined text-sm">block</span>
                     <span class="hidden sm:inline">Blockieren</span>
@@ -400,6 +508,7 @@
                   [disabled]="isLoading"
                   type="danger"
                   size="sm"
+                  class="card-button"
                 >
                   <span class="material-symbols-outlined text-sm">cancel</span>
                   <span class="hidden sm:inline">Genehmigung zurückziehen</span>
@@ -452,6 +561,7 @@
                 (click)="bulkApprove()"
                 type="primary"
                 size="sm"
+                class="card-button"
               >
                 <span class="material-symbols-outlined text-sm">check</span>
                 <span class="hidden sm:inline">Alle genehmigen</span>
@@ -461,6 +571,7 @@
                 (click)="bulkBlock()"
                 type="danger"
                 size="sm"
+                class="card-button"
               >
                 <span class="material-symbols-outlined text-sm">block</span>
                 <span class="hidden sm:inline">Alle blockieren</span>

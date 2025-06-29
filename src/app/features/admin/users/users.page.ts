@@ -1,11 +1,11 @@
 // src/app/features/admin/users/users.page.ts
-import { Component, inject, ViewChild, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ViewChild, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppUserCombined as AppUser } from '@core/auth/services/auth.service';
 import { Router, RouterModule } from '@angular/router';
-import { BehaviorSubject, Subject, takeUntil, take, map, startWith, debounceTime, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, Subject, takeUntil, take, map, startWith, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 
 import { UserService } from '@core/services/user.service';
 import { LoggerService } from '@core/services/logger.service';
@@ -70,6 +70,7 @@ export class UsersPage implements OnInit, OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // Currently logged-in user UID (used for highlighting own card)
   currentUid: string | null = null;
@@ -226,7 +227,8 @@ export class UsersPage implements OnInit, OnDestroy {
           ...this.dummyUsers.filter(d => !realUsers.some(u => u.uid === d.uid))
         ];
         this.applyFiltersAndSort();
-        this.isLoading = false;
+        this.isLoading = false;  // Reset loading state here
+        this.cdr.markForCheck(); // Trigger change detection
         this.logger.log(this.COMPONENT_NAME, 'Users loaded successfully', this.allUsers.length);
       },
       error: (error) => {
@@ -234,7 +236,8 @@ export class UsersPage implements OnInit, OnDestroy {
         this.allUsers = [...this.dummyUsers];
         this.applyFiltersAndSort();
         this.errorMsg = 'Fehler beim Laden der Benutzer. Dummy-Daten werden angezeigt.';
-        this.isLoading = false;
+        this.isLoading = false;  // Ensure reset on error too
+        this.cdr.markForCheck(); // Trigger change detection
       }
     });
   }
