@@ -155,6 +155,7 @@
           @for (user of filteredUsers.pending; track user.uid) {
             <div 
               class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+                     {{ user.blocked ? 'blocked' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
               [@itemFade]
@@ -210,7 +211,7 @@
                   Registriert {{ user.createdAt | date:'dd.MM.yyyy' }}
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-300">
+                  <span class="px-2.5 py-1 sm:py-1.5 rounded-full bg-amber-500/20 text-amber-300">
                     Genehmigung ausstehend
                   </span>
                 </div>
@@ -284,6 +285,7 @@
           @for (user of filteredUsers.rest; track user.uid) {
             <div 
               class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
+                     {{ user.blocked ? 'blocked' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
               [@itemFade]
@@ -310,6 +312,9 @@
                   <div class="min-w-0">
                     <h3 class="text-sm sm:text-base font-medium text-white truncate">
                       {{ getCleanFirstName(user.firstName) }} {{ user.lastName }}
+                      @if (isCurrentUser(user.uid)) {
+                        <span class="text-xs bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded ml-1">(du)</span>
+                      }
                     </h3>
                     <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
                     @if (user.roles && user.roles.length > 0) {
@@ -392,7 +397,7 @@
           @for (user of filteredUsers.rest; track user.uid) {
             <div 
               class="glass-card user-card p-4 sm:p-5 hover:bg-white/[0.02] transition-all duration-300
-                     {{ user.blocked ? 'bg-rose-500/5 border-rose-500/20' : '' }}
+                     {{ user.blocked ? 'blocked' : '' }}
                      {{ isUserSelected(user.uid) ? 'ring-2 ring-cp-orange shadow-lg shadow-cp-orange/20' : '' }}
                      {{ isCurrentUser(user.uid) ? 'ring-2 ring-teal-400' : '' }}"
               [@itemFade]
@@ -429,6 +434,9 @@
                       {{ user.firstName }} {{ user.lastName }}
                       @if (isDemoUser(user.firstName)) {
                         <span class="text-xs text-cp-blue ml-1">(Demo)</span>
+                      }
+                      @if (isCurrentUser(user.uid)) {
+                        <span class="text-xs bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded ml-1">(du)</span>
                       }
                     </h3>
                     <p class="text-xs sm:text-sm text-gray-400 truncate">{{ user.email }}</p>
