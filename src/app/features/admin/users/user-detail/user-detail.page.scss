@@ -1,3 +1,9 @@
+// src/app/features/admin/users/user-detail/user-detail.page.scss
+:host { 
+  display: block; 
+}
+
+// Utility classes using existing styles.css patterns
 .label {
   @apply text-gray-400 text-sm;
 }
@@ -6,22 +12,8 @@
   @apply text-white;
 }
 
-.badge {
-  @apply text-xs font-medium px-2 py-0.5 rounded;
-}
-
-.action-btn {
-  @apply px-1 py-0.5 text-[0.65rem] whitespace-nowrap leading-none rounded-sm;
-}
-
-.dropdown-menu {
-  @apply min-w-[11rem] bg-gray-800/95 backdrop-blur-sm z-50;
-}
-
-.avatar-ring-hover label:hover {
-  @apply ring-2 ring-cp-orange/60;
-}
-
 .icon-btn {
-  @apply inline-flex items-center justify-center w-7 h-7 text-[0.75rem] leading-none rounded hover:bg-gray-700/30 transition-colors;
+  @apply inline-flex items-center justify-center w-8 h-8 rounded-lg 
+         bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white 
+         transition-all duration-200;
 }

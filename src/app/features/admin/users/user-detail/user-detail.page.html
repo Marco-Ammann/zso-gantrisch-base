@@ -22,7 +22,7 @@
       <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
         <!-- Avatar Section -->
         <div class="flex flex-col items-center lg:items-start">
-          <div class="relative group">
+          <div class="relative group avatar-ring-hover">
             <div class="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white/10 bg-gray-800">
               @if (user.photoUrl || user.photoURL) {
               <img [src]="user.photoUrl || user.photoURL" alt="Avatar" class="w-full h-full object-cover" />
@@ -60,8 +60,17 @@
             <span class="px-3 py-1 text-xs font-medium rounded-full bg-rose-500/20 text-rose-300">
               Gesperrt
             </span>
+            } @else {
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/20 text-blue-300">
+              Aktiv
+            </span>
             }
 
+            @if (user.emailVerified) {
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-purple-500/20 text-purple-300">
+              E-Mail bestätigt
+            </span>
+            }
           </div>
         </div>
 
@@ -69,16 +78,12 @@
         <div class="flex-1 text-center lg:text-left">
           <div class="flex flex-col sm:flex-row items-center lg:items-start justify-between gap-4">
             <div>
-              <h1
-                class="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center lg:justify-start gap-3">
+              <h1 class="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center lg:justify-start gap-3">
                 {{ user.firstName }} {{ user.lastName }}
                 @if (user.uid === (currentUserId$ | async)) {
-                <span class="text-xs text-gray-400">
-                  (Du)
-                </span>
+                <span class="text-xs text-gray-400">(Du)</span>
                 }
-                <button (click)="startEdit(user)" class="p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
-                  title="Bearbeiten">
+                <button (click)="startEdit(user)" class="icon-btn" title="Bearbeiten">
                   <span class="material-symbols-outlined text-xl">edit</span>
                 </button>
               </h1>
@@ -87,8 +92,11 @@
               <!-- Roles -->
               <div class="mt-4">
                 <p class="text-sm text-gray-400 mb-2">Rollen</p>
-                <zso-role-select [roleOptions]="['user', 'admin']" [selected]="user.roles"
-                  (selectedChange)="updateRoles($event, user.uid)" class="inline-block">
+                <zso-role-select 
+                  [roleOptions]="['user', 'admin']" 
+                  [selected]="user.roles"
+                  (selectedChange)="updateRoles($event, user.uid)" 
+                  class="inline-block">
                 </zso-role-select>
               </div>
             </div>
@@ -96,46 +104,62 @@
             <!-- Action Buttons -->
             <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
               @if (!user.approved) {
-              <button (click)="approve(user.uid)" class="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 
-                               transition-all duration-200 font-medium text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">check_circle</span>
+              <zso-button 
+                (click)="approve(user.uid)" 
+                [disabled]="isLoading"
+                type="primary"
+                size="sm"
+                icon="check_circle">
                 Genehmigen
-              </button>
+              </zso-button>
               } @else {
-              <button (click)="unapprove(user.uid)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-amber-500/10 
-                               hover:text-amber-400 transition-all duration-200 font-medium text-sm 
-                               flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">cancel</span>
+              <zso-button 
+                (click)="unapprove(user.uid)" 
+                [disabled]="isLoading"
+                type="danger"
+                size="sm"
+                icon="cancel">
                 Genehmigung entziehen
-              </button>
+              </zso-button>
               }
 
               @if (!user.blocked) {
-              <button (click)="block(user.uid, true)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-rose-500/10 
-                               hover:text-rose-400 transition-all duration-200 font-medium text-sm 
-                               flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">block</span>
+              <zso-button 
+                (click)="block(user.uid, true)" 
+                [disabled]="isLoading"
+                type="danger"
+                size="sm"
+                icon="block">
                 Blockieren
-              </button>
+              </zso-button>
               } @else {
-              <button (click)="block(user.uid, false)" class="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 
-                               transition-all duration-200 font-medium text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">lock_open</span>
+              <zso-button 
+                (click)="block(user.uid, false)" 
+                [disabled]="isLoading"
+                type="primary"
+                size="sm"
+                icon="lock_open">
                 Entsperren
-              </button>
+              </zso-button>
               }
 
               <!-- More Actions Dropdown -->
               <div class="relative">
-                <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" (click)="menuOpen = !menuOpen" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 
-                               hover:text-white transition-all duration-200" [attr.aria-expanded]="menuOpen">
-                  <span class="material-symbols-outlined text-lg">more_vert</span>
+                <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" 
+                        (click)="menuOpen = !menuOpen" 
+                        class="icon-btn" 
+                        [attr.aria-expanded]="menuOpen">
+                  <span class="material-symbols-outlined">more_vert</span>
                 </button>
 
-                <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="menuOrigin"
-                  [cdkConnectedOverlayOpen]="menuOpen" [cdkConnectedOverlayPositions]="positions"
-                  cdkConnectedOverlayHasBackdrop cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-                  (backdropClick)="menuOpen=false" (detach)="menuOpen=false">
+                <ng-template cdkConnectedOverlay 
+                           [cdkConnectedOverlayOrigin]="menuOrigin"
+                           [cdkConnectedOverlayOpen]="menuOpen" 
+                           [cdkConnectedOverlayPositions]="positions"
+                           cdkConnectedOverlayHasBackdrop 
+                           cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+                           (backdropClick)="menuOpen=false" 
+                           (detach)="menuOpen=false">
                   <ul class="dropdown-menu min-w-[200px] mt-2">
                     <li>
                       <button class="dropdown-item" (click)="resetPassword(user.email); menuOpen=false">
@@ -183,25 +207,25 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <p class="text-sm text-gray-400 mb-1">Vorname</p>
-            <p class="text-white">{{ user.firstName }}</p>
+            <p class="label">Vorname</p>
+            <p class="value">{{ user.firstName }}</p>
           </div>
 
           <div>
-            <p class="text-sm text-gray-400 mb-1">Nachname</p>
-            <p class="text-white">{{ user.lastName }}</p>
+            <p class="label">Nachname</p>
+            <p class="value">{{ user.lastName }}</p>
           </div>
 
           <div>
-            <p class="text-sm text-gray-400 mb-1">E-Mail</p>
+            <p class="label">E-Mail</p>
             <a [href]="'mailto:' + user.email" class="text-cp-orange hover:text-cp-orange/80 transition-colors">
               {{ user.email }}
             </a>
           </div>
 
           <div>
-            <p class="text-sm text-gray-400 mb-1">Telefon</p>
-            <p class="text-white">
+            <p class="label">Telefon</p>
+            <p class="value">
               @if (user.phoneNumber) {
               <a [href]="'tel:' + (user.phoneNumber | swissPhone)" class="text-cp-orange hover:text-cp-orange/80">
                 {{ user.phoneNumber | swissPhone }}
@@ -213,14 +237,14 @@
           </div>
 
           <div>
-            <p class="text-sm text-gray-400 mb-1">Geburtsdatum</p>
-            <p class="text-white">
+            <p class="label">Geburtsdatum</p>
+            <p class="value">
               {{ user.birthDate ? (user.birthDate | date:'dd.MM.yyyy') : 'Nicht angegeben' }}
             </p>
           </div>
 
           <div>
-            <p class="text-sm text-gray-400 mb-1">UID</p>
+            <p class="label">UID</p>
             <p class="text-xs text-gray-500 font-mono">{{ user.uid }}</p>
           </div>
         </div>
@@ -235,7 +259,7 @@
 
         <div class="space-y-3">
           <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="text-sm text-gray-400">E-Mail verifiziert</span>
+            <span class="label">E-Mail verifiziert</span>
             <span class="text-sm">
               @if (user.emailVerified) {
               <span class="text-green-400">✓ Ja</span>
@@ -246,7 +270,7 @@
           </div>
 
           <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="text-sm text-gray-400">Genehmigt</span>
+            <span class="label">Genehmigt</span>
             <span class="text-sm">
               @if (user.approved) {
               <span class="text-green-400">✓ Ja</span>
@@ -257,7 +281,7 @@
           </div>
 
           <div class="flex items-center justify-between py-2 border-b border-gray-800">
-            <span class="text-sm text-gray-400">Blockiert</span>
+            <span class="label">Blockiert</span>
             <span class="text-sm">
               @if (user.blocked) {
               <span class="text-rose-400">⛔ Ja</span>
@@ -268,8 +292,8 @@
           </div>
 
           <div class="flex items-center justify-between py-2">
-            <span class="text-sm text-gray-400">Auth Provider</span>
-            <span class="text-sm text-white">{{ user.authProvider || 'password' }}</span>
+            <span class="label">Auth Provider</span>
+            <span class="value">{{ user.authProvider || 'password' }}</span>
           </div>
         </div>
       </div>
@@ -285,30 +309,30 @@
           <div class="relative pl-8">
             <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-green-500"></div>
             <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="text-sm text-gray-400 mb-1">Registriert</p>
-            <p class="text-white text-sm">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+            <p class="label">Registriert</p>
+            <p class="value text-sm">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
           </div>
 
           <div class="relative pl-8">
             <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-blue-500"></div>
             <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="text-sm text-gray-400 mb-1">Letzte Aktualisierung</p>
-            <p class="text-white text-sm">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+            <p class="label">Letzte Aktualisierung</p>
+            <p class="value text-sm">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
           </div>
 
           <div class="relative pl-8">
             <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-amber-500"></div>
             <div class="absolute left-2 top-4 bottom-0 w-0.5 bg-gray-700"></div>
-            <p class="text-sm text-gray-400 mb-1">Letzter Login</p>
-            <p class="text-white text-sm">
+            <p class="label">Letzter Login</p>
+            <p class="value text-sm">
               {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : 'Noch nie' }}
             </p>
           </div>
 
           <div class="relative pl-8">
             <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-purple-500"></div>
-            <p class="text-sm text-gray-400 mb-1">Letzte Aktivität</p>
-            <p class="text-white text-sm">
+            <p class="label">Letzte Aktivität</p>
+            <p class="value text-sm">
               {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : 'Unbekannt' }}
             </p>
           </div>
@@ -318,7 +342,10 @@
   </div>
 
   <!-- Edit Dialog -->
-  <zso-user-edit-dialog [user]="editUser" [visible]="dialogVisible" (saved)="onDialogSaved($event)"
+  <zso-user-edit-dialog 
+    [user]="editUser" 
+    [visible]="dialogVisible" 
+    (saved)="onDialogSaved($event)"
     (closed)="onDialogClosed()">
   </zso-user-edit-dialog>
 </ng-container>

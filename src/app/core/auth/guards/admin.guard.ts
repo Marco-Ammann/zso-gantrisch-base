@@ -1,32 +1,37 @@
+// src/app/core/auth/guards/admin.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
-import { map, take, skipWhile } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {
-  constructor(private auth: AuthService, private router: Router, private logger: LoggerService) {}
+  constructor(
+    private auth: AuthService, 
+    private router: Router, 
+    private logger: LoggerService
+  ) {}
 
   canActivate(): Observable<boolean | UrlTree> {
     return this.auth.appUser$.pipe(
-      skipWhile(u => !u || u.doc.roles === undefined),
       take(1),
-      map(u => {
-        if (!u) {
-          this.logger.warn('AdminGuard', 'no user');
+      map(user => {
+        if (!user) {
+          this.logger.warn('AdminGuard', 'No user found');
           return this.router.parseUrl('/');
         }
-        let rolesArr: string[] = [];
-        if (Array.isArray(u.doc.roles)) {
-          rolesArr = u.doc.roles;
-        } else if ((u.doc as any).role) {
-          rolesArr = [ (u.doc as any).role ];
-        }
-        const isAdmin = rolesArr.includes('admin');
-        this.logger.info('AdminGuard', { uid: u.auth.uid, roles: rolesArr, isAdmin });
-        return isAdmin ? true : this.router.parseUrl('/');
+
+        const isAdmin = user.doc.roles?.includes('admin') ?? false;
+        
+        this.logger.log('AdminGuard', 'Checking admin access', { 
+          uid: user.auth.uid, 
+          roles: user.doc.roles, 
+          isAdmin 
+        });
+
+        return isAdmin ? true : this.router.parseUrl('/dashboard');
       })
     );
   }

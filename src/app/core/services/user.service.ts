@@ -1,27 +1,30 @@
 // src/app/core/services/user.service.ts
-import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
+import { Injectable, inject, Injector, runInInjectionContext, OnDestroy } from '@angular/core';
 import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 import { collection, collectionData, doc, updateDoc, query, orderBy } from '@angular/fire/firestore';
-import { Observable, from, of, throwError } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
+import { Observable, from, of, throwError, Subject } from 'rxjs';
+import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 
 import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 
-// alias to keep existing code compile
-export type AppUser = UserDoc;
-
 @Injectable({ providedIn: 'root' })
-export class UserService {
-  private auth = inject(Auth);
-  private injector = inject(Injector);
-  private logger = inject(LoggerService);
+export class UserService implements OnDestroy {
+  private readonly auth = inject(Auth);
+  private readonly injector = inject(Injector);
+  private readonly logger = inject(LoggerService);
+  private readonly destroy$ = new Subject<void>();
 
   constructor(private firestoreService: FirestoreService) {}
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.logger.log('UserService', 'Service destroyed');
+  }
+
   getAll(): Observable<UserDoc[]> {
-    this.logger.log('UserService', 'getAll called');
     return runInInjectionContext(this.injector, () => {
       try {
         const usersCollection = collection(this.firestoreService.db, 'users');
@@ -35,7 +38,8 @@ export class UserService {
           catchError(error => {
             this.logger.error('UserService', 'Error loading users:', error);
             return of([]);
-          })
+          }),
+          takeUntil(this.destroy$)
         );
       } catch (error) {
         this.logger.error('UserService', 'Error creating query:', error);
@@ -44,168 +48,168 @@ export class UserService {
     });
   }
 
-  approve(uid: string) {
-    this.logger.log('UserService', 'approve', uid);
+  approve(uid: string): Observable<void> {
+    this.logger.log('UserService', 'Approving user', uid);
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () => 
       from(updateDoc(userDoc, { 
         approved: true, 
         blocked: false, 
         updatedAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `User ${uid} approved`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error approving user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  block(uid: string, blocked = true) {
+  unapprove(uid: string): Observable<void> {
+    this.logger.log('UserService', 'Unapproving user', uid);
+    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
+    return runInInjectionContext(this.injector, () => 
+      from(updateDoc(userDoc, { 
+        approved: false, 
+        updatedAt: Date.now() 
+      })).pipe(
+        catchError(error => {
+          this.logger.error('UserService', `Error unapproving user ${uid}:`, error);
+          return throwError(() => error);
+        }),
+        takeUntil(this.destroy$)
+      )
+    );
+  }
+
+  block(uid: string, blocked = true): Observable<void> {
     this.logger.log('UserService', `${blocked ? 'Blocking' : 'Unblocking'} user`, uid);
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () => 
       from(updateDoc(userDoc, { 
         blocked,
         updatedAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `User ${uid} ${blocked ? 'blocked' : 'unblocked'}`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error ${blocked ? 'blocking' : 'unblocking'} user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  setRoles(uid: string, roles: string[]) {
-    this.logger.log('UserService', 'setRoles', { uid, roles });
+  setRoles(uid: string, roles: string[]): Observable<void> {
+    this.logger.log('UserService', 'Setting roles', { uid, roles });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () => 
       from(updateDoc(userDoc, { 
         roles,
         updatedAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `Roles updated for user ${uid}`, roles);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error updating roles for user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  /**
-   * Update email address in Firestore profile document (does NOT change auth email).
-   */
-  setEmail(uid: string, email: string) {
-    this.logger.log('UserService', 'setEmail', { uid, email });
+  setEmail(uid: string, email: string): Observable<void> {
+    this.logger.log('UserService', 'Setting email', { uid, email });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () =>
       from(updateDoc(userDoc, {
         email,
         updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `Email updated for user ${uid}`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error updating email for user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  /**
-   * Save photoUrl (avatar) in profile document.
-   */
-  setNames(uid: string, firstName: string, lastName: string) {
-    this.logger.log('UserService', 'setNames', { uid, firstName, lastName });
+  setNames(uid: string, firstName: string, lastName: string): Observable<void> {
+    this.logger.log('UserService', 'Setting names', { uid, firstName, lastName });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () =>
       from(updateDoc(userDoc, {
         firstName,
         lastName,
         updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `Names updated for user ${uid}`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error updating names for user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  setBirthDate(uid: string, birthDate: number | null) {
+  setBirthDate(uid: string, birthDate: number | null): Observable<void> {
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () => from(updateDoc(userDoc, {
-      birthDate,
-      updatedAt: Date.now()
-    })));
+    
+    return runInInjectionContext(this.injector, () => 
+      from(updateDoc(userDoc, {
+        birthDate,
+        updatedAt: Date.now()
+      })).pipe(
+        takeUntil(this.destroy$)
+      )
+    );
   }
 
-  setPhoneNumber(uid: string, phoneNumber: string | null) {
-    this.logger.log('UserService', 'setPhoneNumber', { uid, phoneNumber });
+  setPhoneNumber(uid: string, phoneNumber: string | null): Observable<void> {
+    this.logger.log('UserService', 'Setting phone number', { uid, phoneNumber });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () =>
       from(updateDoc(userDoc, {
         phoneNumber,
         updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `Phone number updated for user ${uid}`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error updating phone for user ${uid}:`, error);
           return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
-  setPhotoUrl(uid: string, photoUrl: string) {
-    this.logger.log('UserService', 'setPhotoUrl', { uid, photoUrl });
+  setPhotoUrl(uid: string, photoUrl: string): Observable<void> {
+    this.logger.log('UserService', 'Setting photo URL', { uid, photoUrl });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () =>
       from(updateDoc(userDoc, {
         photoUrl,
         updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `Photo URL saved for user ${uid}`);
       })).pipe(
         catchError(error => {
           this.logger.error('UserService', `Error updating photo for user ${uid}:`, error);
           return throwError(() => error);
-        })
-      )
-    );
-  }
-
-  unapprove(uid: string) {
-    this.logger.log('UserService', 'unapprove', uid);
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        approved: false, 
-        updatedAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `User ${uid} unapproved`);
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error unapproving user ${uid}:`, error);
-          return throwError(() => error);
-        })
+        }),
+        takeUntil(this.destroy$)
       )
     );
   }
 
   resetPassword(email: string): Observable<void> {
     this.logger.log('UserService', 'Sending password reset email to', email);
+    
     return from(sendPasswordResetEmail(this.auth, email)).pipe(
       switchMap(() => {
         this.logger.log('UserService', 'Password reset email sent to', email);
@@ -214,88 +218,20 @@ export class UserService {
       catchError(error => {
         this.logger.error('UserService', 'Error sending password reset:', error);
         return throwError(() => error);
-      })
+      }),
+      takeUntil(this.destroy$)
     );
   }
 
-  /**
-   * Persist auth info (provider, emailVerified, phoneNumber) to the Firestore user document.
-   * Can be called after signup or periodically by an admin task.
-   */
-  setAuthInfo(uid: string, authProvider: string, emailVerified: boolean, phoneNumber: string | null) {
-    this.logger.log('UserService', 'setAuthInfo', { uid, authProvider, emailVerified, phoneNumber });
+  updateLastActiveAt(uid: string): Observable<void> {
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        authProvider,
-        emailVerified,
-        phoneNumber,
-        updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `Auth info updated for user ${uid}`);
-      }))
-    );
-  }
-
-  /** Update only the emailVerified flag */
-  updateEmailVerified(uid: string, emailVerified: boolean) {
-    this.logger.log('UserService', 'updateEmailVerified', { uid, emailVerified });
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        emailVerified,
-        updatedAt: Date.now()
-      }).then(() => {
-        this.logger.log('UserService', `emailVerified updated for user ${uid}`);
-      }))
-    );
-  }
-
-  updateLastLoginAt(uid: string) {
-    this.logger.log('UserService', 'updateLastLoginAt', uid);
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        lastLoginAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `Last login updated for user ${uid}`);
-      }))
-    );
-  }
-
-  updateLastLogoutAt(uid: string) {
-    this.logger.log('UserService', 'updateLastLogoutAt', uid);
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        lastLogoutAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `Last logout updated for user ${uid}`);
-      }))
-    );
-  }
-
-  updateLastActiveAt(uid: string) {
-    this.logger.log('UserService', 'updateLastActiveAt', uid);
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
+    
     return runInInjectionContext(this.injector, () => 
       from(updateDoc(userDoc, { 
         lastActiveAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `Last active updated for user ${uid}`);
-      }))
-    );
-  }
-
-  updateLastInactiveAt(uid: string) {
-    this.logger.log('UserService', 'updateLastInactiveAt', uid);
-    const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        lastInactiveAt: Date.now() 
-      }).then(() => {
-        this.logger.log('UserService', `Last inactive updated for user ${uid}`);
-      }))
+      })).pipe(
+        takeUntil(this.destroy$)
+      )
     );
   }
 }

@@ -10,14 +10,15 @@ import {
 import { map, take } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { LoggerService } from '@core/services/logger.service';
 
-/**
- * Blocks access to routes until the user's email has been verified.
- * If not verified yet, redirects to /auth/verify-email.
- */
 @Injectable({ providedIn: 'root' })
 export class EmailVerifiedGuard implements CanActivate {
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService, 
+    private router: Router,
+    private logger: LoggerService
+  ) {}
 
   canActivate(
     _route: ActivatedRouteSnapshot,
@@ -25,13 +26,19 @@ export class EmailVerifiedGuard implements CanActivate {
   ): Observable<boolean | UrlTree> {
     return this.auth.appUser$.pipe(
       take(1),
-      map(u => {
-        const verified = !!u && u.auth.emailVerified;
-        console.log('[EmailVerifiedGuard]', { uid: u?.auth.uid, verified });
+      map(user => {
+        const verified = !!user && user.auth.emailVerified;
+        
+        this.logger.log('EmailVerifiedGuard', 'Checking email verification', { 
+          uid: user?.auth.uid, 
+          verified 
+        });
+
         if (verified) {
           return true;
         }
-        // Not verified – store original URL so we can come back after verification
+
+        // Store original URL for redirect after verification
         return this.router.createUrlTree(['/auth/verify-email'], {
           queryParams: { returnUrl: state.url }
         });

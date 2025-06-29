@@ -3,12 +3,13 @@ import { CommonModule, DatePipe, NgIf, AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OverlayModule, ConnectedPosition } from '@angular/cdk/overlay';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { trigger, transition, style, animate, keyframes } from '@angular/animations';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 import { Router } from '@angular/router';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { map, switchMap } from 'rxjs';
+import { map, switchMap, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/auth/services/auth.service';
@@ -22,18 +23,22 @@ import { LoggerService } from '@core/services/logger.service';
 @Component({
   selector: 'zso-user-detail-page',
   standalone: true,
-  imports: [CommonModule, NgIf, AsyncPipe, RouterModule, DatePipe, OverlayModule, FormsModule, ZsoRoleSelect, UserEditDialogComponent, ZsoButton, SwissPhonePipe],
+  imports: [
+    CommonModule, 
+    NgIf, 
+    AsyncPipe, 
+    RouterModule, 
+    DatePipe, 
+    OverlayModule, 
+    FormsModule, 
+    ZsoRoleSelect, 
+    UserEditDialogComponent, 
+    ZsoButton, 
+    SwissPhonePipe
+  ],
   templateUrl: './user-detail.page.html',
+  styleUrls: ['./user-detail.page.scss'],
   animations: [
-    trigger('badgeAnim', [
-      transition(':enter', [
-        style({ transform: 'scale(0.8)', opacity: 0 }),
-        animate('200ms ease-out', style({ transform: 'scale(1)', opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('150ms ease-in', style({ transform: 'scale(0.8)', opacity: 0 }))
-      ])
-    ]),
     trigger('toastSlide', [
       transition(':enter', [
         style({ transform: 'translateY(100%)', opacity: 0 }),
@@ -42,38 +47,26 @@ import { LoggerService } from '@core/services/logger.service';
       transition(':leave', [
         animate('250ms ease-in', style({ transform: 'translateY(100%)', opacity: 0 }))
       ])
-    ]),
-    trigger('badgeState', [
-      transition('* => *', [
-        animate(
-          '250ms ease-out',
-          keyframes([
-            style({ transform: 'scale(1)', offset: 0 }),
-            style({ transform: 'scale(1.25)', offset: 0.5 }),
-            style({ transform: 'scale(1)', offset: 1 })
-          ])
-        )
-      ])
-    ]),
+    ])
   ],
-  styleUrls: ['./user-detail.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserDetailPage {
-  private route = inject(ActivatedRoute);
-  private userService = inject(UserService);
-  private logger = inject(LoggerService);
-  private router = inject(Router);
-  private authService = inject(AuthService);
+export class UserDetailPage implements OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly userService = inject(UserService);
+  private readonly logger = inject(LoggerService);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly destroy$ = new Subject<void>();
 
-  availableRoles: string[] = ['user', 'admin'];
-
+  // UI state
   menuOpen = false;
   dialogVisible = false;
   editUser: UserDoc | null = null;
   uploading = false;
   uploadMsg: string | null = null;
   uploadError = false;
+  isLoading = false;
 
   // Public observable for current user ID
   currentUserId$ = this.authService.user$.pipe(
@@ -94,80 +87,175 @@ export class UserDetailPage {
     )
   );
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.logger.log('UserDetailPage', 'Component destroyed');
+  }
+
+  // User management actions
   approve(uid: string): void {
-    this.logger.log('UserDetailPage', 'approve', uid);
-    this.userService.approve(uid).subscribe();
+    this.isLoading = true;
+    this.userService.approve(uid).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'User approved', uid);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Approve failed:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   unapprove(uid: string): void {
-    this.logger.log('UserDetailPage', 'unapprove', uid);
-    this.userService.unapprove(uid).subscribe();
+    this.isLoading = true;
+    this.userService.unapprove(uid).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'User unapproved', uid);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Unapprove failed:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   block(uid: string, blocked: boolean): void {
-    this.logger.log('UserDetailPage', blocked ? 'block' : 'unblock', uid);
-    this.userService.block(uid, blocked).subscribe();
+    this.isLoading = true;
+    this.userService.block(uid, blocked).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', `User ${blocked ? 'blocked' : 'unblocked'}`, uid);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Block/unblock failed:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   updateRoles(roles: string[], uid: string): void {
-    this.logger.log('UserDetailPage', 'updateRoles', roles);
-    this.userService.setRoles(uid, roles).subscribe();
+    if (!roles || roles.length === 0) {
+      this.logger.warn('UserDetailPage', 'No roles provided');
+      return;
+    }
+
+    this.userService.setRoles(uid, roles).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'Roles updated', { uid, roles });
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Role update failed:', error);
+      }
+    });
   }
 
+  // User profile management
   startEdit(user: UserDoc): void {
     this.editUser = user;
     this.dialogVisible = true;
   }
 
-  onDialogClosed() {
+  onDialogClosed(): void {
     this.dialogVisible = false;
+    this.editUser = null;
   }
 
-  onDialogSaved(payload: { uid: string; firstName: string; lastName: string; email: string; phoneNumber: string; birthDate: number | null }) {
-    this.userService.setNames(payload.uid, payload.firstName, payload.lastName).subscribe();
-    this.userService.setEmail(payload.uid, payload.email).subscribe();
-    this.userService.setPhoneNumber(payload.uid, payload.phoneNumber || null).subscribe();
-    this.userService.setBirthDate(payload.uid, payload.birthDate).subscribe();
+  onDialogSaved(payload: { 
+    uid: string; 
+    firstName: string; 
+    lastName: string; 
+    email: string; 
+    phoneNumber: string; 
+    birthDate: number | null 
+  }): void {
+    // Update all profile fields
+    const updates = [
+      this.userService.setNames(payload.uid, payload.firstName, payload.lastName),
+      this.userService.setEmail(payload.uid, payload.email),
+      this.userService.setPhoneNumber(payload.uid, payload.phoneNumber || null),
+      this.userService.setBirthDate(payload.uid, payload.birthDate)
+    ];
+
+    updates.forEach(update => {
+      update.pipe(takeUntil(this.destroy$)).subscribe({
+        error: (error) => this.logger.error('UserDetailPage', 'Profile update failed:', error)
+      });
+    });
+
     this.dialogVisible = false;
+    this.editUser = null;
   }
 
-  editNames(user: UserDoc): void {
-    this.startEdit(user);
-  }
-
+  // Admin actions
   resetPassword(email: string): void {
-    this.logger.log('UserDetailPage', 'resetPassword', email);
-    this.userService.resetPassword(email).subscribe();
+    this.userService.resetPassword(email).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'Password reset sent', email);
+        this.showToast('Password-Reset E-Mail gesendet', false);
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Password reset failed:', error);
+        this.showToast('Fehler beim Senden der Reset-E-Mail', true);
+      }
+    });
   }
 
   resendVerificationEmail(): void {
-    this.logger.log('UserDetailPage', 'resendVerificationEmail');
-    this.authService.resendVerificationEmail().subscribe();
+    this.authService.resendVerificationEmail().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'Verification email sent');
+        this.showToast('Verifizierungs-E-Mail gesendet', false);
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Verification email failed:', error);
+        this.showToast('Fehler beim Senden der Verifizierungs-E-Mail', true);
+      }
+    });
   }
 
   changeEmail(uid: string, currentEmail: string): void {
-    const newEmail = prompt('Neue E-Mail-Adresse eingeben', currentEmail);
+    const newEmail = prompt('Neue E-Mail-Adresse eingeben:', currentEmail);
     if (!newEmail || newEmail === currentEmail) return;
-    this.logger.log('UserDetailPage', 'changeEmail', { uid, newEmail });
-    // Simplified: only update Firestore doc; actual auth email update would require re-auth.
-    this.userService.setEmail?.(uid, newEmail)?.subscribe?.();
+
+    this.userService.setEmail(uid, newEmail).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.log('UserDetailPage', 'Email updated', { uid, newEmail });
+        this.showToast('E-Mail-Adresse aktualisiert', false);
+      },
+      error: (error) => {
+        this.logger.error('UserDetailPage', 'Email update failed:', error);
+        this.showToast('Fehler beim Aktualisieren der E-Mail', true);
+      }
+    });
   }
 
-  back(): void {
-    this.router.navigate(['../'], { relativeTo: this.route });
-  }
-
+  // File upload
   onFileSelected(event: Event, uid: string): void {
     const input = event.target as HTMLInputElement;
-
     if (!input.files?.length) return;
-    const file = input.files[0];
 
-    // Validate file size (max 2 MB)
+    const file = input.files[0];
     const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
     if (file.size > MAX_SIZE) {
-      this.uploadMsg = 'Bild zu groß (max. 2 MB).';
-      this.uploadError = true;
+      this.showToast('Bild zu groß (max. 2 MB)', true);
       return;
     }
 
@@ -178,28 +266,41 @@ export class UserDetailPage {
     const storage = getStorage();
     const path = `users/${uid}/avatar_${Date.now()}`;
     const storageRef = ref(storage, path);
-    this.logger.log('UserDetailPage', 'uploadImage', path);
 
     uploadBytes(storageRef, file)
       .then(() => getDownloadURL(storageRef))
-      .then((url: string) => this.userService.setPhotoUrl(uid, url).subscribe({
-        next: () => {
-          this.uploadMsg = 'Bild aktualisiert.';
-          setTimeout(() => (this.uploadMsg = null), 3000);
-          this.uploadError = false;
-        },
-        error: () => {
-          this.uploadMsg = 'Fehler beim Speichern des Bildes.';
-          setTimeout(() => (this.uploadMsg = null), 4000);
-          this.uploadError = true;
-        }
-      }))
-      .catch((err: unknown) => {
-        this.logger.error?.('UserDetailPage', 'upload failed', err);
-        this.uploadMsg = 'Upload fehlgeschlagen.';
-        setTimeout(() => (this.uploadMsg = null), 4000);
-        this.uploadError = true;
+      .then((url: string) => {
+        return this.userService.setPhotoUrl(uid, url).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: () => {
+            this.showToast('Avatar aktualisiert', false);
+          },
+          error: () => {
+            this.showToast('Fehler beim Speichern des Avatars', true);
+          }
+        });
       })
-      .finally(() => (this.uploading = false));
+      .catch((error) => {
+        this.logger.error('UserDetailPage', 'Upload failed:', error);
+        this.showToast('Upload fehlgeschlagen', true);
+      })
+      .finally(() => {
+        this.uploading = false;
+      });
+  }
+
+  // Navigation
+  back(): void {
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  // Utility methods
+  private showToast(message: string, isError: boolean): void {
+    this.uploadMsg = message;
+    this.uploadError = isError;
+    setTimeout(() => {
+      this.uploadMsg = null;
+    }, isError ? 4000 : 3000);
   }
 }

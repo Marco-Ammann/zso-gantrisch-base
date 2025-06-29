@@ -1,62 +1,14 @@
-:host { display:block; }
-
-/* Meta-Infos unterhalb der Mail-Adresse */
-.meta{ @apply text-xs text-gray-400 leading-relaxed; }
-
-/* Badge (gesperrt) anpassen */
-.badge{
-  @apply ml-2 text-xs px-2 py-0.5 rounded font-medium;
-  &--suspended{ @apply bg-rose-500/20 text-rose-300; }
+// src/app/features/admin/users/users.page.scss
+:host { 
+  display: block; 
 }
 
-/* Nur ein dünner roter Rahmen + dezentes Overlay */
-.user-card--blocked{
-  @apply border border-rose-400/30 bg-rose-400/[0.06];
-}
-
-.glass-card{
-  @apply transition-transform transition-opacity duration-200 ease-in-out;
-}
-
-/* Dummy-Tag (d) optisch markieren */
-.demo-tag{
-  @apply mr-1 text-cp-blue font-semibold;
-}
-
-/* Card-specific buttons */
-.card-button {
-  --padding-start: 0.4rem;
-  --padding-end: 0.4rem;
-  --padding-top: 0.2rem;
-  --padding-bottom: 0.2rem;
-  height: auto;
-  min-height: 24px;
-  font-size: 0.7rem;
-  margin: 0.2rem;
-
-  ion-icon {
-    font-size: 0.8rem;
-  }
-}
-
-/* Hover effect adjustments */
+// User card hover effect
 .user-card {
   transition: all 0.2s ease;
-  cursor: pointer;
-  border: 1px solid var(--zso-card-border);
-  background-color: var(--zso-card-background);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
+  
   &:hover {
-    background-color: var(--zso-card-background-hover);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
-    border-color: var(--zso-card-border-hover);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
-}
-
-/* Blocked user styling */
-.user-card.blocked {
-  opacity: 0.7;
-  background-color: rgba(75, 85, 99, 0.1); /* gray-800/10 */
 }

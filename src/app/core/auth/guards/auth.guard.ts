@@ -1,5 +1,4 @@
 // src/app/core/auth/guards/auth.guard.ts
-
 import { Injectable } from '@angular/core';
 import {
   CanActivate,
@@ -23,31 +22,38 @@ export class AuthGuard implements CanActivate {
     private logger: LoggerService
   ) {}
 
-  /**
-   * Verhindert den Zugriff auf geschützte Routen, wenn kein User eingeloggt ist.
-   * Leitet in diesem Fall auf /auth/login um und übergibt die ursprüngliche URL als returnUrl.
-   */
   canActivate(
     _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
     return this.auth.appUser$.pipe(
       take(1),
-      map(u => {
-        const isLoggedIn = !!u && !u.doc.blocked && u.doc.approved; // used only for logging
-        this.logger.info('[AuthGuard]', { uid: u?.auth.uid, blocked: u?.doc.blocked, approved: u?.doc.approved, isLoggedIn });
-        if (!u) {
-          // not logged in at all
+      map(user => {
+        this.logger.log('AuthGuard', 'Checking access', { 
+          uid: user?.auth.uid, 
+          approved: user?.doc.approved, 
+          blocked: user?.doc.blocked 
+        });
+
+        // Not logged in
+        if (!user) {
           return this.router.createUrlTree(['/auth/login'], {
             queryParams: { returnUrl: state.url }
           });
         }
-        if (u.doc.blocked) {
+
+        // User is blocked
+        if (user.doc.blocked) {
+          this.logger.warn('AuthGuard', 'User is blocked', user.auth.uid);
           return this.router.createUrlTree(['/auth/login']);
         }
-        if (!u.doc.approved) {
+
+        // User not approved
+        if (!user.doc.approved) {
           return this.router.createUrlTree(['/auth/pending-approval']);
         }
+
+        // All checks passed
         return true;
       })
     );
