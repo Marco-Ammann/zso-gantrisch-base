@@ -3,18 +3,18 @@
 
   <!-- Error Alert -->
   @if (errorMsg) {
-    <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10" [@itemFade]>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-rose-400">error</span>
-          <span class="text-rose-300">{{ errorMsg }}</span>
-        </div>
-        <button (click)="errorMsg = null" 
-                class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition-colors">
-          <span class="material-symbols-outlined">close</span>
-        </button>
+  <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10" [@itemFade]>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-rose-400">error</span>
+        <span class="text-rose-300">{{ errorMsg }}</span>
       </div>
+      <button (click)="errorMsg = null"
+        class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
+  </div>
   }
 
   <!-- Page Header -->
@@ -28,7 +28,7 @@
         <p class="text-sm text-gray-400">Benutzer genehmigen und verwalten</p>
       </div>
     </div>
-    
+
     <!-- Stats -->
     <div class="flex items-center gap-3 text-sm">
       <span class="px-3 py-1.5 rounded-full bg-gray-800 text-gray-300">
@@ -48,29 +48,20 @@
     <div class="flex gap-3">
       <!-- Search Input -->
       <div class="relative flex-1">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
           search
         </span>
-        <input 
-          type="search" 
-          [(ngModel)]="searchQuery" 
-          (ngModelChange)="onSearchChange($event)"
-          placeholder="Name oder E-Mail suchen..." 
-          class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-white placeholder-gray-500 
+        <input type="search" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)"
+          placeholder="Name oder E-Mail suchen..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-white placeholder-gray-500 
                  border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 
-                 transition-all duration-200 outline-none"
-        />
+                 transition-all duration-200 outline-none" />
       </div>
 
       <!-- Refresh Button -->
-      <button 
-        (click)="refresh()" 
-        [disabled]="isLoading"
-        class="p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 
+      <button (click)="refresh()" [disabled]="isLoading" class="p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 
                hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200
-               disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Aktualisieren"
-      >
+               disabled:opacity-50 disabled:cursor-not-allowed" title="Aktualisieren">
         <span class="material-symbols-outlined {{ isLoading ? 'animate-spin' : '' }}">
           refresh
         </span>
@@ -80,199 +71,198 @@
 
   <!-- Loading State -->
   @if (isLoading) {
-    <div class="glass-card p-8 text-center" [@itemFade]>
-      <div class="inline-flex items-center gap-3">
-        <div class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-gray-300">Lade Benutzerdaten...</span>
-      </div>
+  <div class="glass-card p-8 text-center" [@itemFade]>
+    <div class="inline-flex items-center gap-3">
+      <div class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"></div>
+      <span class="text-gray-300">Lade Benutzerdaten...</span>
     </div>
+  </div>
   }
 
   <!-- Pending Users Section -->
   @if (pendingUsers.length > 0) {
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-amber-400 text-xl">hourglass_empty</span>
-        <h2 class="text-xl font-semibold text-white">
-          Wartende Genehmigungen
-          <span class="text-sm font-normal text-gray-400 ml-2">({{ pendingUsers.length }})</span>
-        </h2>
-      </div>
-
-      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        @for (user of pendingUsers; track user.uid) {
-          <div class="glass-card p-5 user-card" [@itemFade]>
-            <!-- User Header -->
-            <div class="flex items-center gap-3 mb-4">
-              <!-- Avatar -->
-              <div class="relative">
-                @if (user.photoUrl || user.photoURL) {
-                  <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-                       class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
-                } @else {
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                              flex items-center justify-center ring-2 ring-gray-700">
-                    <span class="text-gray-400 font-medium text-sm">
-                      {{ getUserInitials(user) }}
-                    </span>
-                  </div>
-                }
-                <!-- Pending indicator -->
-                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full 
-                            border-2 border-gray-900 animate-pulse"></div>
-              </div>
-              
-              <!-- User Info -->
-              <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-white truncate">
-                  {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
-                </h3>
-                <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
-              </div>
-            </div>
-
-            <!-- Meta Info -->
-            <div class="mb-4 text-xs text-gray-500">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-sm">calendar_today</span>
-                  Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
-                </div>
-                @if (user.emailVerified) {
-                  <span class="text-green-400">✓ E-Mail bestätigt</span>
-                } @else {
-                  <span class="text-amber-400">⏳ E-Mail ausstehend</span>
-                }
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-400">Zugang:</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" 
-                         [checked]="false" 
-                         (change)="approve(user)"
-                         [disabled]="isLoading" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <button 
-                (click)="viewDetails(user)"
-                class="p-2 rounded-lg bg-gray-800 text-gray-400 
-                       hover:bg-gray-700 hover:text-white transition-all duration-200"
-                title="Details anzeigen"
-              >
-                <span class="material-symbols-outlined">arrow_forward</span>
-              </button>
-            </div>
-          </div>
-        }
-      </div>
+  <div class="space-y-4">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-amber-400 text-xl">hourglass_empty</span>
+      <h2 class="text-xl font-semibold text-white">
+        Wartende Genehmigungen
+        <span class="text-sm font-normal text-gray-400 ml-2">({{ pendingUsers.length }})</span>
+      </h2>
     </div>
+
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      @for (user of pendingUsers; track user.uid) {
+      <div class="glass-card p-5 user-card" [@itemFade]>
+        <!-- User Header -->
+        <div class="flex items-center gap-3 mb-4">
+          <!-- Avatar -->
+          <div class="relative">
+            @if (user.photoUrl || user.photoURL) {
+            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
+              class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
+            } @else {
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                              flex items-center justify-center ring-2 ring-gray-700">
+              <span class="text-gray-400 font-medium text-sm">
+                {{ getUserInitials(user) }}
+              </span>
+            </div>
+            }
+            <!-- Pending indicator -->
+            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full 
+                            border-2 border-gray-900 animate-pulse"></div>
+          </div>
+
+          <!-- User Info -->
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-white truncate">
+              {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60">
+                (du)</span>}
+            </h3>
+            <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
+          </div>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="mb-4 text-xs text-gray-500">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">calendar_today</span>
+              Registriert am {{ user.createdAt | date:'dd.MM.yyyy' }}
+            </div>
+            @if (user.emailVerified) {
+            <span class="text-green-400">✓ E-Mail bestätigt</span>
+            } @else {
+            <span class="text-amber-400">⏳ E-Mail ausstehend</span>
+            }
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-400">Zugang:</span>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="false" (change)="approve(user)" [disabled]="isLoading" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <button (click)="viewDetails(user)" class="p-2 rounded-lg bg-gray-800 text-gray-400 
+                       hover:bg-gray-700 hover:text-white transition-all duration-200" title="Details anzeigen">
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
   }
 
   <!-- Approved Users Section -->
   @if (approvedUsers.length > 0) {
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-green-400 text-xl">verified_user</span>
-        <h2 class="text-xl font-semibold text-white">
-          Genehmigte Benutzer
-          <span class="text-sm font-normal text-gray-400 ml-2">({{ approvedUsers.length }})</span>
-        </h2>
-      </div>
-
-      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        @for (user of approvedUsers; track user.uid) {
-          <div class="glass-card p-5 user-card" [@itemFade]>
-            <!-- User Header -->
-            <div class="flex items-center gap-3 mb-4">
-              <!-- Avatar -->
-              <div class="relative">
-                @if (user.photoUrl || user.photoURL) {
-                  <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-                       class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
-                } @else {
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                              flex items-center justify-center ring-2 ring-gray-700">
-                    <span class="text-gray-400 font-medium text-sm">
-                      {{ getUserInitials(user) }}
-                    </span>
-                  </div>
-                }
-                <!-- Approved indicator -->
-                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full 
-                            border-2 border-gray-900"></div>
-              </div>
-              
-              <!-- User Info -->
-              <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-white truncate">
-                  {{ user.firstName }} {{ user.lastName }}@if (isCurrentUser(user.uid)) {<span class="opacity-60"> (du)</span>}
-                </h3>
-                <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
-              </div>
-            </div>
-
-            <!-- Role & Meta Info -->
-            <div class="space-y-2 mb-4">
-              <!-- Roles -->
-              <div class="flex items-center justify-between">
-                <span class="text-xs text-gray-500">Rolle:</span>
-                <zso-role-select 
-                  [roleOptions]="['user', 'admin']"
-                  [selected]="user.roles"
-                  (selectedChange)="updateRoles(user, $event)"
-                >
-                </zso-role-select>
-              </div>
-              
-              <!-- Last Login -->
-              <div class="flex items-center justify-between text-xs text-gray-500">
-                <span>Letzter Login:</span>
-                <span>{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yy') : 'Noch nie' }}</span>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-400">Zugang:</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" 
-                         [checked]="true" 
-                         (change)="unapprove(user)"
-                         [disabled]="isLoading" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <button (click)="viewDetails(user)" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200" title="Details anzeigen">
-                <span class="material-symbols-outlined">arrow_forward</span>
-              </button>
-            </div>
-          </div>
-        }
-      </div>
+  <div class="space-y-4">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-green-400 text-xl">verified_user</span>
+      <h2 class="text-xl font-semibold text-white">
+        Genehmigte Benutzer
+        <span class="text-sm font-normal text-gray-400 ml-2">({{ approvedUsers.length }})</span>
+      </h2>
     </div>
+
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      @for (user of approvedUsers; track user.uid) {
+      <div class="glass-card p-5 user-card" [@itemFade]>
+        <!-- User Header -->
+        <div class="flex items-center gap-3 mb-4">
+          <!-- Avatar -->
+          <div class="relative">
+            @if (user.photoUrl || user.photoURL) {
+            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
+              class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
+            } @else {
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                              flex items-center justify-center ring-2 ring-gray-700">
+              <span class="text-gray-400 font-medium text-sm">
+                {{ getUserInitials(user) }}
+              </span>
+            </div>
+            }
+            <!-- Approved indicator -->
+            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full 
+                            border-2 border-gray-900"></div>
+          </div>
+
+          <!-- User Info -->
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-white truncate flex items-center gap-1">
+              {{ user.firstName }} {{ user.lastName }}
+              @if (user.emailVerified) {
+              <span class="material-symbols-outlined text-green-400 text-sm" title="E-Mail verifiziert">verified</span>
+              }
+              @if (isCurrentUser(user.uid)) {
+              <span class="opacity-60"> (du)</span>
+              }
+            </h3>
+            <p class="text-sm text-gray-400 truncate">{{ user.email }}</p>
+          </div>
+        </div>
+
+        <!-- Role & Meta Info -->
+        <div class="space-y-2 mb-4">
+          <!-- Roles -->
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">Rolle:</span>
+            <zso-role-select [roleOptions]="['user', 'admin']" [selected]="user.roles"
+              (selectedChange)="updateRoles(user, $event)">
+            </zso-role-select>
+          </div>
+
+          <!-- Last Login -->
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span>Letzter Login:</span>
+            <span>{{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yy') : 'Noch nie' }}</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-400">Zugang:</span>
+            <!-- Toggle mit Tooltip -->
+            <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
+              <input type="checkbox" [checked]="user.approved"
+                (change)="user.approved ? unapprove(user) : approve(user)" [disabled]="isLoading" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <button (click)="viewDetails(user)"
+            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-200"
+            title="Details anzeigen">
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
   }
 
   <!-- Empty State -->
   @if (!hasResults && !isLoading) {
-    <div class="glass-card p-12 text-center">
-      <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
-      <h3 class="text-xl font-medium text-white mb-2">Keine Benutzer gefunden</h3>
-      <p class="text-gray-400">
-        @if (searchQuery) {
-          Versuche einen anderen Suchbegriff.
-        } @else {
-          Noch keine Benutzer registriert.
-        }
-      </p>
-    </div>
+  <div class="glass-card p-12 text-center">
+    <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
+    <h3 class="text-xl font-medium text-white mb-2">Keine Benutzer gefunden</h3>
+    <p class="text-gray-400">
+      @if (searchQuery) {
+      Versuche einen anderen Suchbegriff.
+      } @else {
+      Noch keine Benutzer registriert.
+      }
+    </p>
+  </div>
   }
+  <zso-confirmation-dialog #confirmDialog></zso-confirmation-dialog>
 
 </div>

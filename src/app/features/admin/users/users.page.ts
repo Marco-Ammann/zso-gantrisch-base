@@ -45,6 +45,7 @@ export class UsersPage implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
   private readonly searchTerm$ = new BehaviorSubject<string>('');
+  @ViewChild('confirmDialog') confirmation!: ConfirmationDialogComponent;
 
   // State
   allUsers: UserDoc[] = [];
@@ -57,8 +58,6 @@ export class UsersPage implements OnInit, OnDestroy {
   // Current user UID for highlighting
   currentUid: string | null = null;
   
-  @ViewChild(ConfirmationDialogComponent) confirmation!: ConfirmationDialogComponent;
-
   ngOnInit(): void {
     this.logger.log('UsersPage', 'Initializing');
 
@@ -151,24 +150,22 @@ export class UsersPage implements OnInit, OnDestroy {
       `Zugang für ${user.firstName} ${user.lastName} gewähren?`,
       'primary',
       () => {
-        // Optimistic update - sofort UI ändern
+        // Array-Update statt filterUsers()
+        this.pendingUsers = this.pendingUsers.filter(u => u.uid !== user.uid);
         user.approved = true;
-        this.filterUsers();
+        this.approvedUsers = [...this.approvedUsers, user];
+        this.cdr.markForCheck();
         
         this.userService.approve(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
-          next: () => {
-            this.logger.log('UsersPage', `User approved`);
-            // Daten neu laden für Konsistenz
-            this.loadUsers();
-          },
           error: (error) => {
-            // Bei Fehler zurücksetzen
+            // Rollback
+            this.approvedUsers = this.approvedUsers.filter(u => u.uid !== user.uid);
             user.approved = false;
-            this.filterUsers();
+            this.pendingUsers = [...this.pendingUsers, user];
+            this.cdr.markForCheck();
             this.errorMsg = `Fehler beim Genehmigen`;
-            this.logger.error('UsersPage', 'Approve failed:', error);
           }
         });
       }
@@ -180,29 +177,25 @@ export class UsersPage implements OnInit, OnDestroy {
       `Zugang für ${user.firstName} ${user.lastName} entziehen?`,
       'danger',
       () => {
-        // Optimistic update
+        this.approvedUsers = this.approvedUsers.filter(u => u.uid !== user.uid);
         user.approved = false;
-        this.filterUsers();
+        this.pendingUsers = [...this.pendingUsers, user];
+        this.cdr.markForCheck();
         
         this.userService.unapprove(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
-          next: () => {
-            this.logger.log('UsersPage', `User unapproved`);
-            this.loadUsers();
-          },
           error: (error) => {
-            // Bei Fehler zurücksetzen
+            this.pendingUsers = this.pendingUsers.filter(u => u.uid !== user.uid);
             user.approved = true;
-            this.filterUsers();
+            this.approvedUsers = [...this.approvedUsers, user];
+            this.cdr.markForCheck();
             this.errorMsg = `Fehler beim Entziehen`;
-            this.logger.error('UsersPage', 'Unapprove failed:', error);
           }
         });
       }
     );
   }
-
   updateRoles(user: UserDoc, roles: string[]): void {
     if (!roles || roles.length === 0) {
       this.errorMsg = 'Mindestens eine Rolle muss ausgewählt werden.';
