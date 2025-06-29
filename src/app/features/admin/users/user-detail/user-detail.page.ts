@@ -331,4 +331,8 @@ export class UserDetailPage implements OnDestroy {
       this.uploadMsg = null;
     }, isError ? 4000 : 3000);
   }
+
+  getUserInitials(user: UserDoc): string {
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+  }
 }

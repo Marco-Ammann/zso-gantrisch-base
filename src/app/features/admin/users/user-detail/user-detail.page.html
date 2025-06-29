@@ -1,14 +1,6 @@
 <!-- src/app/features/admin/users/user-detail/user-detail.page.html -->
 <ng-container *ngIf="user$ | async as user; else loading">
-  <!-- Upload Toast -->
-  <div *ngIf="uploadMsg"
-    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-card py-2 px-4 rounded-lg text-sm"
-    [class.text-rose-400]="uploadError" 
-    [class.text-green-400]="!uploadError" 
-    [@toastSlide]>
-    {{ uploadMsg }}
-  </div>
-
+  <!-- Header -->
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Back Button -->
     <button (click)="back()" 
@@ -18,141 +10,74 @@
       <span class="text-sm font-medium">Zurück zur Übersicht</span>
     </button>
 
-    <!-- User Header -->
+    <!-- User Card -->
     <div class="glass-card p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-6">
-        <!-- Avatar Section -->
-        <div class="flex flex-col items-center md:items-start">
-          <div class="relative group">
-            <div class="w-24 h-24 rounded-full overflow-hidden ring-2 ring-gray-700 bg-gray-800">
-              @if (user.photoUrl || user.photoURL) {
-                <img [src]="user.photoUrl || user.photoURL" alt="Avatar" 
-                     class="w-full h-full object-cover" />
-              } @else {
-                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
-                  <span class="text-gray-400 text-2xl font-medium">
-                    {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
-                  </span>
-                </div>
-              }
+      <!-- User Header -->
+      <div class="flex items-center gap-4 mb-6">
+        <!-- Avatar -->
+        <div class="relative">
+          @if (user.photoUrl || user.photoURL) {
+            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
+              class="w-16 h-16 rounded-full object-cover ring-2 ring-gray-700" />
+          } @else {
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                          flex items-center justify-center ring-2 ring-gray-700">
+              <span class="text-gray-400 font-medium text-lg">
+                {{ getUserInitials(user) }}
+              </span>
             </div>
-            
-            <!-- Upload Button -->
-            <label class="absolute -bottom-1 -right-1 w-8 h-8 bg-cp-orange rounded-full flex items-center 
-                          justify-center cursor-pointer hover:bg-cp-orange/80 transition-colors">
-              <input type="file" accept="image/*" hidden (change)="onFileSelected($event, user.uid)" />
-              <span class="material-symbols-outlined text-white text-sm">photo_camera</span>
-            </label>
-          </div>
+          }
         </div>
 
         <!-- User Info -->
         <div class="flex-1">
-          <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <h1 class="text-2xl font-bold text-white">
-                  {{ user.firstName }} {{ user.lastName }}@if (user.uid === (currentUserId$ | async)) {<span class="opacity-60"> (du)</span>}
-                </h1>
-                <button (click)="startEdit(user)" class="icon-btn" title="Bearbeiten">
-                  <span class="material-symbols-outlined text-base">edit</span>
-                </button>
-              </div>
-              
-              <p class="text-gray-300 mb-3">{{ user.email }}</p>
-              
-              <!-- Status Badges -->
-              <div class="flex flex-wrap gap-1.5">
-                @if (user.approved) {
-                  <span class="badge badge--approved">
-                    <span class="material-symbols-outlined text-xs mr-1">verified</span>
-                    Zugang erlaubt
-                  </span>
-                } @else {
-                  <span class="badge badge--pending">
-                    <span class="material-symbols-outlined text-xs mr-1">schedule</span>
-                    Zugang verweigert
-                  </span>
-                }
-                
-                @if (user.emailVerified) {
-                  <span class="badge badge--verified">
-                    <span class="material-symbols-outlined text-xs mr-1">verified_user</span>
-                    E-Mail bestätigt
-                  </span>
-                } @else {
-                  <span class="badge badge--unverified">
-                    <span class="material-symbols-outlined text-xs mr-1">mail</span>
-                    E-Mail ausstehend
-                  </span>
-                }
-
-                @if (user.blocked) {
-                  <span class="badge badge--blocked">
-                    <span class="material-symbols-outlined text-xs mr-1">block</span>
-                    Gesperrt
-                  </span>
-                }
-              </div>
-            </div>
-
-            <!-- Access Toggle -->
-            <div class="flex flex-col items-end gap-3">
-              <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">Zugang:</span>
-                <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
-                  <input type="checkbox" 
-                         [checked]="user.approved" 
-                         (change)="toggleAccess(user.uid, $any($event.target).checked)"
-                         [disabled]="isLoading" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-
-              <!-- More Menu -->
-              <div class="relative">
-                <button cdkOverlayOrigin #menuOrigin="cdkOverlayOrigin" 
-                        (click)="menuOpen = !menuOpen" 
-                        class="icon-btn">
-                  <span class="material-symbols-outlined">more_vert</span>
-                </button>
-
-                <ng-template cdkConnectedOverlay 
-                           [cdkConnectedOverlayOrigin]="menuOrigin"
-                           [cdkConnectedOverlayOpen]="menuOpen" 
-                           [cdkConnectedOverlayPositions]="positions"
-                           cdkConnectedOverlayHasBackdrop 
-                           (backdropClick)="menuOpen=false">
-                  <ul class="dropdown-menu">
-                    <li>
-                      <button class="dropdown-item" (click)="resetPassword(user.email); menuOpen=false">
-                        <span class="material-symbols-outlined text-base mr-2">lock_reset</span>
-                        Passwort zurücksetzen
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" (click)="resendVerificationEmail(); menuOpen=false">
-                        <span class="material-symbols-outlined text-base mr-2">mail</span>
-                        Verifizierungs-Mail
-                      </button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item" (click)="changeEmail(user.uid, user.email); menuOpen=false">
-                        <span class="material-symbols-outlined text-base mr-2">alternate_email</span>
-                        E-Mail ändern
-                      </button>
-                    </li>
-                  </ul>
-                </ng-template>
-              </div>
-            </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h1 class="text-2xl font-bold text-white">
+              {{ user.firstName }} {{ user.lastName }}@if (user.uid === (currentUserId$ | async)) {<span class="opacity-60"> (du)</span>}
+            </h1>
+            @if (user.emailVerified) {
+              <span class="material-symbols-outlined text-cp-orange text-xl" title="E-Mail-Adresse wurde bestätigt">verified</span>
+            } @else {
+              <span class="material-symbols-outlined text-gray-500 text-xl" title="E-Mail-Adresse wurde noch nicht bestätigt">mail</span>
+            }
           </div>
+          
+          <p class="text-gray-300 mb-3">{{ user.email }}</p>
+          
+          <!-- Status Badges -->
+          <div class="flex flex-wrap gap-2">
+            @if (user.approved) {
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400" title="Dieser Benutzer hat Zugriff auf die Anwendung">
+                <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
+                Genehmigt
+              </span>
+            } @else {
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300" title="Dieser Benutzer wartet auf Genehmigung">
+                <span class="material-symbols-outlined text-xs mr-1">schedule</span>
+                Wartend
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Access Toggle -->
+      <div class="flex flex-col items-end gap-3">
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-400">Zugang:</span>
+          <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
+            <input type="checkbox" 
+                   [checked]="user.approved" 
+                   (change)="toggleAccess(user.uid, $any($event.target).checked)"
+                   [disabled]="isLoading" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
     </div>
 
     <!-- Info Grid -->
-    <div class="grid gap-6 md:grid-cols-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Personal Information -->
       <div class="glass-card p-6">
         <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
