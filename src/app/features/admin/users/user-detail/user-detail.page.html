@@ -14,19 +14,46 @@
     <div class="glass-card p-6 mb-6">
       <!-- User Header -->
       <div class="flex items-center gap-4 mb-6">
-        <!-- Avatar -->
-        <div class="relative">
+        <!-- Avatar with Upload -->
+        <div class="relative group">
           @if (user.photoUrl || user.photoURL) {
             <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-              class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700" />
+              class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700 
+                     group-hover:ring-cp-orange transition-all duration-200" />
           } @else {
             <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                      flex items-center justify-center ring-2 ring-gray-700">
+                      flex items-center justify-center ring-2 ring-gray-700 
+                      group-hover:ring-cp-orange transition-all duration-200">
               <span class="text-gray-400 font-medium text-2xl md:text-3xl">
                 {{ getUserInitials(user) }}
               </span>
             </div>
           }
+          
+          <!-- Upload Overlay -->
+          <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center 
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+               (click)="fileInput.click()"
+               [class.opacity-100]="uploading">
+            @if (uploading) {
+              <div class="flex flex-col items-center gap-2">
+                <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-white text-xs">Upload...</span>
+              </div>
+            } @else {
+              <div class="flex flex-col items-center gap-1">
+                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                <span class="text-white text-xs font-medium">Foto ändern</span>
+              </div>
+            }
+          </div>
+          
+          <!-- Hidden File Input -->
+          <input #fileInput
+                 type="file"
+                 accept="image/*"
+                 (change)="onFileSelected($event, user.uid)"
+                 class="hidden" />
         </div>
 
         <!-- User Info -->
@@ -238,6 +265,23 @@
       </div>
     </div>
   </div>
+
+  <!-- Upload Toast -->
+  @if (uploadMsg) {
+    <div class="fixed bottom-4 right-4 z-50 glass-card p-4 min-w-64" 
+         [class.border-green-500]="!uploadError"
+         [class.border-rose-500]="uploadError"
+         [@toastSlide]>
+      <div class="flex items-center gap-3">
+        @if (uploadError) {
+          <span class="material-symbols-outlined text-rose-400">error</span>
+        } @else {
+          <span class="material-symbols-outlined text-green-400">check_circle</span>
+        }
+        <span class="text-white text-sm">{{ uploadMsg }}</span>
+      </div>
+    </div>
+  }
 
   <!-- Edit Dialog -->
   <zso-user-edit-dialog 
