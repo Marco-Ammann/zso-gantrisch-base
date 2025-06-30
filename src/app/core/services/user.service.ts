@@ -9,6 +9,13 @@ import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 
+interface Stats {
+  total: number;
+  active: number;
+  pending: number;
+  blocked: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService implements OnDestroy {
   private readonly auth = inject(Auth);
@@ -46,6 +53,21 @@ export class UserService implements OnDestroy {
         return of([]);
       }
     });
+  }
+
+  getAllUsers(): Observable<UserDoc[]> {
+    return this.getAll();
+  }
+
+  getStats(): Observable<Stats> {
+    return this.getAll().pipe(
+      map(users => ({
+        total: users.length,
+        active: users.filter(u => u.approved && !u.blocked).length,
+        pending: users.filter(u => !u.approved).length,
+        blocked: users.filter(u => u.blocked).length
+      }))
+    );
   }
 
   approve(uid: string): Observable<void> {
