@@ -7,12 +7,21 @@ import { AdminGuard } from './core/auth/guards/admin.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { adminRoutes } from './features/admin/admin.routes';
+import { legalRoutes } from './features/legal/legal.routes';
 
 export const appRoutes: Routes = [
-  // 1. Wenn der Benutzer nur "/" aufruft, direkt auf /auth/login weiterleiten
+  // 1. Redirect root to auth/login
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
 
-  // 2. Alle Auth-Routen unter dem Auth-Shell
+  // 2. Legal pages (publicly accessible via Legal Shell)
+  {
+    path: '',
+    loadComponent: () =>
+      import('./core/layout/shell/legal-shell/legal-shell').then(m => m.LegalShell),
+    children: legalRoutes,
+  },
+
+  // 3. Auth routes under Auth Shell
   {
     path: 'auth',
     loadComponent: () =>
@@ -20,20 +29,19 @@ export const appRoutes: Routes = [
     children: authRoutes,
   },
 
-  // 3. Geschützter Bereich (Dashboard, Users) unter MainShell
+  // 4. Protected routes under Main Shell
   {
     path: '',
     loadComponent: () =>
       import('./core/layout/shell/main-shell/main-shell').then(m => m.MainShell),
-    canActivate: [AuthGuard, EmailVerifiedGuard], // added EmailVerifiedGuard
+    canActivate: [AuthGuard, EmailVerifiedGuard],
     children: [
-      // Kein leerer Redirect mehr hier
       { path: 'dashboard', children: dashboardRoutes },
       { path: 'users', children: adminRoutes },
       { path: 'admin', canActivate: [AdminGuard], children: adminRoutes }
     ],
   },
 
-  // 4. Wildcard-Fallback: alles, was nicht passt, geht zurück zu "/"
+  // 5. Fallback
   { path: '**', redirectTo: '' },
 ];

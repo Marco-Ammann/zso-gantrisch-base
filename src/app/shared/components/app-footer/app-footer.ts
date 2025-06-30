@@ -1,11 +1,12 @@
 // src/app/shared/components/app-footer/app-footer.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <footer class="bg-gray-900/50 backdrop-blur-sm border-t border-white/5 py-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,10 +33,10 @@ import { CommonModule } from '@angular/common';
           <div>
             <h3 class="text-sm font-semibold text-white mb-3">Rechtliches</h3>
             <div class="space-y-2">
-              <a href="/datenschutz" class="footer-link">
+              <a routerLink="/datenschutz" class="footer-link">
                 Datenschutz
               </a>
-              <a href="/impressum" class="footer-link">
+              <a routerLink="/impressum" class="footer-link">
                 Impressum
               </a>
             </div>

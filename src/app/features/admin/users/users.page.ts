@@ -10,8 +10,6 @@ import { UserService } from '@core/services/user.service';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
-import { ZsoButton } from '@shared/ui/zso-button/zso-button';
-import { ZsoRoleSelect } from '@shared/ui/zso-role-select/zso-role-select';
 import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
 
 @Component({
@@ -21,8 +19,6 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
     CommonModule,
     FormsModule,
     RouterModule,
-    ZsoButton,
-    ZsoRoleSelect,
     ConfirmationDialogComponent
   ],
   templateUrl: './users.page.html',

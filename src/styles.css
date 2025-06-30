@@ -312,31 +312,30 @@
     @apply bg-cp-orange/90;
   }
 
-  /* Badge Component System */
-  .badge {
-    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-full;
+/* Badge Component System */
+.badge {
+  @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-full;
+}
 
-    &--approved {
-      @apply bg-green-500/20 text-green-400 border border-green-500/30;
-    }
+.badge--approved {
+  @apply bg-green-500/20 text-green-400 border border-green-500/30;
+}
 
-    &--pending {
-      @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
-    }
+.badge--pending {
+  @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
+}
 
-    &--blocked {
-      @apply bg-rose-500/20 text-rose-300 border border-rose-500/30;
-    }
+.badge--blocked {
+  @apply bg-rose-500/20 text-rose-300 border border-rose-500/30;
+}
 
-    &--verified {
-      @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
-    }
+.badge--verified {
+  @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
+}
 
-    &--unverified {
-      @apply bg-gray-500/20 text-gray-400 border border-gray-500/30;
-    }
-  }
-
+.badge--unverified {
+  @apply bg-gray-500/20 text-gray-400 border border-gray-500/30;
+}
   /* Label and Value styles for detail pages */
   .label {
     @apply text-sm font-medium text-gray-400 mb-1;

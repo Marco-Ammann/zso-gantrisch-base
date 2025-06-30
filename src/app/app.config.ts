@@ -1,7 +1,10 @@
-// src/app/app.config.ts
+// src/app/app.config.ts - Updated mit Locale Support
 
-import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { registerLocaleData } from '@angular/common';
+import localeDE from '@angular/common/locales/de';
+import localeDeExtra from '@angular/common/locales/extra/de';
 
 // HttpClient + Interceptor
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -15,15 +18,12 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 // Environment
 import { environment } from '../environments/environment';
 
-declare module '../environments/environment' {
-  interface Environment {
-    useEmulators?: boolean;
-  }
-}
-
 // eigene Dateien
 import { appRoutes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+
+// Register German locale
+registerLocaleData(localeDE, 'de', localeDeExtra);
 
 // Initialize Firebase services
 export function provideFirebase() {
@@ -58,6 +58,9 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // Routing
     provideRouter(appRoutes),
+
+    // Locale Support
+    { provide: LOCALE_ID, useValue: 'de' },
 
     // HttpClient-Modul + Interceptor
     importProvidersFrom(HttpClientModule),
