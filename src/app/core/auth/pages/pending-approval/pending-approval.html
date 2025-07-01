@@ -1,25 +1,76 @@
-<div class="field-stack items-center text-center animate-fadeUp w-full">
+<!-- src/app/core/auth/pages/pending-approval/pending-approval.html -->
+<div class="w-full max-w-md mx-auto text-center">
 
-    <div class="flex flex-col items-center gap-4">
-      <div class="auth-icon-wrapper">
-        <!-- Clock Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-8 w-8 text-cp-orange"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9"/>
-          <polyline points="12 7 12 12 15 15"/>
-        </svg>
-      </div>
-      <h1 class="text-xl font-semibold text-cp-orange">Wir prüfen dein Konto</h1>
+  <!-- Header Section -->
+  <div class="mb-8 animate-fadeUp">
+    <div class="auth-icon-wrapper mx-auto mb-4">
+      <span class="material-symbols-outlined text-2xl text-cp-orange">schedule</span>
     </div>
-  
-    <p class="text-gray-200 text-sm max-w-xs mx-auto">
-      Vielen Dank für deine Registrierung! Wir informieren dich per E-Mail,
+    <h1 class="text-2xl font-bold text-white mb-2">Wir prüfen dein Konto</h1>
+    <p class="text-sm text-gray-400 max-w-xs mx-auto">
+      Vielen Dank für deine Registrierung! Wir informieren dich per E-Mail, 
       sobald dein Zugang freigeschaltet ist.
     </p>
-  
-    <zso-button type="danger" htmlType="button" [fullWidth]="true" (click)="logout()">
-      Abmelden
-    </zso-button>
   </div>
-  
+
+  <!-- Status Card -->
+  <div class="glass-card p-6 mb-6">
+    <div class="flex items-center justify-center gap-3 mb-4">
+      <div class="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
+      <span class="text-amber-300 font-medium">Genehmigung ausstehend</span>
+    </div>
+    
+    <div class="space-y-3 text-sm text-gray-300">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-green-400 text-sm">check</span>
+        <span>Registrierung abgeschlossen</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-green-400 text-sm">check</span>
+        <span>E-Mail-Adresse bestätigt</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-amber-400 text-sm">schedule</span>
+        <span>Admin-Genehmigung wird bearbeitet</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information Box -->
+  <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+    <div class="flex items-start gap-2">
+      <span class="material-symbols-outlined text-blue-400 text-sm mt-0.5">info</span>
+      <div class="text-left">
+        <p class="text-sm text-blue-300 mb-2">
+          <strong>Was passiert als Nächstes?</strong>
+        </p>
+        <ul class="text-xs text-blue-200 space-y-1">
+          <li>• Ein Administrator prüft deine Registrierung</li>
+          <li>• Du erhältst eine E-Mail nach der Genehmigung</li>
+          <li>• Danach kannst du dich normal anmelden</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Button -->
+  <zso-button 
+    type="danger" 
+    htmlType="button" 
+    [fullWidth]="true" 
+    (click)="logout()"
+    icon="logout">
+    Abmelden
+  </zso-button>
+
+  <!-- Contact Info -->
+  <div class="mt-6 pt-6 border-t border-white/10">
+    <p class="text-xs text-gray-500 mb-2">
+      Fragen zur Registrierung?
+    </p>
+    <a href="mailto:zso-gantrisch@schwarzenburg.ch" 
+       class="text-sm text-cp-orange hover:text-cp-orange/80 transition-colors">
+      zso-gantrisch&#64;schwarzenburg.ch
+    </a>
+  </div>
+</div>

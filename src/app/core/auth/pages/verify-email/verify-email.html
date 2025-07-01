@@ -1,31 +1,70 @@
-<div class="max-w-md mx-auto mt-12 text-center space-y-6 animate-fadeUp">
+<!-- src/app/core/auth/pages/verify-email/verify-email.html -->
+<div class="w-full max-w-md mx-auto text-center">
 
-  <h1 class="text-2xl font-bold text-white">E-Mail bestätigen</h1>
+  <!-- Header Section -->
+  <div class="mb-8 animate-fadeUp">
+    <div class="auth-icon-wrapper mx-auto mb-4">
+      <span class="material-symbols-outlined text-2xl text-cp-orange">mark_email_unread</span>
+    </div>
+    <h1 class="text-2xl font-bold text-white mb-2">E-Mail bestätigen</h1>
+    <p class="text-sm text-gray-400 max-w-xs mx-auto">
+      Wir haben dir eine Bestätigungs-E-Mail geschickt. Klicke auf den Link in deinem Postfach, 
+      um dein Konto zu aktivieren.
+    </p>
+  </div>
 
-  <p class="text-white/80">
-    Wir haben dir eine Bestätigungs-E-Mail geschickt.
-    Klicke auf den Link in deinem Postfach, um dein Konto zu aktivieren.
-  </p>
+  <!-- Action Buttons -->
+  <div class="space-y-4 mb-6">
+    <zso-button
+      type="primary"
+      htmlType="button"
+      (click)="check()"
+      [fullWidth]="true"
+      icon="verified">
+      Ich habe bestätigt
+    </zso-button>
 
-  <zso-button
-    type="primary"
-    htmlType="button"
-    (click)="check()"
-    [fullWidth]="true"
-  >
-    Ich habe bestätigt
-  </zso-button>
+    <zso-button
+      type="neutral"
+      htmlType="button"
+      (click)="resend()"
+      [fullWidth]="true"
+      icon="refresh">
+      E-Mail erneut senden
+    </zso-button>
+  </div>
 
-  <zso-button
-    type="neutral"
-    htmlType="button"
-    (click)="resend()"
-    [fullWidth]="true"
-  >
-    E-Mail erneut senden
-  </zso-button>
-
+  <!-- Info Message -->
   @if (info) {
-    <p class="text-sm text-cp-orange">{{ info }}</p>
+    <div class="mb-6 p-4 rounded-lg" 
+         [class]="info.includes('Fehler') ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-blue-500/10 border border-blue-500/20'">
+      <div class="flex items-center gap-2 justify-center">
+        <span class="material-symbols-outlined text-sm"
+              [class]="info.includes('Fehler') ? 'text-rose-400' : 'text-blue-400'">
+          {{ info.includes('Fehler') ? 'error' : 'info' }}
+        </span>
+        <p class="text-sm"
+           [class]="info.includes('Fehler') ? 'text-rose-300' : 'text-blue-300'">
+          {{ info }}
+        </p>
+      </div>
+    </div>
   }
+
+  <!-- Help Text -->
+  <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+    <div class="flex items-start gap-2">
+      <span class="material-symbols-outlined text-amber-400 text-sm mt-0.5">lightbulb</span>
+      <div class="text-left">
+        <p class="text-sm text-gray-300 mb-2">
+          <strong>E-Mail nicht erhalten?</strong>
+        </p>
+        <ul class="text-xs text-gray-400 space-y-1">
+          <li>• Überprüfe deinen Spam-Ordner</li>
+          <li>• Warte einige Minuten und versuche es erneut</li>
+          <li>• Stelle sicher, dass die E-Mail-Adresse korrekt ist</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>

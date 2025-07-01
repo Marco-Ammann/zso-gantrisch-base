@@ -14,6 +14,7 @@ import { ReactiveFormsModule, FormControl, Validators, NG_VALUE_ACCESSOR, Contro
 export class ZsoInputField implements ControlValueAccessor {
   @Input() label = '';
   @Input() type: 'text' | 'email' | 'password' = 'text';
+  @Input() placeholder = '';
   @Input() toggleVisibility = false;
 
   control = new FormControl(
@@ -35,10 +36,14 @@ export class ZsoInputField implements ControlValueAccessor {
   getError(): string {
     if (this.control.hasError('required')) return 'Dieses Feld ist erforderlich.';
     if (this.control.hasError('email'))    return 'Ungültige E-Mail-Adresse.';
+    if (this.control.hasError('minlength')) {
+      const requiredLength = this.control.getError('minlength')?.requiredLength;
+      return `Mindestens ${requiredLength} Zeichen erforderlich.`;
+    }
     return 'Ungültiger Wert.';
   }
 
-  /* CVA */
+  /* CVA Implementation */
   writeValue(v: any)            { this.control.setValue(v); }
   registerOnChange(fn: any)     { this.control.valueChanges.subscribe(fn); }
   registerOnTouched(fn: any)    { this.onTouched = fn; }

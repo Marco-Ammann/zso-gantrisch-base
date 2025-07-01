@@ -1,42 +1,72 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="field-stack w-full" zsoGlowSeq zsoSweepSeq>
+<!-- src/app/core/auth/pages/login/login.html -->
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-full max-w-md mx-auto" zsoGlowSeq zsoSweepSeq>
 
-  <div class="flex flex-col items-center gap-6 animate-fadeUp">
-    <div class="auth-icon-wrapper">
-      <!-- Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-8 w-8 text-cp-orange"
-           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 12h13m-4-4 4 4-4 4"/>
-        <path d="M17 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-      </svg>
+  <!-- Header Section -->
+  <div class="text-center mb-8 animate-fadeUp">
+    <div class="auth-icon-wrapper mx-auto mb-4">
+      <span class="material-symbols-outlined text-2xl text-cp-orange">login</span>
     </div>
-    <h1 class="text-2xl font-bold text-cp-orange">Willkommen zurück</h1>
+    <h1 class="text-2xl font-bold text-white mb-2">Willkommen zurück</h1>
+    <p class="text-sm text-gray-400">Melde dich mit deinem Konto an</p>
   </div>
 
-  <div class="field-stack--tight">
-    <zso-input-field formControlName="email"    label="E-Mail"   type="email"/>
-    <zso-input-field formControlName="password" label="Passwort" type="password" [toggleVisibility]="true"/>
+  <!-- Form Fields -->
+  <div class="space-y-6 mb-6">
+    <div class="field-stack--tight">
+      <zso-input-field 
+        formControlName="email" 
+        label="E-Mail-Adresse" 
+        type="email"
+        placeholder="deine@email.ch"/>
+      <zso-input-field 
+        formControlName="password" 
+        label="Passwort" 
+        type="password" 
+        [toggleVisibility]="true"
+        placeholder="Dein Passwort"/>
+    </div>
+
+    <!-- Remember Me -->
+    <div class="flex items-center justify-between">
+      <zso-checkbox formControlName="rememberMe" label="Angemeldet bleiben"/>
+      <a routerLink="/auth/forgot-password" 
+         class="text-sm text-cp-orange hover:text-cp-orange/80 transition-colors">
+        Passwort vergessen?
+      </a>
+    </div>
   </div>
 
-  <zso-checkbox formControlName="rememberMe" label="Angemeldet bleiben"/>
-
-  <zso-button type="primary" [loading]="isLoading" [fullWidth]="true" htmlType="submit">
+  <!-- Submit Button -->
+  <zso-button 
+    type="primary" 
+    [loading]="isLoading" 
+    [fullWidth]="true" 
+    htmlType="submit"
+    class="mb-6">
     Anmelden
   </zso-button>
 
+  <!-- Error Message -->
   @if (errorMsg) {
-    <p class="text-center text-sm text-rose-400">{{ errorMsg }}</p>
+    <div class="mb-6 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-rose-400 text-sm">error</span>
+        <p class="text-sm text-rose-300">{{ errorMsg }}</p>
+      </div>
+    </div>
   }
 
-  <p class="text-center text-xs">
-    Passwort vergessen?
-    <a routerLink="/auth/forgot-password" class="underline text-cp-orange">Link anfordern</a>
-  </p>
+  <!-- Divider -->
+  <div class="divider-labeled mb-6">oder</div>
 
-  <div class="divider-labeled">oder</div>
-
-  <p class="text-center text-sm">
-    Neu hier?
-    <a routerLink="/auth/register" class="font-medium hover:underline text-cp-orange">Konto erstellen</a>
-  </p>
+  <!-- Register Link -->
+  <div class="text-center">
+    <p class="text-sm text-gray-400">
+      Noch kein Konto?
+      <a routerLink="/auth/register" 
+         class="font-medium text-cp-orange hover:text-cp-orange/80 transition-colors ml-1">
+        Jetzt registrieren
+      </a>
+    </p>
+  </div>
 </form>
