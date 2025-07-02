@@ -1,16 +1,21 @@
 // src/app/features/adsz/adsz-detail/adsz-detail.page.ts
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { Subject, takeUntil, switchMap, of } from 'rxjs';
+import { Subject, takeUntil, switchMap, of, lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
+import { Observable } from 'rxjs';
+import { NotfallkontaktDoc } from '@core/models/person.model';
+import { Notfallkontakt } from '@core/models/person.model';
 
 import { PersonService } from '@core/services/person.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
-import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
+import { PersonDoc } from '@core/models/person.model';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 
 @Component({
@@ -53,6 +58,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   errorMsg: string | null = null;
   successMsg: string | null = null;
   isNewPerson = false;
+  uploading = false;
+  uploadMsg: string | null = null;
+  uploadError = false;
+
 
   // Forms
   grunddatenForm!: FormGroup;
@@ -297,6 +306,77 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     this.logger.log('AdzsDetailPage', 'Generate PDF for person', this.person.id);
     this.successMsg = 'PDF-Generierung gestartet...';
   }
+
+  getPersonInitials(person: PersonDoc): string {
+    return `${person.grunddaten.vorname.charAt(0)}${person.grunddaten.nachname.charAt(0)}`;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length || !this.person) return;
+
+    const file = input.files[0];
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
+    if (file.size > MAX_SIZE) {
+      this.showToast('Bild zu groß (max. 2 MB)', true);
+      return;
+    }
+
+    this.uploading = true;
+    this.uploadMsg = 'Bild wird hochgeladen…';
+    this.uploadError = false;
+
+    const storage = getStorage();
+    const path = `persons/${this.person.id}/avatar_${Date.now()}`;
+    const storageRef = ref(storage, path);
+
+    let downloadUrl: string;
+
+    uploadBytes(storageRef, file)
+      .then((snapshot) => {
+        return getDownloadURL(storageRef);
+      })
+      .then((url) => {
+        downloadUrl = url;
+        if (!this.person) return;
+        
+        return lastValueFrom(
+          this.personService.update(this.person.id, { photoUrl: url })
+        );
+      })
+      .then(() => {
+        if (this.person) {
+          this.person.photoUrl = downloadUrl;
+        }
+        this.showToast('Avatar aktualisiert', false);
+        this.cdr.markForCheck();
+      })
+      .catch((error) => {
+        this.logger.error('AdzsDetailPage', 'Upload failed:', error);
+        this.showToast('Upload fehlgeschlagen', true);
+      })
+      .finally(() => {
+        this.uploading = false;
+        this.cdr.markForCheck();
+      });
+  }
+
+  private showToast(message: string, isError: boolean): void {
+    this.uploadMsg = message;
+    this.uploadError = isError;
+    setTimeout(() => {
+      this.uploadMsg = null;
+      this.cdr.markForCheck();
+    }, isError ? 4000 : 3000);
+  }
+
+    /**
+   * Notfallkontakte für Person laden
+   */
+    getNotfallkontakteByPersonId(personId: string): Observable<Notfallkontakt[]> {
+      return this.personService.getNotfallkontakteByPersonId(personId);
+    }
 
   // Utility methods
   private validateAllForms(): boolean {

@@ -92,7 +92,7 @@
             <!-- Avatar with Upload -->
             <div class="relative group">
               @if (person?.photoUrl) {
-                <img [src]="person.photoUrl" alt="Avatar"
+                <img [src]="person?.photoUrl" alt="Avatar"
                   class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-700 
                          group-hover:ring-cp-orange transition-all duration-200" />
               } @else {
