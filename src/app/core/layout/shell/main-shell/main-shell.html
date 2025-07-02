@@ -1,8 +1,10 @@
-<div class="relative min-h-screen flex flex-col bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]">
-  <div class="absolute inset-0 bg-[#0e1628]/90 backdrop-blur-sm" ></div>
+<div
+  class="relative min-h-screen flex flex-col bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]">
+  <div class="absolute inset-0 bg-[#0e1628]/90 backdrop-blur-sm"></div>
 
   <!-- Header -->
-  <header class="z-20 backdrop-blur-lg border-b border-white/10 flex-shrink-0 shadow-lg shadow-white/10 fixed top-0 left-0 right-0">
+  <header
+    class="z-20 backdrop-blur-lg border-b border-white/10 flex-shrink-0 shadow-lg shadow-white/10 fixed top-0 left-0 right-0">
     <nav class="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center">
       <!-- Logo -->
       <a routerLink="/dashboard" class="flex items-end gap-1 font-bold text-white">
@@ -16,18 +18,18 @@
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center">
         <nav class="flex gap-2">
-          <a routerLink="/dashboard" 
-             routerLinkActive="nav-active"
-             [routerLinkActiveOptions]="{exact:true}" 
-             class="nav-link ">
+          <a routerLink="/dashboard" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact:true}"
+            class="nav-link ">
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
           </a>
-          
-          <a *ngIf="isAdmin$ | async" 
-             routerLink="/admin/users" 
-             routerLinkActive="nav-active"
-             class="nav-link">
+
+          <a routerLink="/adsz" routerLinkActive="nav-active" class="nav-link">
+            <span class="material-symbols-outlined text-lg">groups</span>
+            AdZS
+          </a>
+
+          <a *ngIf="isAdmin$ | async" routerLink="/admin/users" routerLinkActive="nav-active" class="nav-link">
             <span class="material-symbols-outlined text-lg">group</span>
             Benutzer
           </a>
@@ -38,18 +40,16 @@
 
       <!-- User Menu -->
       <div class="flex items-center gap-3">
-        <!-- User Avatar Button -->
-        <button cdkOverlayOrigin #origin="cdkOverlayOrigin"
-                (click)="toggleProfile()"
-                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 
+        <!-- User Avatar Button (dont show in mobile) -->
+        <button cdkOverlayOrigin #origin="cdkOverlayOrigin" (click)="toggleProfile()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 zso-desktop-only-avatar
                        border border-white/10 hover:border-cp-orange/50 transition-all duration-200"
-                [attr.aria-expanded]="overlayOpen">
-          
+          [attr.aria-expanded]="overlayOpen">
+
           <!-- Avatar -->
           <ng-container *ngIf="appUser$ | async as user; else guestAvatar">
             <ng-container *ngIf="user.doc.photoUrl || user.doc.photoURL; else initials">
-              <img [src]="user.doc.photoUrl || user.doc.photoURL" alt="Avatar" 
-                   class="w-7 h-7 rounded-full object-cover" />
+              <img [src]="user.doc.photoUrl || user.doc.photoURL" alt="Avatar"
+                class="w-7 h-7 rounded-full object-cover" />
             </ng-container>
             <ng-template #initials>
               <div class="w-7 h-7 rounded-full bg-cp-orange/20 flex items-center justify-center">
@@ -58,47 +58,41 @@
                 </span>
               </div>
             </ng-template>
-            
+
             <!-- User Name (desktop only) -->
             <span class="hidden sm:block text-sm text-white font-medium">
               {{ user.doc.firstName }}
             </span>
           </ng-container>
-          
+
           <ng-template #guestAvatar>
             <div class="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center">
               <span class="material-symbols-outlined text-gray-300 text-sm">person</span>
             </div>
           </ng-template>
-          
+
           <!-- Dropdown Arrow -->
           <span class="material-symbols-outlined text-gray-400 transition-transform duration-200"
-                [class.rotate-180]="overlayOpen">
+            [class.rotate-180]="overlayOpen">
             expand_more
           </span>
         </button>
 
         <!-- Mobile Menu Button -->
         <button class="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                (click)="toggleMobile()" 
-                aria-label="Menü">
+          (click)="toggleMobile()" aria-label="Menü">
           <span class="material-symbols-outlined text-2xl transition-transform duration-300"
-                [class.rotate-180]="showLinks">
+            [class.rotate-180]="showLinks">
             {{ showLinks ? 'close' : 'menu' }}
           </span>
         </button>
       </div>
 
       <!-- User Dropdown -->
-      <ng-template
-         cdkConnectedOverlay
-         [cdkConnectedOverlayOrigin]="origin"
-         [cdkConnectedOverlayOpen]="overlayOpen"
-         [cdkConnectedOverlayPositions]="positions"
-         cdkConnectedOverlayHasBackdrop
-         cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-         (backdropClick)="overlayOpen=false"
-         (detach)="overlayOpen=false">
+      <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="origin" [cdkConnectedOverlayOpen]="overlayOpen"
+        [cdkConnectedOverlayPositions]="positions" cdkConnectedOverlayHasBackdrop
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop" (backdropClick)="overlayOpen=false"
+        (detach)="overlayOpen=false">
 
         <div class="dropdown-menu w-48 mt-2" [@fadeInOut]>
           <div class="px-4 py-3 border-b border-gray-700">
@@ -107,14 +101,14 @@
               <p class="text-xs text-gray-400 truncate">{{ user.doc.email }}</p>
             </ng-container>
           </div>
-          
+
           <button class="dropdown-item w-full" (click)="myProfile()">
             <span class="material-symbols-outlined text-base mr-3">person</span>
             Mein Profil
           </button>
-          
+
           <div class="border-t border-gray-700"></div>
-          
+
           <button class="dropdown-item w-full text-rose-400 hover:text-rose-300" (click)="logout()">
             <span class="material-symbols-outlined text-base mr-3">logout</span>
             Abmelden
@@ -127,31 +121,24 @@
     <div class="md:hidden overflow-hidden" [@mobileSlide]="showLinks ? 'open' : 'closed'">
       <div class="border-t border-white/5 bg-black/20 backdrop-blur-sm">
         <div class="px-4 py-3 space-y-1">
-          <a routerLink="/dashboard" 
-             (click)="toggleMobile()" 
-             class="mobile-nav-link">
+          <a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
           </a>
-          
-          <a *ngIf="isAdmin$ | async"
-             routerLink="/admin/users" 
-             (click)="toggleMobile()" 
-             class="mobile-nav-link">
+
+          <a *ngIf="isAdmin$ | async" routerLink="/admin/users" (click)="toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">group</span>
             Benutzer
           </a>
-          
+
           <div class="border-t border-white/10 my-2"></div>
-          
-          <button (click)="myProfile(); toggleMobile()" 
-                  class="mobile-nav-link">
+
+          <button (click)="myProfile(); toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">person</span>
             Mein Profil
           </button>
-          
-          <button (click)="logout()" 
-                  class="mobile-nav-link text-rose-400">
+
+          <button (click)="logout()" class="mobile-nav-link text-rose-400">
             <span class="material-symbols-outlined text-lg">logout</span>
             Abmelden
           </button>

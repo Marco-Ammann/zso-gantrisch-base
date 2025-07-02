@@ -1,4 +1,4 @@
-// src/app/app.routes.ts
+// src/app/app.routes.ts - Updated with AdZS routes
 
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/guards/auth.guard';
@@ -7,6 +7,7 @@ import { AdminGuard } from './core/auth/guards/admin.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { adminRoutes } from './features/admin/admin.routes';
+import { adzsRoutes } from './features/adsz/adsz.routes';
 import { legalRoutes } from './features/legal/legal.routes';
 
 export const appRoutes: Routes = [
@@ -37,6 +38,7 @@ export const appRoutes: Routes = [
     canActivate: [AuthGuard, EmailVerifiedGuard],
     children: [
       { path: 'dashboard', children: dashboardRoutes },
+      { path: 'adsz', children: adzsRoutes }, // AdZS routes für alle User
       { path: 'users', children: adminRoutes },
       { path: 'admin', canActivate: [AdminGuard], children: adminRoutes }
     ],
