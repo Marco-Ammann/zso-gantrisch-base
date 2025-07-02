@@ -1,5 +1,4 @@
 // src/app/features/adsz/adsz-detail/adsz-detail.page.ts
-
 import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
@@ -8,15 +7,13 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { Subject, takeUntil, switchMap, of, lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { Observable } from 'rxjs';
-import { NotfallkontaktDoc } from '@core/models/person.model';
-import { Notfallkontakt } from '@core/models/person.model';
 
 import { PersonService } from '@core/services/person.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
-import { PersonDoc } from '@core/models/person.model';
+import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { NotfallkontaktDialogComponent } from '@shared/components/notfallkontakt-dialog/notfallkontakt-dialog';
 
 @Component({
   selector: 'zso-adsz-detail',
@@ -25,7 +22,8 @@ import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
-    ZsoInputField
+    ZsoInputField,
+    NotfallkontaktDialogComponent
   ],
   templateUrl: './adsz-detail.page.html',
   styleUrls: ['./adsz-detail.page.scss'],
@@ -62,6 +60,9 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   uploadMsg: string | null = null;
   uploadError = false;
 
+  // Dialog states
+  notfallkontaktDialogVisible = false;
+  editingKontakt: NotfallkontaktDoc | null = null;
 
   // Forms
   grunddatenForm!: FormGroup;
@@ -98,6 +99,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
         if (id === 'new') {
           this.isNewPerson = true;
           this.isEditing = true;
+          this.cdr.markForCheck();
           return of(null);
         } else if (id) {
           return this.personService.getById(id);
@@ -179,42 +181,72 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   private populateForms(person: PersonDoc): void {
-    const birthDate = this.formatDateForInput(person.grunddaten.geburtsdatum);
+    // Helper function to safely get timestamp value
+    const getTimestamp = (timestamp: any): number => {
+      if (!timestamp) return 0;
+      if (typeof timestamp === 'number') return timestamp;
+      if (timestamp.seconds) return timestamp.seconds * 1000;
+      return 0;
+    };
+
+    // Format date for input field
+    const birthTimestamp = getTimestamp(person.grunddaten.geburtsdatum);
+    const birthDate = birthTimestamp ? new Date(birthTimestamp).toISOString().split('T')[0] : '';
     
+    // Populate Grunddaten
     this.grunddatenForm.patchValue({
-      vorname: person.grunddaten.vorname,
-      nachname: person.grunddaten.nachname,
+      vorname: person.grunddaten.vorname || '',
+      nachname: person.grunddaten.nachname || '',
       geburtsdatum: birthDate,
-      grad: person.grunddaten.grad,
-      funktion: person.grunddaten.funktion
+      grad: person.grunddaten.grad || '',
+      funktion: person.grunddaten.funktion || ''
     });
 
-    this.kontaktdatenForm.patchValue(person.kontaktdaten);
+    // Populate Kontaktdaten
+    this.kontaktdatenForm.patchValue({
+      strasse: person.kontaktdaten.strasse || '',
+      plz: person.kontaktdaten.plz || '',
+      ort: person.kontaktdaten.ort || '',
+      email: person.kontaktdaten.email || '',
+      telefonMobil: person.kontaktdaten.telefonMobil || '',
+      telefonFestnetz: person.kontaktdaten.telefonFestnetz || '',
+      telefonGeschaeftlich: person.kontaktdaten.telefonGeschaeftlich || ''
+    });
+
+    // Populate Berufliches
     this.beruflichesForm.patchValue({
-      ...person.berufliches,
-      fuehrerausweisKategorie: person.berufliches.führerausweisKategorie.join(', ')
+      erlernterBeruf: person.berufliches.erlernterBeruf || '',
+      ausgeubterBeruf: person.berufliches.ausgeubterBeruf || '',
+      arbeitgeber: person.berufliches.arbeitgeber || '',
+      zivileSpezialausbildung: person.berufliches.zivileSpezialausbildung || '',
+      fuehrerausweisKategorie: (person.berufliches.führerausweisKategorie || []).join(', ')
     });
 
+    // Populate Zivilschutz
     this.zivilschutzForm.patchValue({
-      grundausbildung: person.zivilschutz.grundausbildung,
-      status: person.zivilschutz.status,
-      zug: person.zivilschutz.einteilung.zug,
-      gruppe: person.zivilschutz.einteilung.gruppe,
-      zusatzausbildungen: person.zivilschutz.zusatzausbildungen.join(', ')
+      grundausbildung: person.zivilschutz.grundausbildung || '',
+      status: person.zivilschutz.status || 'aktiv',
+      zug: person.zivilschutz.einteilung?.zug || 1,
+      gruppe: person.zivilschutz.einteilung?.gruppe || '',
+      zusatzausbildungen: (person.zivilschutz.zusatzausbildungen || []).join(', ')
     });
 
+    // Populate Persönliches
     this.persoenlichesForm.patchValue({
-      blutgruppe: person.persoenliches.blutgruppe,
-      allergien: person.persoenliches.allergien.join(', '),
-      essgewohnheiten: person.persoenliches.essgewohnheiten.join(', '),
-      sprachkenntnisse: person.persoenliches.sprachkenntnisse.join(', '),
-      besonderheiten: person.persoenliches.besonderheiten.join(', ')
+      blutgruppe: person.persoenliches.blutgruppe || '',
+      allergien: (person.persoenliches.allergien || []).join(', '),
+      essgewohnheiten: (person.persoenliches.essgewohnheiten || []).join(', '),
+      sprachkenntnisse: (person.persoenliches.sprachkenntnisse || []).join(', '),
+      besonderheiten: (person.persoenliches.besonderheiten || []).join(', ')
     });
 
+    // Populate Preferences
     this.preferencesForm.patchValue({
       contactMethod: person.preferences?.contactMethod || 'digital',
       emailNotifications: person.preferences?.emailNotifications ?? true
     });
+
+    this.logger.log('AdzsDetailPage', 'Forms populated successfully');
   }
 
   private loadNotfallkontakte(personId: string): void {
@@ -222,7 +254,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (kontakte) => {
-        this.notfallkontakte = kontakte;
+        this.notfallkontakte = kontakte.sort((a, b) => a.prioritaet - b.prioritaet);
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -235,11 +267,15 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   toggleEdit(): void {
     this.isEditing = !this.isEditing;
     this.clearMessages();
+    if (this.isEditing && this.person) {
+      this.populateForms(this.person);
+    }
   }
 
   save(): void {
     if (!this.validateAllForms()) {
       this.errorMsg = 'Bitte alle Pflichtfelder ausfüllen';
+      this.scrollToTop();
       return;
     }
 
@@ -256,13 +292,14 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           this.successMsg = 'Person erfolgreich erstellt';
           this.isEditing = false;
           this.isSaving = false;
-          this.router.navigate(['/adsz', newId]);
+          this.router.navigate(['/adsz', newId], { replaceUrl: true });
           this.cdr.markForCheck();
         },
         error: (error: any) => {
           this.logger.error('AdzsDetailPage', 'Create error:', error);
-          this.errorMsg = 'Fehler beim Erstellen';
+          this.errorMsg = 'Fehler beim Erstellen der Person';
           this.isSaving = false;
+          this.scrollToTop();
           this.cdr.markForCheck();
         }
       });
@@ -271,15 +308,19 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       ).subscribe({
         next: () => {
-          this.successMsg = 'Änderungen gespeichert';
+          this.successMsg = 'Änderungen erfolgreich gespeichert';
           this.isEditing = false;
           this.isSaving = false;
+          // Update local person object
+          this.person = { ...this.person!, ...personData } as PersonDoc;
+          this.scrollToTop();
           this.cdr.markForCheck();
         },
         error: (error: any) => {
           this.logger.error('AdzsDetailPage', 'Update error:', error);
-          this.errorMsg = 'Fehler beim Speichern';
+          this.errorMsg = 'Fehler beim Speichern der Änderungen';
           this.isSaving = false;
+          this.scrollToTop();
           this.cdr.markForCheck();
         }
       });
@@ -291,7 +332,9 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       this.router.navigate(['/adsz']);
     } else {
       this.isEditing = false;
-      this.populateForms(this.person!);
+      if (this.person) {
+        this.populateForms(this.person);
+      }
       this.clearMessages();
     }
   }
@@ -304,13 +347,86 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     if (!this.person) return;
     
     this.logger.log('AdzsDetailPage', 'Generate PDF for person', this.person.id);
-    this.successMsg = 'PDF-Generierung gestartet...';
+    this.successMsg = 'PDF-Generierung wird implementiert...';
+    this.cdr.markForCheck();
   }
 
-  getPersonInitials(person: PersonDoc): string {
-    return `${person.grunddaten.vorname.charAt(0)}${person.grunddaten.nachname.charAt(0)}`;
+  // Notfallkontakt Management
+  openNotfallkontaktDialog(): void {
+    this.editingKontakt = null;
+    this.notfallkontaktDialogVisible = true;
   }
 
+  editNotfallkontakt(kontakt: NotfallkontaktDoc): void {
+    this.editingKontakt = kontakt;
+    this.notfallkontaktDialogVisible = true;
+  }
+
+  onNotfallkontaktSaved(kontaktData: any): void {
+    if (!this.person) return;
+
+    if (kontaktData.id) {
+      // Update existing
+      this.personService.updateNotfallkontakt(kontaktData.id, kontaktData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.loadNotfallkontakte(this.person!.id);
+          this.successMsg = 'Notfallkontakt aktualisiert';
+          this.notfallkontaktDialogVisible = false;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.logger.error('AdzsDetailPage', 'Error updating emergency contact:', error);
+          this.errorMsg = 'Fehler beim Aktualisieren des Notfallkontakts';
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      // Create new
+      this.personService.createNotfallkontakt(kontaktData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.loadNotfallkontakte(this.person!.id);
+          this.successMsg = 'Notfallkontakt hinzugefügt';
+          this.notfallkontaktDialogVisible = false;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.logger.error('AdzsDetailPage', 'Error creating emergency contact:', error);
+          this.errorMsg = 'Fehler beim Hinzufügen des Notfallkontakts';
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
+
+  onNotfallkontaktDialogClosed(): void {
+    this.notfallkontaktDialogVisible = false;
+    this.editingKontakt = null;
+  }
+
+  deleteNotfallkontakt(kontaktId: string): void {
+    if (!confirm('Notfallkontakt wirklich löschen?')) return;
+
+    this.personService.deleteNotfallkontakt(kontaktId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.loadNotfallkontakte(this.person!.id);
+        this.successMsg = 'Notfallkontakt gelöscht';
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.logger.error('AdzsDetailPage', 'Error deleting emergency contact:', error);
+        this.errorMsg = 'Fehler beim Löschen des Notfallkontakts';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // File Upload
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length || !this.person) return;
@@ -331,25 +447,19 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     const path = `persons/${this.person.id}/avatar_${Date.now()}`;
     const storageRef = ref(storage, path);
 
-    let downloadUrl: string;
-
     uploadBytes(storageRef, file)
-      .then((snapshot) => {
-        return getDownloadURL(storageRef);
-      })
-      .then((url) => {
-        downloadUrl = url;
+      .then(() => getDownloadURL(storageRef))
+      .then((url: string) => {
         if (!this.person) return;
-        
         return lastValueFrom(
           this.personService.update(this.person.id, { photoUrl: url })
         );
       })
       .then(() => {
-        if (this.person) {
-          this.person.photoUrl = downloadUrl;
-        }
         this.showToast('Avatar aktualisiert', false);
+        if (this.person) {
+          this.person.photoUrl = 'URL_PLACEHOLDER'; // Will be refreshed on next load
+        }
         this.cdr.markForCheck();
       })
       .catch((error) => {
@@ -361,22 +471,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
   }
-
-  private showToast(message: string, isError: boolean): void {
-    this.uploadMsg = message;
-    this.uploadError = isError;
-    setTimeout(() => {
-      this.uploadMsg = null;
-      this.cdr.markForCheck();
-    }, isError ? 4000 : 3000);
-  }
-
-    /**
-   * Notfallkontakte für Person laden
-   */
-    getNotfallkontakteByPersonId(personId: string): Observable<Notfallkontakt[]> {
-      return this.personService.getNotfallkontakteByPersonId(personId);
-    }
 
   // Utility methods
   private validateAllForms(): boolean {
@@ -408,12 +502,18 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
 
     return {
       grunddaten: {
-        ...grunddaten,
-        geburtsdatum: new Date(grunddaten.geburtsdatum).getTime()
+        vorname: grunddaten.vorname,
+        nachname: grunddaten.nachname,
+        geburtsdatum: new Date(grunddaten.geburtsdatum).getTime(),
+        grad: grunddaten.grad,
+        funktion: grunddaten.funktion
       },
       kontaktdaten,
       berufliches: {
-        ...berufliches,
+        erlernterBeruf: berufliches.erlernterBeruf,
+        ausgeubterBeruf: berufliches.ausgeubterBeruf,
+        arbeitgeber: berufliches.arbeitgeber,
+        zivileSpezialausbildung: berufliches.zivileSpezialausbildung,
         führerausweisKategorie: this.parseCommaSeparated(berufliches.fuehrerausweisKategorie)
       },
       zivilschutz: {
@@ -443,22 +543,25 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     return value.split(',').map(item => item.trim()).filter(item => item.length > 0);
   }
 
-  private formatDateForInput(timestamp: any): string {
-    if (!timestamp) return '';
-    
-    const date = typeof timestamp === 'number' 
-      ? new Date(timestamp)
-      : new Date(timestamp.seconds * 1000);
-    
-    return date.toISOString().split('T')[0];
-  }
-
   private clearMessages(): void {
     this.errorMsg = null;
     this.successMsg = null;
   }
 
-  // Getters for template
+  private scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private showToast(message: string, isError: boolean): void {
+    this.uploadMsg = message;
+    this.uploadError = isError;
+    setTimeout(() => {
+      this.uploadMsg = null;
+      this.cdr.markForCheck();
+    }, isError ? 4000 : 3000);
+  }
+
+  // Template helpers
   get pageTitle(): string {
     if (this.isNewPerson) return 'Neue Person erfassen';
     if (!this.person) return 'Person laden...';
@@ -466,7 +569,11 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   get canEdit(): boolean {
-    return true;
+    return true; // For now, everyone can edit
+  }
+
+  getPersonInitials(person: PersonDoc): string {
+    return `${person.grunddaten.vorname.charAt(0)}${person.grunddaten.nachname.charAt(0)}`;
   }
 
   formatDate(timestamp: any): string {
@@ -498,44 +605,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
 
   hasFuehrerausweis(person: PersonDoc): boolean {
     return this.getFuehrerausweisKategorien(person).length > 0;
-  }
-
-  hasAllergien(person: PersonDoc): boolean {
-    return person.persoenliches?.allergien?.length > 0;
-  }
-
-  hasEssgewohnheiten(person: PersonDoc): boolean {
-    return person.persoenliches?.essgewohnheiten?.length > 0;
-  }
-
-  hasSprachkenntnisse(person: PersonDoc): boolean {
-    return person.persoenliches?.sprachkenntnisse?.length > 0;
-  }
-
-  hasBesonderheiten(person: PersonDoc): boolean {
-    return person.persoenliches?.besonderheiten?.length > 0;
-  }
-
-  hasZusatzausbildungen(person: PersonDoc): boolean {
-    return person.zivilschutz?.zusatzausbildungen?.length > 0;
-  }
-
-  getContactMethodIcon(method: string): string {
-    switch (method) {
-      case 'digital': return 'computer';
-      case 'paper': return 'description';
-      case 'both': return 'swap_horiz';
-      default: return 'help';
-    }
-  }
-
-  getContactMethodClass(method: string): string {
-    switch (method) {
-      case 'digital': return 'text-blue-400';
-      case 'paper': return 'text-amber-400';
-      case 'both': return 'text-purple-400';
-      default: return 'text-gray-400';
-    }
   }
 
   getContactMethodLabel(method: string): string {

@@ -327,4 +327,47 @@ export class PersonService implements OnDestroy {
     // Simplified - in real implementation would fetch current data
     return {};
   }
+
+    /**
+   * Notfallkontakt erstellen
+   */
+    createNotfallkontakt(kontaktData: Omit<NotfallkontaktDoc, 'id'>): Observable<string> {
+      return runInInjectionContext(this.injector, () => {
+        const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
+        
+        return from(addDoc(kontakteCollection, {
+          ...kontaktData,
+          erstelltAm: Date.now()
+        })).pipe(
+          map(docRef => docRef.id),
+          takeUntil(this.destroy$)
+        );
+      });
+    }
+  
+    /**
+     * Notfallkontakt aktualisieren
+     */
+    updateNotfallkontakt(id: string, updates: Partial<NotfallkontaktDoc>): Observable<void> {
+      return runInInjectionContext(this.injector, () => {
+        const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
+        
+        return from(updateDoc(kontaktDoc, updates)).pipe(
+          takeUntil(this.destroy$)
+        );
+      });
+    }
+  
+    /**
+     * Notfallkontakt löschen
+     */
+    deleteNotfallkontakt(id: string): Observable<void> {
+      return runInInjectionContext(this.injector, () => {
+        const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
+        
+        return from(deleteDoc(kontaktDoc)).pipe(
+          takeUntil(this.destroy$)
+        );
+      });
+    }
 }

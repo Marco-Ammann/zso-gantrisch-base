@@ -1,526 +1,575 @@
 <!-- src/app/features/adsz/adsz-detail/adsz-detail.page.html -->
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-  
-    <!-- Header -->
-    <div class="mb-6">
-      <button (click)="back()" 
-              class="inline-flex items-center gap-2 px-3 py-2 mb-4 rounded-lg bg-gray-800 text-gray-300 
-                     hover:bg-gray-700 hover:text-white transition-colors">
-        <span class="material-symbols-outlined text-lg">arrow_back</span>
-        <span class="text-sm font-medium">Zurück zur Übersicht</span>
-      </button>
-  
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl lg:text-3xl font-bold text-white">{{ pageTitle }}</h1>
-          @if (person && !isNewPerson) {
-            <p class="text-sm text-gray-400">{{ person.grunddaten.funktion }} • {{ person.grunddaten.grad }}</p>
-          }
-        </div>
-  
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-3">
-          @if (!isNewPerson && person && canEdit) {
-            <button (click)="generatePDF()"
-                    class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2">
-              <span class="material-symbols-outlined text-base">picture_as_pdf</span>
-              <span class="text-sm">PDF</span>
-            </button>
-          }
-  
-          @if (isEditing) {
-            <button (click)="cancel()"
-                    class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2">
-              <span class="material-symbols-outlined text-base">close</span>
-              <span class="text-sm">Abbrechen</span>
-            </button>
-            
-            <button (click)="save()"
-                    [disabled]="isSaving"
-                    class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-              @if (isSaving) {
-                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              } @else {
-                <span class="material-symbols-outlined text-base">save</span>
-              }
-              <span class="text-sm">{{ isNewPerson ? 'Erstellen' : 'Speichern' }}</span>
-            </button>
-          } @else if (canEdit && !isNewPerson) {
-            <button (click)="toggleEdit()"
-                    class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-              <span class="material-symbols-outlined text-base">edit</span>
-              <span class="text-sm">Bearbeiten</span>
-            </button>
-          }
-        </div>
-      </div>
-    </div>
-  
-    <!-- Messages -->
-    @if (errorMsg) {
-      <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10 mb-6" [@slideIn]>
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-rose-400">error</span>
-          <span class="text-rose-300">{{ errorMsg }}</span>
-        </div>
-      </div>
-    }
-  
-    @if (successMsg) {
-      <div class="glass-card p-4 border-l-4 border-green-500 bg-green-500/10 mb-6" [@slideIn]>
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-green-400">check_circle</span>
-          <span class="text-green-300">{{ successMsg }}</span>
-        </div>
-      </div>
-    }
-  
-    <!-- Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-      <!-- Left Column -->
-      <div class="space-y-6">
-        
-        <!-- Grunddaten -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">person</span>
-            Grunddaten
-          </h3>
 
-          <div class="flex items-start gap-4 mb-6">
-            <!-- Avatar with Upload -->
-            <div class="relative group">
-              @if (person?.photoUrl) {
-                <img [src]="person?.photoUrl" alt="Avatar"
-                  class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-700 
-                         group-hover:ring-cp-orange transition-all duration-200" />
-              } @else {
-                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                          flex items-center justify-center ring-2 ring-gray-700 
-                          group-hover:ring-cp-orange transition-all duration-200">
-                  <span class="text-gray-400 font-medium text-xl">
-                    {{ person ? getPersonInitials(person) : '?' }}
-                  </span>
-                </div>
-              }
-              
-              <!-- Upload Overlay (only in edit mode) -->
-              @if (isEditing && canEdit) {
-                <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center 
-                            opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                     (click)="fileInput.click()"
-                     [class.opacity-100]="uploading">
-                  @if (uploading) {
-                    <div class="flex flex-col items-center gap-2">
-                      <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span class="text-white text-xs">Upload...</span>
-                    </div>
-                  } @else {
-                    <div class="flex flex-col items-center gap-1">
-                      <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
-                      <span class="text-white text-xs font-medium">Foto ändern</span>
-                    </div>
-                  }
-                </div>
-                
-                <!-- Hidden File Input -->
-                <input #fileInput
-                       type="file"
-                       accept="image/*"
-                       (change)="onFileSelected($event)"
-                       class="hidden" />
-              }
-            </div>
-  
-          @if (isEditing) {
-            <form [formGroup]="grunddatenForm" class="space-y-4">
-              <div class="grid grid-cols-2 gap-4">
-                <zso-input-field formControlName="vorname" label="Vorname" placeholder="Vorname"></zso-input-field>
-                <zso-input-field formControlName="nachname" label="Nachname" placeholder="Nachname"></zso-input-field>
-              </div>
-              
-              <zso-input-field formControlName="geburtsdatum" label="Geburtsdatum" type="text"></zso-input-field>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1">Grad</label>
-                  <select formControlName="grad" class="sort-select w-full">
-                    <option value="">Grad wählen</option>
-                    <option *ngFor="let grad of gradOptions" [value]="grad">{{ grad }}</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1">Funktion</label>
-                  <select formControlName="funktion" class="sort-select w-full">
-                    <option value="">Funktion wählen</option>
-                    <option *ngFor="let funktion of funktionOptions" [value]="funktion">{{ funktion }}</option>
-                  </select>
-                </div>
-              </div>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <p class="label">Vorname</p>
-                  <p class="value">{{ person.grunddaten.vorname }}</p>
-                </div>
-                <div>
-                  <p class="label">Nachname</p>
-                  <p class="value">{{ person.grunddaten.nachname }}</p>
-                </div>
-              </div>
-              
-              <div>
-                <p class="label">Geburtsdatum</p>
-                <p class="value">{{ formatDate(person.grunddaten.geburtsdatum) }}</p>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <p class="label">Grad</p>
-                  <p class="value">{{ person.grunddaten.grad }}</p>
-                </div>
-                <div>
-                  <p class="label">Funktion</p>
-                  <p class="value">{{ person.grunddaten.funktion }}</p>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-  
-        <!-- Kontaktdaten -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">contact_mail</span>
-            Kontaktdaten
-          </h3>
-  
-          @if (isEditing) {
-            <form [formGroup]="kontaktdatenForm" class="space-y-4">
-              <zso-input-field formControlName="strasse" label="Strasse" placeholder="Musterstrasse 123"></zso-input-field>
-              
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <zso-input-field formControlName="plz" label="PLZ" placeholder="3000"></zso-input-field>
-                <div class="sm:col-span-2">
-                  <zso-input-field formControlName="ort" label="Ort" placeholder="Bern"></zso-input-field>
-                </div>
-              </div>
-              
-              <zso-input-field formControlName="email" label="E-Mail" type="email" placeholder="name@example.com"></zso-input-field>
-              
-              <div class="space-y-4">
-                <zso-input-field formControlName="telefonMobil" label="Telefon Mobil" placeholder="079 123 45 67"></zso-input-field>
-                <zso-input-field formControlName="telefonFestnetz" label="Telefon Festnetz" placeholder="031 123 45 67"></zso-input-field>
-                <zso-input-field formControlName="telefonGeschaeftlich" label="Telefon Geschäftlich" placeholder="031 123 45 67"></zso-input-field>
-              </div>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div>
-                <p class="label">Adresse</p>
-                <p class="value">{{ person.kontaktdaten.strasse }}</p>
-                <p class="value">{{ person.kontaktdaten.plz }} {{ person.kontaktdaten.ort }}</p>
-              </div>
-              
-              <div>
-                <p class="label">E-Mail</p>
-                <a [href]="'mailto:' + person.kontaktdaten.email" class="text-cp-orange hover:text-cp-orange/80">
-                  {{ person.kontaktdaten.email }}
-                </a>
-              </div>
-              
-              <div>
-                <p class="label">Telefon Mobil</p>
-                <a [href]="'tel:' + person.kontaktdaten.telefonMobil" class="text-cp-orange hover:text-cp-orange/80">
-                  {{ person.kontaktdaten.telefonMobil || '-' }}
-                </a>
-              </div>
-              
-              @if (person.kontaktdaten.telefonFestnetz) {
-                <div>
-                  <p class="label">Telefon Festnetz</p>
-                  <a [href]="'tel:' + person.kontaktdaten.telefonFestnetz" class="text-cp-orange hover:text-cp-orange/80">
-                    {{ person.kontaktdaten.telefonFestnetz }}
-                  </a>
-                </div>
-              }
-              
-              @if (person.kontaktdaten.telefonGeschaeftlich) {
-                <div>
-                  <p class="label">Telefon Geschäftlich</p>
-                  <a [href]="'tel:' + person.kontaktdaten.telefonGeschaeftlich" class="text-cp-orange hover:text-cp-orange/80">
-                    {{ person.kontaktdaten.telefonGeschaeftlich }}
-                  </a>
-                </div>
-              }
-            </div>
-          }
-        </div>
-  
-        <!-- Berufliches -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">work</span>
-            Berufliches
-          </h3>
-  
-          @if (isEditing) {
-            <form [formGroup]="beruflichesForm" class="space-y-4">
-              <zso-input-field formControlName="erlernterBeruf" label="Erlernter Beruf" placeholder="z.B. Kaufmann"></zso-input-field>
-              <zso-input-field formControlName="ausgeubterBeruf" label="Ausgeübter Beruf" placeholder="z.B. Projektleiter"></zso-input-field>
-              <zso-input-field formControlName="arbeitgeber" label="Arbeitgeber" placeholder="Firmenname"></zso-input-field>
-              <zso-input-field formControlName="zivileSpezialausbildung" label="Zivile Spezialausbildung" placeholder="z.B. Rettungssanitäter"></zso-input-field>
-              <zso-input-field formControlName="führerausweisKategorie" label="Führerausweis (kommagetrennt)" placeholder="A, B, C"></zso-input-field>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div>
-                <p class="label">Erlernter Beruf</p>
-                <p class="value">{{ person.berufliches.erlernterBeruf || '-' }}</p>
-              </div>
-              <div>
-                <p class="label">Ausgeübter Beruf</p>
-                <p class="value">{{ person.berufliches.ausgeubterBeruf || '-' }}</p>
-              </div>
-              <div>
-                <p class="label">Arbeitgeber</p>
-                <p class="value">{{ person.berufliches.arbeitgeber || '-' }}</p>
-              </div>
-              @if (person.berufliches.zivileSpezialausbildung) {
-                <div>
-                  <p class="label">Zivile Spezialausbildung</p>
-                  <p class="value">{{ person.berufliches.zivileSpezialausbildung }}</p>
-                </div>
-              }
-              @if (hasFuehrerausweis(person)) {
-                <div>
-                  <p class="label">Führerausweis</p>
-                  <p class="value">{{ getFuehrerausweisKategorien(person).join(', ') }}</p>
-                </div>
-              }
-            </div>
-          }
-        </div>
+  <!-- Header -->
+  <div class="mb-6">
+    <button (click)="back()" class="inline-flex items-center gap-2 px-3 py-2 mb-4 rounded-lg bg-gray-800 text-gray-300 
+                     hover:bg-gray-700 hover:text-white transition-colors">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      <span class="text-sm font-medium">Zurück zur Übersicht</span>
+    </button>
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-white">{{ pageTitle }}</h1>
+        @if (person && !isNewPerson) {
+        <p class="text-sm text-gray-400">{{ person.grunddaten.funktion }} • {{ person.grunddaten.grad }}</p>
+        }
       </div>
-  
-      <!-- Right Column -->
-      <div class="space-y-6">
-        
-        <!-- Zivilschutz -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">shield</span>
-            Zivilschutz
-          </h3>
-  
-          @if (isEditing) {
-            <form [formGroup]="zivilschutzForm" class="space-y-4">
-              <zso-input-field formControlName="grundausbildung" label="Grundausbildung (Jahr)" placeholder="2024"></zso-input-field>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Status</label>
-                <select formControlName="status" class="sort-select w-full">
-                  <option *ngFor="let status of statusOptions" [value]="status">{{ status | titlecase }}</option>
-                </select>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1">Zug</label>
-                  <select formControlName="zug" class="sort-select w-full">
-                    <option *ngFor="let zug of zugOptions" [value]="zug">Zug {{ zug }}</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1">Gruppe</label>
-                  <select formControlName="gruppe" class="sort-select w-full">
-                    <option value="">Keine Gruppe</option>
-                    <option *ngFor="let gruppe of gruppeOptions" [value]="gruppe">Gruppe {{ gruppe }}</option>
-                  </select>
-                </div>
-              </div>
-              
-              <zso-input-field formControlName="zusatzausbildungen" label="Zusatzausbildungen (kommagetrennt)" placeholder="Sanitäter, Kraftfahrer"></zso-input-field>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div>
-                <p class="label">Grundausbildung</p>
-                <p class="value">{{ person.zivilschutz.grundausbildung }}</p>
-              </div>
-              <div>
-                <p class="label">Status</p>
-                <span class="badge {{ person.zivilschutz.status === 'aktiv' ? 'badge--approved' : 
-                                        person.zivilschutz.status === 'neu' ? 'badge--pending' : 'badge--blocked' }}">
-                  {{ getStatusLabel(person.zivilschutz.status) }}
-                </span>
-              </div>
-              <div>
-                <p class="label">Einteilung</p>
-                <p class="value">
-                  Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, Gruppe {{ person.zivilschutz.einteilung.gruppe }}}
-                </p>
-              </div>
-              @if (person.zivilschutz.zusatzausbildungen.length) {
-                <div>
-                  <p class="label">Zusatzausbildungen</p>
-                  <p class="value">{{ person.zivilschutz.zusatzausbildungen.join(', ') }}</p>
-                </div>
-              }
-            </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        @if (!isNewPerson && person && canEdit) {
+        <button (click)="generatePDF()" class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+          <span class="text-sm">PDF</span>
+        </button>
+        }
+
+        @if (isEditing) {
+        <button (click)="cancel()" class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">close</span>
+          <span class="text-sm">Abbrechen</span>
+        </button>
+
+        <button (click)="save()" [disabled]="isSaving"
+          class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+          @if (isSaving) {
+          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          } @else {
+          <span class="material-symbols-outlined text-base">save</span>
           }
-        </div>
-  
-        <!-- Persönliches -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">health_and_safety</span>
-            Persönliches
-          </h3>
-  
-          @if (isEditing) {
-            <form [formGroup]="persoenlichesForm" class="space-y-4">
-              <zso-input-field formControlName="blutgruppe" label="Blutgruppe" placeholder="A+"></zso-input-field>
-              <zso-input-field formControlName="allergien" label="Allergien (kommagetrennt)" placeholder="Nüsse, Pollen"></zso-input-field>
-              <zso-input-field formControlName="essgewohnheiten" label="Essgewohnheiten (kommagetrennt)" placeholder="Vegetarisch, Glutenfrei"></zso-input-field>
-              <zso-input-field formControlName="sprachkenntnisse" label="Sprachkenntnisse (kommagetrennt)" placeholder="Englisch, Französisch"></zso-input-field>
-              <zso-input-field formControlName="besonderheiten" label="Besonderheiten (kommagetrennt)" placeholder="Brille, Hörhilfe"></zso-input-field>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div>
-                <p class="label">Blutgruppe</p>
-                <p class="value text-rose-400 font-medium">{{ person.persoenliches.blutgruppe || '-' }}</p>
-              </div>
-              
-              @if (person.persoenliches.allergien.length) {
-                <div>
-                  <p class="label">Allergien</p>
-                  <p class="value text-rose-400">{{ person.persoenliches.allergien.join(', ') }}</p>
-                </div>
-              }
-              
-              @if (person.persoenliches.essgewohnheiten.length) {
-                <div>
-                  <p class="label">Essgewohnheiten</p>
-                  <p class="value">{{ person.persoenliches.essgewohnheiten.join(', ') }}</p>
-                </div>
-              }
-              
-              @if (person.persoenliches.sprachkenntnisse.length) {
-                <div>
-                  <p class="label">Sprachkenntnisse</p>
-                  <p class="value">{{ person.persoenliches.sprachkenntnisse.join(', ') }}</p>
-                </div>
-              }
-              
-              @if (person.persoenliches.besonderheiten.length) {
-                <div>
-                  <p class="label">Besonderheiten</p>
-                  <p class="value">{{ person.persoenliches.besonderheiten.join(', ') }}</p>
-                </div>
-              }
-            </div>
-          }
-        </div>
-  
-        <!-- Präferenzen -->
-        <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">settings</span>
-            Präferenzen
-          </h3>
-  
-          @if (isEditing) {
-            <form [formGroup]="preferencesForm" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-3">Kontakt-Methode</label>
-                <div class="space-y-2">
-                  <label *ngFor="let option of contactMethodOptions" 
-                         class="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" 
-                           [value]="option.value" 
-                           formControlName="contactMethod"
-                           class="text-cp-orange focus:ring-cp-orange">
-                    <span class="text-sm text-gray-300">{{ option.label }}</span>
-                  </label>
-                </div>
-              </div>
-              
-              <div class="flex items-center gap-2">
-                <input type="checkbox" 
-                       formControlName="emailNotifications"
-                       class="text-cp-orange focus:ring-cp-orange">
-                <label class="text-sm text-gray-300">E-Mail-Benachrichtigungen erhalten</label>
-              </div>
-            </form>
-          } @else if (person) {
-            <div class="space-y-3">
-              <div>
-                <p class="label">Kontakt-Methode</p>
-                <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-sm {{ 
-                    person.preferences?.contactMethod === 'digital' ? 'text-blue-400' :
-                    person.preferences?.contactMethod === 'paper' ? 'text-amber-400' : 'text-purple-400'
-                  }}">
-                    {{ person.preferences?.contactMethod === 'digital' ? 'computer' :
-                       person.preferences?.contactMethod === 'paper' ? 'description' : 'swap_horiz' }}
-                  </span>
-                  <span class="value">
-                    {{ person.preferences?.contactMethod === 'digital' ? 'Digital (E-Mail)' :
-                       person.preferences?.contactMethod === 'paper' ? 'Papier (Post)' : 
-                       person.preferences?.contactMethod === 'both' ? 'Digital & Papier' : 'Nicht festgelegt' }}
-                  </span>
-                </div>
-              </div>
-              
-              <div>
-                <p class="label">E-Mail-Benachrichtigungen</p>
-                <p class="value">{{ person.preferences?.emailNotifications ? 'Aktiviert' : 'Deaktiviert' }}</p>
-              </div>
-            </div>
-          }
-        </div>
-  
-        <!-- Notfallkontakte -->
-        @if (!isNewPerson) {
-          <div class="glass-card p-6">
-            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-cp-orange">emergency</span>
-              Notfallkontakte
-              <span class="text-sm font-normal text-gray-400">({{ notfallkontakte.length }})</span>
-            </h3>
-  
-            @if (notfallkontakte.length > 0) {
-              <div class="space-y-3">
-                @for (kontakt of notfallkontakte; track kontakt.id) {
-                  <div class="p-3 rounded-lg bg-gray-800/50 border border-gray-700">
-                    <div class="flex justify-between items-start">
-                      <div>
-                        <p class="font-medium text-white">{{ kontakt.name }}</p>
-                        <p class="text-sm text-gray-400">{{ kontakt.beziehung }}</p>
-                        <a [href]="'tel:' + kontakt.telefonnummer" 
-                           class="text-sm text-cp-orange hover:text-cp-orange/80">
-                          {{ kontakt.telefonnummer }}
-                        </a>
-                      </div>
-                      <span class="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
-                        Priorität {{ kontakt.prioritaet }}
-                      </span>
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="text-gray-400 text-sm">Keine Notfallkontakte erfasst</p>
-            }
-          </div>
+          <span class="text-sm">{{ isNewPerson ? 'Erstellen' : 'Speichern' }}</span>
+        </button>
+        } @else if (canEdit && !isNewPerson) {
+        <button (click)="toggleEdit()" class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">edit</span>
+          <span class="text-sm">Bearbeiten</span>
+        </button>
         }
       </div>
     </div>
   </div>
+
+  <!-- Messages -->
+  @if (errorMsg) {
+  <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10 mb-6" [@slideIn]>
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-rose-400">error</span>
+      <span class="text-rose-300">{{ errorMsg }}</span>
+    </div>
+  </div>
+  }
+
+  @if (successMsg) {
+  <div class="glass-card p-4 border-l-4 border-green-500 bg-green-500/10 mb-6" [@slideIn]>
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-green-400">check_circle</span>
+      <span class="text-green-300">{{ successMsg }}</span>
+    </div>
+  </div>
+  }
+
+  <!-- Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Left Column -->
+    <div class="space-y-6">
+
+      <!-- Grunddaten -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">person</span>
+          Grunddaten
+        </h3>
+
+        <div class="flex items-start gap-4 mb-6">
+          <!-- Avatar with Upload -->
+          <div class="relative group">
+            @if (person?.photoUrl) {
+            <img [src]="person?.photoUrl" alt="Avatar" class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-700 
+                     group-hover:ring-cp-orange transition-all duration-200" />
+            } @else {
+            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                      flex items-center justify-center ring-2 ring-gray-700 
+                      group-hover:ring-cp-orange transition-all duration-200">
+              <span class="text-gray-400 font-medium text-xl">
+                {{ person ? getPersonInitials(person) : '?' }}
+              </span>
+            </div>
+            }
+
+            <!-- Upload Overlay (only in edit mode) -->
+            @if (isEditing && canEdit) {
+            <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center 
+                        opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+              (click)="fileInput.click()" [class.opacity-100]="uploading">
+              @if (uploading) {
+              <div class="flex flex-col items-center gap-2">
+                <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-white text-xs">Upload...</span>
+              </div>
+              } @else {
+              <div class="flex flex-col items-center gap-1">
+                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                <span class="text-white text-xs font-medium">Foto ändern</span>
+              </div>
+              }
+            </div>
+
+            <!-- Hidden File Input -->
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden" />
+            }
+          </div>
+
+          <!-- Spacer for proper layout -->
+          <div class="flex-1"></div>
+        </div>
+
+        @if (isEditing) {
+        <form [formGroup]="grunddatenForm" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <zso-input-field formControlName="vorname" label="Vorname" placeholder="Vorname"></zso-input-field>
+            <zso-input-field formControlName="nachname" label="Nachname" placeholder="Nachname"></zso-input-field>
+          </div>
+
+          <zso-input-field formControlName="geburtsdatum" label="Geburtsdatum" type="date"></zso-input-field>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Grad</label>
+              <select formControlName="grad" class="sort-select w-full">
+                <option value="">Grad wählen</option>
+                <option *ngFor="let grad of gradOptions" [value]="grad">{{ grad }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Funktion</label>
+              <select formControlName="funktion" class="sort-select w-full">
+                <option value="">Funktion wählen</option>
+                <option *ngFor="let funktion of funktionOptions" [value]="funktion">{{ funktion }}</option>
+              </select>
+            </div>
+          </div>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="label">Vorname</p>
+              <p class="value">{{ person.grunddaten.vorname }}</p>
+            </div>
+            <div>
+              <p class="label">Nachname</p>
+              <p class="value">{{ person.grunddaten.nachname }}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="label">Geburtsdatum</p>
+            <p class="value">{{ formatDate(person.grunddaten.geburtsdatum) }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="label">Grad</p>
+              <p class="value">{{ person.grunddaten.grad }}</p>
+            </div>
+            <div>
+              <p class="label">Funktion</p>
+              <p class="value">{{ person.grunddaten.funktion }}</p>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Kontaktdaten -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">contact_mail</span>
+          Kontaktdaten
+        </h3>
+
+        @if (isEditing) {
+        <form [formGroup]="kontaktdatenForm" class="space-y-4">
+          <zso-input-field formControlName="strasse" label="Strasse" placeholder="Musterstrasse 123"></zso-input-field>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <zso-input-field formControlName="plz" label="PLZ" placeholder="3000"></zso-input-field>
+            <div class="sm:col-span-2">
+              <zso-input-field formControlName="ort" label="Ort" placeholder="Bern"></zso-input-field>
+            </div>
+          </div>
+
+          <zso-input-field formControlName="email" label="E-Mail" type="email"
+            placeholder="name@example.com"></zso-input-field>
+
+          <div class="space-y-4">
+            <zso-input-field formControlName="telefonMobil" label="Telefon Mobil"
+              placeholder="079 123 45 67"></zso-input-field>
+            <zso-input-field formControlName="telefonFestnetz" label="Telefon Festnetz"
+              placeholder="031 123 45 67"></zso-input-field>
+            <zso-input-field formControlName="telefonGeschaeftlich" label="Telefon Geschäftlich"
+              placeholder="031 123 45 67"></zso-input-field>
+          </div>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div>
+            <p class="label">Adresse</p>
+            <p class="value">{{ person.kontaktdaten.strasse }}</p>
+            <p class="value">{{ person.kontaktdaten.plz }} {{ person.kontaktdaten.ort }}</p>
+          </div>
+
+          <div>
+            <p class="label">E-Mail</p>
+            <a [href]="'mailto:' + person.kontaktdaten.email" class="text-cp-orange hover:text-cp-orange/80">
+              {{ person.kontaktdaten.email }}
+            </a>
+          </div>
+
+          <div>
+            <p class="label">Telefon Mobil</p>
+            <a [href]="'tel:' + person.kontaktdaten.telefonMobil" class="text-cp-orange hover:text-cp-orange/80">
+              {{ person.kontaktdaten.telefonMobil || '-' }}
+            </a>
+          </div>
+
+          @if (person.kontaktdaten.telefonFestnetz) {
+          <div>
+            <p class="label">Telefon Festnetz</p>
+            <a [href]="'tel:' + person.kontaktdaten.telefonFestnetz" class="text-cp-orange hover:text-cp-orange/80">
+              {{ person.kontaktdaten.telefonFestnetz }}
+            </a>
+          </div>
+          }
+
+          @if (person.kontaktdaten.telefonGeschaeftlich) {
+          <div>
+            <p class="label">Telefon Geschäftlich</p>
+            <a [href]="'tel:' + person.kontaktdaten.telefonGeschaeftlich"
+              class="text-cp-orange hover:text-cp-orange/80">
+              {{ person.kontaktdaten.telefonGeschaeftlich }}
+            </a>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Berufliches -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">work</span>
+          Berufliches
+        </h3>
+
+        @if (isEditing) {
+        <form [formGroup]="beruflichesForm" class="space-y-4">
+          <zso-input-field formControlName="erlernterBeruf" label="Erlernter Beruf"
+            placeholder="z.B. Kaufmann"></zso-input-field>
+          <zso-input-field formControlName="ausgeubterBeruf" label="Ausgeübter Beruf"
+            placeholder="z.B. Projektleiter"></zso-input-field>
+          <zso-input-field formControlName="arbeitgeber" label="Arbeitgeber" placeholder="Firmenname"></zso-input-field>
+          <zso-input-field formControlName="zivileSpezialausbildung" label="Zivile Spezialausbildung"
+            placeholder="z.B. Rettungssanitäter"></zso-input-field>
+          <zso-input-field formControlName="fuehrerausweisKategorie" label="Führerausweis (kommagetrennt)"
+            placeholder="A, B, C"></zso-input-field>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div>
+            <p class="label">Erlernter Beruf</p>
+            <p class="value">{{ person.berufliches.erlernterBeruf || '-' }}</p>
+          </div>
+          <div>
+            <p class="label">Ausgeübter Beruf</p>
+            <p class="value">{{ person.berufliches.ausgeubterBeruf || '-' }}</p>
+          </div>
+          <div>
+            <p class="label">Arbeitgeber</p>
+            <p class="value">{{ person.berufliches.arbeitgeber || '-' }}</p>
+          </div>
+          @if (person.berufliches.zivileSpezialausbildung) {
+          <div>
+            <p class="label">Zivile Spezialausbildung</p>
+            <p class="value">{{ person.berufliches.zivileSpezialausbildung }}</p>
+          </div>
+          }
+          @if (hasFuehrerausweis(person)) {
+          <div>
+            <p class="label">Führerausweis</p>
+            <p class="value">{{ getFuehrerausweisKategorien(person).join(', ') }}</p>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
+
+      <!-- Zivilschutz -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">shield</span>
+          Zivilschutz
+        </h3>
+
+        @if (isEditing) {
+        <form [formGroup]="zivilschutzForm" class="space-y-4">
+          <zso-input-field formControlName="grundausbildung" label="Grundausbildung (Jahr)"
+            placeholder="2024"></zso-input-field>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+            <select formControlName="status" class="sort-select w-full">
+              <option *ngFor="let status of statusOptions" [value]="status">{{ status | titlecase }}</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Zug</label>
+              <select formControlName="zug" class="sort-select w-full">
+                <option *ngFor="let zug of zugOptions" [value]="zug">Zug {{ zug }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-1">Gruppe</label>
+              <select formControlName="gruppe" class="sort-select w-full">
+                <option value="">Keine Gruppe</option>
+                <option *ngFor="let gruppe of gruppeOptions" [value]="gruppe">Gruppe {{ gruppe }}</option>
+              </select>
+            </div>
+          </div>
+
+          <zso-input-field formControlName="zusatzausbildungen" label="Zusatzausbildungen (kommagetrennt)"
+            placeholder="Sanitäter, Kraftfahrer"></zso-input-field>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div>
+            <p class="label">Grundausbildung</p>
+            <p class="value">{{ person.zivilschutz.grundausbildung }}</p>
+          </div>
+          <div>
+            <p class="label">Status</p>
+            <span class="badge {{ person.zivilschutz.status === 'aktiv' ? 'badge--approved' : 
+                                      person.zivilschutz.status === 'neu' ? 'badge--pending' : 'badge--blocked' }}">
+              {{ getStatusLabel(person.zivilschutz.status) }}
+            </span>
+          </div>
+          <div>
+            <p class="label">Einteilung</p>
+            <p class="value">
+              Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, Gruppe {{
+              person.zivilschutz.einteilung.gruppe }}}
+            </p>
+          </div>
+          @if (person.zivilschutz.zusatzausbildungen.length) {
+          <div>
+            <p class="label">Zusatzausbildungen</p>
+            <p class="value">{{ person.zivilschutz.zusatzausbildungen.join(', ') }}</p>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Persönliches -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">health_and_safety</span>
+          Persönliches
+        </h3>
+
+        @if (isEditing) {
+        <form [formGroup]="persoenlichesForm" class="space-y-4">
+          <zso-input-field formControlName="blutgruppe" label="Blutgruppe" placeholder="A+"></zso-input-field>
+          <zso-input-field formControlName="allergien" label="Allergien (kommagetrennt)"
+            placeholder="Nüsse, Pollen"></zso-input-field>
+          <zso-input-field formControlName="essgewohnheiten" label="Essgewohnheiten (kommagetrennt)"
+            placeholder="Vegetarisch, Glutenfrei"></zso-input-field>
+          <zso-input-field formControlName="sprachkenntnisse" label="Sprachkenntnisse (kommagetrennt)"
+            placeholder="Englisch, Französisch"></zso-input-field>
+          <zso-input-field formControlName="besonderheiten" label="Besonderheiten (kommagetrennt)"
+            placeholder="Brille, Hörhilfe"></zso-input-field>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div>
+            <p class="label">Blutgruppe</p>
+            <p class="value text-rose-400 font-medium">{{ person.persoenliches.blutgruppe || '-' }}</p>
+          </div>
+
+          @if (person.persoenliches.allergien.length) {
+          <div>
+            <p class="label">Allergien</p>
+            <p class="value text-rose-400">{{ person.persoenliches.allergien.join(', ') }}</p>
+          </div>
+          }
+
+          @if (person.persoenliches.essgewohnheiten.length) {
+          <div>
+            <p class="label">Essgewohnheiten</p>
+            <p class="value">{{ person.persoenliches.essgewohnheiten.join(', ') }}</p>
+          </div>
+          }
+
+          @if (person.persoenliches.sprachkenntnisse.length) {
+          <div>
+            <p class="label">Sprachkenntnisse</p>
+            <p class="value">{{ person.persoenliches.sprachkenntnisse.join(', ') }}</p>
+          </div>
+          }
+
+          @if (person.persoenliches.besonderheiten.length) {
+          <div>
+            <p class="label">Besonderheiten</p>
+            <p class="value">{{ person.persoenliches.besonderheiten.join(', ') }}</p>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Präferenzen -->
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">settings</span>
+          Präferenzen
+        </h3>
+
+        @if (isEditing) {
+        <form [formGroup]="preferencesForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-3">Kontakt-Methode</label>
+            <div class="space-y-2">
+              <label *ngFor="let option of contactMethodOptions" class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" [value]="option.value" formControlName="contactMethod"
+                  class="text-cp-orange focus:ring-cp-orange">
+                <span class="text-sm text-gray-300">{{ option.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input type="checkbox" formControlName="emailNotifications" class="text-cp-orange focus:ring-cp-orange">
+            <label class="text-sm text-gray-300">E-Mail-Benachrichtigungen erhalten</label>
+          </div>
+        </form>
+        } @else if (person) {
+        <div class="space-y-4">
+          <div>
+            <p class="label">Kontakt-Methode</p>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm {{ 
+                  person.preferences?.contactMethod === 'digital' ? 'text-blue-400' :
+                  person.preferences?.contactMethod === 'paper' ? 'text-amber-400' : 'text-purple-400'
+                }}">
+                {{ person.preferences?.contactMethod === 'digital' ? 'computer' :
+                person.preferences?.contactMethod === 'paper' ? 'description' : 'swap_horiz' }}
+              </span>
+              <span class="value">
+                {{ getContactMethodLabel(person.preferences?.contactMethod || '') }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p class="label">E-Mail-Benachrichtigungen</p>
+            <p class="value">{{ person.preferences?.emailNotifications ? 'Aktiviert' : 'Deaktiviert' }}</p>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Notfallkontakte -->
+      @if (!isNewPerson) {
+      <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">emergency</span>
+            Notfallkontakte
+            <span class="text-sm font-normal text-gray-400">({{ notfallkontakte.length }})</span>
+          </h3>
+
+          @if (canEdit) {
+          <button (click)="openNotfallkontaktDialog()" class="p-2 rounded-lg bg-cp-orange/10 text-cp-orange hover:bg-cp-orange/20 
+                             transition-all duration-200 flex items-center justify-center"
+            title="Notfallkontakt hinzufügen">
+            <span class="material-symbols-outlined text-base">add</span>
+          </button>
+          }
+        </div>
+
+        @if (notfallkontakte.length > 0) {
+        <div class="space-y-3">
+          @for (kontakt of notfallkontakte; track kontakt.id) {
+          <div class="p-3 rounded-lg bg-gray-800/50 border border-gray-700 emergency-contact-card">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="font-medium text-white">{{ kontakt.name }}</p>
+                <p class="text-sm text-gray-400">{{ kontakt.beziehung }}</p>
+                <a [href]="'tel:' + kontakt.telefonnummer" class="text-sm text-cp-orange hover:text-cp-orange/80">
+                  {{ kontakt.telefonnummer }}
+                </a>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
+                  Priorität {{ kontakt.prioritaet }}
+                </span>
+                @if (canEdit) {
+                <button (click)="editNotfallkontakt(kontakt)"
+                  class="p-1 rounded text-gray-400 hover:text-cp-orange transition-colors" title="Bearbeiten">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button (click)="deleteNotfallkontakt(kontakt.id)"
+                  class="p-1 rounded text-gray-400 hover:text-rose-400 transition-colors" title="Löschen">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div class="text-center py-8">
+          <span class="material-symbols-outlined text-gray-500 text-4xl mb-2 block">contact_emergency</span>
+          <p class="text-gray-400 text-sm mb-4">Keine Notfallkontakte erfasst</p>
+          @if (canEdit) {
+          <button (click)="openNotfallkontaktDialog()" class="glass-btn-primary px-4 py-2 rounded-lg">
+            Ersten Kontakt hinzufügen
+          </button>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Upload Toast -->
+    @if (uploadMsg) {
+    <div class="upload-toast" [class.border-green-500]="!uploadError" [class.border-rose-500]="uploadError">
+      <div class="flex items-center gap-3">
+        @if (uploadError) {
+        <span class="material-symbols-outlined text-rose-400">error</span>
+        } @else {
+        <span class="material-symbols-outlined text-green-400">check_circle</span>
+        }
+        <span class="text-white text-sm">{{ uploadMsg }}</span>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Notfallkontakt Dialog -->
+  <zso-notfallkontakt-dialog [visible]="notfallkontaktDialogVisible" [kontakt]="editingKontakt"
+    [personId]="person?.id || ''" (saved)="onNotfallkontaktSaved($event)" (closed)="onNotfallkontaktDialogClosed()">
+  </zso-notfallkontakt-dialog>

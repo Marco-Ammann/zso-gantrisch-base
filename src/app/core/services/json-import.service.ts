@@ -89,46 +89,39 @@ export class JsonImportService {
     return new Observable<string[]>(observer => {
       const ids: string[] = [];
       
-      // Process each person sequentially
-      const processNext = (index: number) => {
+      const processNext = async (index: number) => {
         if (index >= jsonData.length) {
           observer.next(ids);
           observer.complete();
           return;
         }
         
-        const person = jsonData[index];
-        
-        // Transform the person data to match PersonDoc
-        const personData = this.transformPersonData(person);
-        
-        lastValueFrom(this.personService.create(personData)).then((personId: string) => {
+        try {
+          const person = jsonData[index];
+          const personData = this.transformPersonData(person);
+          
+          const personId = await lastValueFrom(this.personService.create(personData));
           ids.push(personId);
           
-          // Import Notfallkontakte
-          if (person.notfallkontakte && Array.isArray(person.notfallkontakte)) {
-            const notfallkontaktePromises = person.notfallkontakte.map((kontakt: any) => {
-              const kontaktData = {
+          // Import Notfallkontakte if they exist
+          if (person.notfallkontakte?.length) {
+            const kontaktePromises = person.notfallkontakte.map((kontakt: any) => 
+              lastValueFrom(this.personService.createNotfallkontakt({
                 ...kontakt,
-                personId: personId
-              };
-              const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
-              return addDoc(kontakteCollection, kontaktData);
-            });
+                personId: personId,
+                erstelltAm: kontakt.erstelltAm?.seconds ? 
+                  kontakt.erstelltAm.seconds * 1000 : Date.now()
+              }))
+            );
             
-            Promise.all(notfallkontaktePromises).then(() => {
-              processNext(index + 1);
-            }).catch((err: any) => {
-              this.logger.error('JsonImportService', 'Failed to import notfallkontakte', err);
-              processNext(index + 1);
-            });
-          } else {
-            processNext(index + 1);
+            await Promise.all(kontaktePromises);
           }
-        }).catch((err: any) => {
+          
+          processNext(index + 1);
+        } catch (err) {
           this.logger.error('JsonImportService', 'Failed to import person', err);
           processNext(index + 1);
-        });
+        }
       };
       
       processNext(0);

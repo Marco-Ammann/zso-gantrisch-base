@@ -344,6 +344,54 @@
   .value {
     @apply text-gray-200;
   }
+
+  /* Emergency Contact Cards */
+.emergency-contact-card {
+  transition: all 0.2s ease;
+}
+
+.emergency-contact-card:hover {
+  background: rgba(55, 65, 81, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Form improvements */
+.form-section {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* Radio button styling improvement */
+input[type="radio"] {
+  @apply w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 
+         focus:ring-2 focus:ring-cp-orange/20 focus:ring-offset-0
+         checked:bg-cp-orange checked:border-cp-orange;
+}
+
+/* Toast improvements */
+.upload-toast {
+  @apply fixed bottom-4 right-4 z-50 glass-card p-4 min-w-64;
+  animation: toastSlide 0.3s ease-out;
+}
+
+@keyframes toastSlide {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 }
 
 /* == UTILITIES == */
