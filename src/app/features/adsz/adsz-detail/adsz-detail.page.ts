@@ -297,34 +297,20 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   private loadNotfallkontakte(personId: string): void {
-    this.logger.log(
-      'AdzsDetailPage',
-      `Loading emergency contacts for person: ${personId}`
-    );
-
-    this.personService
-      .getNotfallkontakte(personId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (kontakte) => {
-          this.logger.log(
-            'AdzsDetailPage',
-            `Loaded ${kontakte.length} emergency contacts:`,
-            kontakte
-          );
-          this.notfallkontakte = kontakte.sort(
-            (a, b) => a.prioritaet - b.prioritaet
-          );
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.logger.error(
-            'AdzsDetailPage',
-            'Error loading emergency contacts:',
-            error
-          );
-        },
-      });
+    this.logger.log('AdzsDetailPage', `Loading emergency contacts for person: ${personId}`);
+    
+    this.personService.getNotfallkontakte(personId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (kontakte) => {
+        this.logger.log('AdzsDetailPage', `Loaded ${kontakte.length} emergency contacts:`, kontakte);
+        this.notfallkontakte = kontakte.sort((a, b) => a.prioritaet - b.prioritaet);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.logger.error('AdzsDetailPage', 'Error loading emergency contacts:', error);
+      }
+    });
   }
 
   // Actions
@@ -349,47 +335,58 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     const personData = this.buildPersonData();
 
     if (this.isNewPerson) {
-      this.personService
-        .create(personData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (newId: string) => {
-            this.successMsg = 'Person erfolgreich erstellt';
-            this.isEditing = false;
-            this.isSaving = false;
-            this.router.navigate(['/adsz', newId], { replaceUrl: true });
-            this.cdr.markForCheck();
-          },
-          error: (error: any) => {
-            this.logger.error('AdzsDetailPage', 'Create error:', error);
-            this.errorMsg = 'Fehler beim Erstellen der Person';
-            this.isSaving = false;
-            this.scrollToTop();
-            this.cdr.markForCheck();
-          },
-        });
+      this.logger.log('AdzsDetailPage', 'Creating new person:', personData);
+      
+      this.personService.create(personData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (newId: string) => {
+          this.logger.log('AdzsDetailPage', 'Person created with ID:', newId);
+          this.successMsg = 'Person erfolgreich erstellt';
+          this.isEditing = false;
+          this.isNewPerson = false;
+          this.isSaving = false;
+          // Navigate to the person detail page
+          this.router.navigate(['/adsz', newId], { replaceUrl: true });
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          this.logger.error('AdzsDetailPage', 'Create error:', error);
+          this.errorMsg = 'Fehler beim Erstellen der Person';
+          this.isSaving = false;
+          this.scrollToTop();
+          this.cdr.markForCheck();
+        }
+      });
+    } else if (this.person?.id) {
+      this.logger.log('AdzsDetailPage', 'Updating person with ID:', this.person.id, personData);
+      
+      this.personService.update(this.person.id, personData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.logger.log('AdzsDetailPage', 'Person updated successfully');
+          this.successMsg = 'Änderungen erfolgreich gespeichert';
+          this.isEditing = false;
+          this.isSaving = false;
+          // Update local person object
+          this.person = { ...this.person!, ...personData } as PersonDoc;
+          this.scrollToTop();
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          this.logger.error('AdzsDetailPage', 'Update error:', error);
+          this.errorMsg = 'Fehler beim Speichern der Änderungen';
+          this.isSaving = false;
+          this.scrollToTop();
+          this.cdr.markForCheck();
+        }
+      });
     } else {
-      this.personService
-        .update(this.person!.id, personData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.successMsg = 'Änderungen erfolgreich gespeichert';
-            this.isEditing = false;
-            this.isSaving = false;
-            // Update local person object
-            this.person = { ...this.person!, ...personData } as PersonDoc;
-            this.scrollToTop();
-            this.cdr.markForCheck();
-          },
-          error: (error: any) => {
-            this.logger.error('AdzsDetailPage', 'Update error:', error);
-            this.errorMsg = 'Fehler beim Speichern der Änderungen';
-            this.isSaving = false;
-            this.scrollToTop();
-            this.cdr.markForCheck();
-          },
-        });
+      this.logger.error('AdzsDetailPage', 'No person ID available for update');
+      this.errorMsg = 'Fehler: Keine Person-ID verfügbar';
+      this.isSaving = false;
+      this.cdr.markForCheck();
     }
   }
 

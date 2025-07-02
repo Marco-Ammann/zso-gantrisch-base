@@ -349,25 +349,38 @@ export class PersonService implements OnDestroy {
   }
 
   /**
-   * Notfallkontakte für Person laden
+   * Get notfallkontakte for a person
    */
   getNotfallkontakte(personId: string): Observable<NotfallkontaktDoc[]> {
-    if (!personId) {
-      return of([]);
-    }
+    this.logger.log(
+      'PersonService',
+      `Getting emergency contacts for person: ${personId}`
+    );
+
     return runInInjectionContext(this.injector, () => {
       const kontakteCollection = collection(
         this.firestoreService.db,
         'notfallkontakte'
       );
-      const kontakteQuery = query(
-        kontakteCollection,
-        where('personId', '==', personId),
-        orderBy('prioritaet', 'asc')
-      );
+      const q = query(kontakteCollection, where('personId', '==', personId));
 
-      return collectionData(kontakteQuery, { idField: 'id' }).pipe(
-        map((kontakte) => kontakte as NotfallkontaktDoc[]),
+      return collectionData(q, { idField: 'id' }).pipe(
+        map((docs: any[]) => {
+          this.logger.log(
+            'PersonService',
+            `Found ${docs.length} emergency contacts for person ${personId}:`,
+            docs
+          );
+          return docs.map((doc) => ({
+            id: doc.id,
+            name: doc.name || '',
+            beziehung: doc.beziehung || '',
+            telefonnummer: doc.telefonnummer || '',
+            prioritaet: doc.prioritaet || 1,
+            personId: doc.personId || '',
+            erstelltAm: doc.erstelltAm || Date.now(),
+          }));
+        }),
         takeUntil(this.destroy$)
       );
     });
@@ -447,6 +460,4 @@ export class PersonService implements OnDestroy {
       return from(deleteDoc(kontaktDoc)).pipe(takeUntil(this.destroy$));
     });
   }
-
-  
 }
