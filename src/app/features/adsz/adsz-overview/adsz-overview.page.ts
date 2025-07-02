@@ -4,7 +4,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, BehaviorSubject, combineLatest } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { PersonService } from '@core/services/person.service';
@@ -18,6 +18,15 @@ interface FilterState {
   zug: 'all' | number;
   gruppe: 'all' | string;
   contactMethod: 'all' | 'digital' | 'paper' | 'both';
+}
+
+interface Stats {
+  total: number;
+  active: number;
+  new: number;
+  digitalPreference: number;
+  paperPreference: number;
+  inactive: number;
 }
 
 @Component({
@@ -54,6 +63,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     gruppe: 'all',
     contactMethod: 'all'
   });
+  private readonly personService = inject(PersonService);
 
   // State
   allPersons: PersonDoc[] = [];
@@ -71,7 +81,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   };
 
   // Statistics
-  stats$ = this.personService.getStats();
+  stats$: Observable<Stats> = this.personService.getStats();
   
   // Current user for highlighting own record
   currentUserId$ = this.authService.appUser$.pipe(

@@ -95,7 +95,7 @@
                 <zso-input-field formControlName="nachname" label="Nachname" placeholder="Nachname"></zso-input-field>
               </div>
               
-              <zso-input-field formControlName="geburtsdatum" label="Geburtsdatum" type="date"></zso-input-field>
+              <zso-input-field formControlName="geburtsdatum" label="Geburtsdatum" type="text"></zso-input-field>
               
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -321,7 +321,7 @@
                   Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, Gruppe {{ person.zivilschutz.einteilung.gruppe }}}
                 </p>
               </div>
-              @if (person.zivilschutz.zusatzausbildungen?.length) {
+              @if (person.zivilschutz.zusatzausbildungen.length) {
                 <div>
                   <p class="label">Zusatzausbildungen</p>
                   <p class="value">{{ person.zivilschutz.zusatzausbildungen.join(', ') }}</p>
