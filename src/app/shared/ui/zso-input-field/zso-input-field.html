@@ -3,40 +3,30 @@
   <label [for]="id" class="input-label">{{ label }}</label>
 
   <div class="relative">
-    <input
-      [id]="id"
-      [type]="resolvedType"
-      [placeholder]="placeholder"
-      class="form-input pr-10"
-      [formControl]="control"
-      (blur)="onTouched()"
-      [attr.aria-label]="label"
+    <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10" [formControl]="control"
+      (blur)="onTouched()" [attr.aria-label]="label"
       [attr.aria-invalid]="control.touched ? control.invalid : 'unset'" />
 
     @if (toggleVisibility && type === 'password') {
-      <button
-        type="button"
-        (click)="show = !show"
-        class="absolute inset-y-0 right-0 pr-3 flex items-center h-full cursor-pointer 
-               text-gray-400 hover:text-white transition-colors"
-        [attr.aria-pressed]="show"
-        aria-label="Passwort anzeigen/verbergen">
+    <button type="button" (click)="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center h-full cursor-pointer 
+               text-gray-400 hover:text-white transition-colors" [attr.aria-pressed]="show"
+      aria-label="Passwort anzeigen/verbergen">
 
-        @if (!show) {
-          <!-- Eye closed -->
-          <span class="material-symbols-outlined text-lg">visibility_off</span>
-        } @else {
-          <!-- Eye open -->
-          <span class="material-symbols-outlined text-lg">visibility</span>
-        }
-      </button>
+      @if (!show) {
+      <!-- Eye closed -->
+      <span class="material-symbols-outlined text-lg">visibility_off</span>
+      } @else {
+      <!-- Eye open -->
+      <span class="material-symbols-outlined text-lg">visibility</span>
+      }
+    </button>
     }
   </div>
 
   @if (control.touched && control.invalid) {
-    <div class="mt-2 flex items-center gap-1.5">
-      <span class="material-symbols-outlined text-rose-400 text-sm">error</span>
-      <p class="text-sm text-rose-400">{{ getError() }}</p>
-    </div>
+  <div class="mt-2 flex items-center gap-1.5">
+    <span class="material-symbols-outlined text-rose-400 text-sm">error</span>
+    <p class="text-sm text-rose-400">{{ getError() }}</p>
+  </div>
   }
 </div>

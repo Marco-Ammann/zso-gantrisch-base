@@ -1,67 +1,68 @@
 // src/app/features/adsz/adsz-detail/adsz-detail.page.scss
-:host { 
-    display: block; 
-  }
-  
-  // Form sections
-  .form-section {
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      
-      @media (max-width: 640px) {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .form-field {
-      margin-bottom: 1rem;
-    }
-  }
-  
-  // Radio button styling for contact method
-  input[type="radio"] {
-    @apply w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 
-           focus:ring-2 focus:ring-cp-orange/20 focus:ring-offset-0
-           checked:bg-cp-orange checked:border-cp-orange;
-  }
-  
-  // Emergency contact cards
-  .emergency-contact-card {
-    transition: all 0.2s ease;
-    
-    &:hover {
-      background: rgba(55, 65, 81, 0.7);
-      transform: translateY(-1px);
-    }
-  }
-  
-  // Status indicators
-  .status-indicator {
-    &.active {
-      @apply bg-green-500/20 text-green-400 border border-green-500/30;
-    }
-    
-    &.new {
-      @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
-    }
-    
-    &.inactive {
-      @apply bg-rose-500/20 text-rose-300 border border-rose-500/30;
-    }
-  }
-  
-  // Form validation
-  .form-field--error {
-    input, select, textarea {
-      @apply border-rose-500 focus:border-rose-500 focus:ring-rose-500/20;
-    }
-  }
-  
-  // Responsive adjustments
-  @media (max-width: 1024px) {
-    .detail-grid {
+:host {
+  display: block;
+}
+
+// Form sections
+.form-section {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 640px) {
       grid-template-columns: 1fr;
     }
   }
+
+  .form-field {
+    margin-bottom: 1rem;
+  }
+}
+
+// Radio button styling for contact method
+input[type="radio"] {
+  @apply w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 focus:ring-2 focus:ring-cp-orange/20 focus:ring-offset-0 checked:bg-cp-orange checked:border-cp-orange;
+}
+
+// Emergency contact cards
+.emergency-contact-card {
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(55, 65, 81, 0.7);
+    transform: translateY(-1px);
+  }
+}
+
+// Status indicators
+.status-indicator {
+  &.active {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  &.new {
+    @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
+  }
+
+  &.inactive {
+    @apply bg-rose-500/20 text-rose-300 border border-rose-500/30;
+  }
+}
+
+// Form validation
+.form-field--error {
+
+  input,
+  select,
+  textarea {
+    @apply border-rose-500 focus:border-rose-500 focus:ring-rose-500/20;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

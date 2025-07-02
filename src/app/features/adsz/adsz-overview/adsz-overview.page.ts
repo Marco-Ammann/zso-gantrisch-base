@@ -1,10 +1,27 @@
 // src/app/features/adsz/adsz-overview/adsz-overview.page.ts
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import {
+  Subject,
+  takeUntil,
+  debounceTime,
+  distinctUntilChanged,
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+} from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { PersonService } from '@core/services/person.service';
@@ -32,22 +49,21 @@ interface Stats {
 @Component({
   selector: 'zso-adsz-overview',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule
-  ],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './adsz-overview.page.html',
   styleUrls: ['./adsz-overview.page.scss'],
   animations: [
     trigger('itemFade', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(10px)' }),
-        animate('250ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
+        animate(
+          '250ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
+      ]),
+    ]),
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdzsOverviewPage implements OnInit, OnDestroy {
   private readonly jsonImportService = inject(JsonImportService);
@@ -61,7 +77,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     status: 'all',
     zug: 'all',
     gruppe: 'all',
-    contactMethod: 'all'
+    contactMethod: 'all',
   });
   private readonly personService = inject(PersonService);
 
@@ -74,21 +90,21 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   searchQuery = '';
   isLoading = false;
   errorMsg: string | null = null;
-  
+
   // Filter state
   currentFilters: FilterState = {
     status: 'all',
     zug: 'all',
     gruppe: 'all',
-    contactMethod: 'all'
+    contactMethod: 'all',
   };
 
   // Statistics
   stats$: Observable<Stats> = this.personService.getStats();
-  
+
   // Current user for highlighting own record
   currentUserId$ = this.authService.appUser$.pipe(
-    map(user => user?.auth.uid || null)
+    map((user) => user?.auth.uid || null)
   );
 
   // Available filter options
@@ -96,13 +112,13 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     { value: 'all', label: 'Alle Status' },
     { value: 'aktiv', label: 'Aktiv' },
     { value: 'neu', label: 'Neu' },
-    { value: 'inaktiv', label: 'Inaktiv' }
+    { value: 'inaktiv', label: 'Inaktiv' },
   ];
 
   readonly zugOptions = [
     { value: 'all', label: 'Alle Züge' },
     { value: 1, label: 'Zug 1' },
-    { value: 2, label: 'Zug 2' }
+    { value: 2, label: 'Zug 2' },
   ];
 
   readonly gruppeOptions = [
@@ -110,32 +126,28 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     { value: 'A', label: 'Gruppe A' },
     { value: 'B', label: 'Gruppe B' },
     { value: 'C', label: 'Gruppe C' },
-    { value: 'D', label: 'Gruppe D' }
+    { value: 'D', label: 'Gruppe D' },
   ];
 
   readonly contactMethodOptions = [
     { value: 'all', label: 'Alle Präferenzen' },
     { value: 'digital', label: 'Digital' },
     { value: 'paper', label: 'Papier' },
-    { value: 'both', label: 'Beides' }
+    { value: 'both', label: 'Beides' },
   ];
 
   ngOnInit(): void {
     this.logger.log('AdzsOverviewPage', 'Initializing');
 
     // Set up search debounce
-    this.searchTerm$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.applyFilters();
-    });
+    this.searchTerm$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.applyFilters();
+      });
 
     // Set up filter changes
-    this.filters$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
+    this.filters$.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.applyFilters();
     });
 
@@ -143,15 +155,15 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     combineLatest([
       this.personService.getAll(),
       this.searchTerm$,
-      this.filters$
-    ]).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(([persons]) => {
-      this.allPersons = persons;
-      this.applyFilters();
-      this.isLoading = false;
-      this.cdr.markForCheck();
-    });
+      this.filters$,
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([persons]) => {
+        this.allPersons = persons;
+        this.applyFilters();
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      });
 
     this.loadPersons();
   }
@@ -166,7 +178,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
 
   private loadPersons(): void {
     if (this.isLoading) return;
-    
+
     this.isLoading = true;
     this.errorMsg = null;
     this.cdr.markForCheck();
@@ -178,40 +190,48 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     // Apply search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(person =>
-        `${person.grunddaten.vorname} ${person.grunddaten.nachname}`.toLowerCase().includes(query) ||
-        person.kontaktdaten.email.toLowerCase().includes(query) ||
-        person.kontaktdaten.telefonMobil.includes(query) ||
-        person.grunddaten.funktion.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (person) =>
+          `${person.grunddaten.vorname} ${person.grunddaten.nachname}`
+            .toLowerCase()
+            .includes(query) ||
+          person.kontaktdaten.email.toLowerCase().includes(query) ||
+          person.kontaktdaten.telefonMobil.includes(query) ||
+          person.grunddaten.funktion.toLowerCase().includes(query)
       );
     }
 
     // Apply status filter
     if (this.currentFilters.status !== 'all') {
-      filtered = filtered.filter(person => 
-        person.zivilschutz.status === this.currentFilters.status
+      filtered = filtered.filter(
+        (person) => person.zivilschutz.status === this.currentFilters.status
       );
     }
 
     // Apply zug filter
     if (this.currentFilters.zug !== 'all') {
-      filtered = filtered.filter(person => 
-        person.zivilschutz.einteilung.zug === this.currentFilters.zug
+      filtered = filtered.filter(
+        (person) =>
+          person.zivilschutz.einteilung.zug === this.currentFilters.zug
       );
     }
 
     // Apply gruppe filter
     if (this.currentFilters.gruppe !== 'all') {
-      filtered = filtered.filter(person => 
-        person.zivilschutz.einteilung.gruppe === this.currentFilters.gruppe
+      filtered = filtered.filter(
+        (person) =>
+          person.zivilschutz.einteilung.gruppe === this.currentFilters.gruppe
       );
     }
 
     // Apply contact method filter
     if (this.currentFilters.contactMethod !== 'all') {
-      filtered = filtered.filter(person => 
-        person.preferences?.contactMethod === this.currentFilters.contactMethod ||
-        (this.currentFilters.contactMethod === 'both' && person.preferences?.contactMethod === 'both')
+      filtered = filtered.filter(
+        (person) =>
+          person.preferences?.contactMethod ===
+            this.currentFilters.contactMethod ||
+          (this.currentFilters.contactMethod === 'both' &&
+            person.preferences?.contactMethod === 'both')
       );
     }
 
@@ -228,7 +248,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   onFilterChange(filterType: keyof FilterState, value: any): void {
     this.currentFilters = {
       ...this.currentFilters,
-      [filterType]: value
+      [filterType]: value,
     };
     this.filters$.next(this.currentFilters);
   }
@@ -239,7 +259,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
       status: 'all',
       zug: 'all',
       gruppe: 'all',
-      contactMethod: 'all'
+      contactMethod: 'all',
     };
     this.searchTerm$.next('');
     this.filters$.next(this.currentFilters);
@@ -266,12 +286,16 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   }
 
   generatePaperPreferencePDFs(): void {
-    const paperPersons = this.allPersons.filter(person => 
-      person.preferences?.contactMethod === 'paper' || 
-      person.preferences?.contactMethod === 'both'
+    const paperPersons = this.allPersons.filter(
+      (person) =>
+        person.preferences?.contactMethod === 'paper' ||
+        person.preferences?.contactMethod === 'both'
     );
-    
-    this.logger.log('AdzsOverviewPage', `Generate PDFs for ${paperPersons.length} paper preference persons`);
+
+    this.logger.log(
+      'AdzsOverviewPage',
+      `Generate PDFs for ${paperPersons.length} paper preference persons`
+    );
     // TODO: Implement PDF generation
   }
 
@@ -287,10 +311,10 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   async handleJsonImport(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
-    
+
     const file = input.files[0];
     this.importStatus = 'Importing JSON file...';
-    
+
     try {
       const jsonData = await this.jsonImportService.readJsonFile(file);
       this.jsonImportService.importPersonsFromJson(jsonData).subscribe({
@@ -301,7 +325,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
         error: (err) => {
           this.importStatus = `Import failed: ${err.message}`;
           this.logger.error('JSON Import Error', err);
-        }
+        },
       });
     } catch (err) {
       this.importStatus = `File error: ${(err as Error).message}`;
@@ -311,33 +335,47 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
 
   // Helper methods
   getPersonInitials(person: PersonDoc): string {
-    return `${person.grunddaten.vorname.charAt(0)}${person.grunddaten.nachname.charAt(0)}`;
+    return `${person.grunddaten.vorname.charAt(
+      0
+    )}${person.grunddaten.nachname.charAt(0)}`;
   }
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'aktiv': return 'badge--approved';
-      case 'neu': return 'badge--pending';
-      case 'inaktiv': return 'badge--blocked';
-      default: return 'badge--unverified';
+      case 'aktiv':
+        return 'badge--approved';
+      case 'neu':
+        return 'badge--pending';
+      case 'inaktiv':
+        return 'badge--blocked';
+      default:
+        return 'badge--unverified';
     }
   }
 
   getContactMethodBadgeClass(method?: string): string {
     switch (method) {
-      case 'digital': return 'text-blue-400';
-      case 'paper': return 'text-amber-400';
-      case 'both': return 'text-purple-400';
-      default: return 'text-gray-400';
+      case 'digital':
+        return 'text-blue-400';
+      case 'paper':
+        return 'text-amber-400';
+      case 'both':
+        return 'text-purple-400';
+      default:
+        return 'text-gray-400';
     }
   }
 
   getContactMethodIcon(method?: string): string {
     switch (method) {
-      case 'digital': return 'computer';
-      case 'paper': return 'description';
-      case 'both': return 'swap_horiz';
-      default: return 'help';
+      case 'digital':
+        return 'computer';
+      case 'paper':
+        return 'description';
+      case 'both':
+        return 'swap_horiz';
+      default:
+        return 'help';
     }
   }
 
@@ -353,22 +391,28 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   }
 
   get hasActiveFilters(): boolean {
-    return this.currentFilters.status !== 'all' ||
-           this.currentFilters.zug !== 'all' ||
-           this.currentFilters.gruppe !== 'all' ||
-           this.currentFilters.contactMethod !== 'all' ||
-           this.searchQuery.trim() !== '';
+    return (
+      this.currentFilters.status !== 'all' ||
+      this.currentFilters.zug !== 'all' ||
+      this.currentFilters.gruppe !== 'all' ||
+      this.currentFilters.contactMethod !== 'all' ||
+      this.searchQuery.trim() !== ''
+    );
   }
 
   get filteredStats() {
     return {
       total: this.filteredPersons.length,
-      active: this.filteredPersons.filter(p => p.zivilschutz.status === 'aktiv').length,
-      new: this.filteredPersons.filter(p => p.zivilschutz.status === 'neu').length,
-      paper: this.filteredPersons.filter(p => 
-        p.preferences?.contactMethod === 'paper' || 
-        p.preferences?.contactMethod === 'both'
-      ).length
+      active: this.filteredPersons.filter(
+        (p) => p.zivilschutz.status === 'aktiv'
+      ).length,
+      new: this.filteredPersons.filter((p) => p.zivilschutz.status === 'neu')
+        .length,
+      paper: this.filteredPersons.filter(
+        (p) =>
+          p.preferences?.contactMethod === 'paper' ||
+          p.preferences?.contactMethod === 'both'
+      ).length,
     };
   }
 }

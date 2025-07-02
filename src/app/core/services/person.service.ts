@@ -1,10 +1,30 @@
 // src/app/core/services/person.service.ts
-import { Injectable, inject, Injector, runInInjectionContext, OnDestroy } from '@angular/core';
-import { collection, collectionData, doc, updateDoc, query, orderBy, where, addDoc, deleteDoc } from '@angular/fire/firestore';
+import {
+  Injectable,
+  inject,
+  Injector,
+  runInInjectionContext,
+  OnDestroy,
+} from '@angular/core';
+import {
+  collection,
+  collectionData,
+  doc,
+  updateDoc,
+  query,
+  orderBy,
+  where,
+  addDoc,
+  deleteDoc,
+} from '@angular/fire/firestore';
 import { Observable, from, of, throwError, Subject } from 'rxjs';
 import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 
-import { PersonDoc, NotfallkontaktDoc, Notfallkontakt } from '@core/models/person.model';
+import {
+  PersonDoc,
+  NotfallkontaktDoc,
+  Notfallkontakt,
+} from '@core/models/person.model';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 
@@ -39,19 +59,25 @@ export class PersonService implements OnDestroy {
   getAll(): Observable<PersonDoc[]> {
     return runInInjectionContext(this.injector, () => {
       try {
-        const personsCollection = collection(this.firestoreService.db, 'persons');
+        const personsCollection = collection(
+          this.firestoreService.db,
+          'persons'
+        );
         const personsQuery = query(
-          personsCollection, 
+          personsCollection,
           orderBy('grunddaten.nachname', 'asc'),
           orderBy('grunddaten.vorname', 'asc')
         );
-        
+
         return collectionData(personsQuery, { idField: 'id' }).pipe(
-          map(persons => {
-            this.logger.log('PersonService', `Loaded ${persons.length} persons`);
+          map((persons) => {
+            this.logger.log(
+              'PersonService',
+              `Loaded ${persons.length} persons`
+            );
             return persons as PersonDoc[];
           }),
-          catchError(error => {
+          catchError((error) => {
             this.logger.error('PersonService', 'Error loading persons:', error);
             return of([]);
           }),
@@ -82,7 +108,9 @@ export class PersonService implements OnDestroy {
         queryConstraints.push(where('zivilschutz.status', '==', status));
       }
       const statusQuery = query(personsCollection, ...queryConstraints);
-      return collectionData(statusQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+      return collectionData(statusQuery, { idField: 'id' }) as Observable<
+        PersonDoc[]
+      >;
     } catch (err) {
       this.logger.error('PersonService', 'getByStatus failed', err);
       return of([]);
@@ -100,7 +128,9 @@ export class PersonService implements OnDestroy {
         queryConstraints.push(where('zivilschutz.einteilung.zug', '==', zug));
       }
       const zugQuery = query(personsCollection, ...queryConstraints);
-      return collectionData(zugQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+      return collectionData(zugQuery, { idField: 'id' }) as Observable<
+        PersonDoc[]
+      >;
     } catch (err) {
       this.logger.error('PersonService', 'getByZug failed', err);
       return of([]);
@@ -118,7 +148,9 @@ export class PersonService implements OnDestroy {
         queryConstraints.push(where('kontaktdaten.email', '==', email));
       }
       const emailQuery = query(personsCollection, ...queryConstraints);
-      return collectionData(emailQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+      return collectionData(emailQuery, { idField: 'id' }) as Observable<
+        PersonDoc[]
+      >;
     } catch (err) {
       this.logger.error('PersonService', 'getByEmail failed', err);
       return of([]);
@@ -130,7 +162,7 @@ export class PersonService implements OnDestroy {
    */
   getStats(): Observable<PersonStats> {
     return this.getAll().pipe(
-      map(persons => {
+      map((persons) => {
         const stats: PersonStats = {
           total: persons.length,
           active: 0,
@@ -139,15 +171,21 @@ export class PersonService implements OnDestroy {
           byZug: {},
           byGruppe: {},
           digitalPreference: 0,
-          paperPreference: 0
+          paperPreference: 0,
         };
 
-        persons.forEach(person => {
+        persons.forEach((person) => {
           // Status zählen
           switch (person.zivilschutz.status) {
-            case 'aktiv': stats.active++; break;
-            case 'neu': stats.new++; break;
-            case 'inaktiv': stats.inactive++; break;
+            case 'aktiv':
+              stats.active++;
+              break;
+            case 'neu':
+              stats.new++;
+              break;
+            case 'inaktiv':
+              stats.inactive++;
+              break;
           }
 
           // Zug zählen
@@ -178,17 +216,19 @@ export class PersonService implements OnDestroy {
    */
   create(personData: Omit<PersonDoc, 'id'>): Observable<string> {
     this.logger.log('PersonService', 'Creating person', personData.grunddaten);
-    
+
     return runInInjectionContext(this.injector, () => {
       const personsCollection = collection(this.firestoreService.db, 'persons');
-      
-      return from(addDoc(personsCollection, {
-        ...personData,
-        erstelltAm: Date.now(),
-        aktualisiertAm: Date.now()
-      })).pipe(
-        map(docRef => docRef.id),
-        catchError(error => {
+
+      return from(
+        addDoc(personsCollection, {
+          ...personData,
+          erstelltAm: Date.now(),
+          aktualisiertAm: Date.now(),
+        })
+      ).pipe(
+        map((docRef) => docRef.id),
+        catchError((error) => {
           this.logger.error('PersonService', 'Error creating person:', error);
           return throwError(() => error);
         }),
@@ -202,16 +242,22 @@ export class PersonService implements OnDestroy {
    */
   update(id: string, updates: Partial<PersonDoc>): Observable<void> {
     this.logger.log('PersonService', 'Updating person', { id, updates });
-    
+
     return runInInjectionContext(this.injector, () => {
       const personDoc = doc(this.firestoreService.db, `persons/${id}`);
-      
-      return from(updateDoc(personDoc, {
-        ...updates,
-        aktualisiertAm: Date.now()
-      })).pipe(
-        catchError(error => {
-          this.logger.error('PersonService', `Error updating person ${id}:`, error);
+
+      return from(
+        updateDoc(personDoc, {
+          ...updates,
+          aktualisiertAm: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'PersonService',
+            `Error updating person ${id}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -223,8 +269,11 @@ export class PersonService implements OnDestroy {
    * User-Verknüpfung erstellen
    */
   linkToUser(personId: string, userId: string): Observable<void> {
-    this.logger.log('PersonService', 'Linking person to user', { personId, userId });
-    
+    this.logger.log('PersonService', 'Linking person to user', {
+      personId,
+      userId,
+    });
+
     return this.update(personId, { userId });
   }
 
@@ -233,16 +282,16 @@ export class PersonService implements OnDestroy {
    */
   unlinkFromUser(personId: string): Observable<void> {
     this.logger.log('PersonService', 'Unlinking person from user', personId);
-    
+
     return runInInjectionContext(this.injector, () => {
       const personDoc = doc(this.firestoreService.db, `persons/${personId}`);
-      
-      return from(updateDoc(personDoc, {
-        userId: null,
-        aktualisiertAm: Date.now()
-      })).pipe(
-        takeUntil(this.destroy$)
-      );
+
+      return from(
+        updateDoc(personDoc, {
+          userId: null,
+          aktualisiertAm: Date.now(),
+        })
+      ).pipe(takeUntil(this.destroy$));
     });
   }
 
@@ -250,26 +299,29 @@ export class PersonService implements OnDestroy {
    * Kontakt-Präferenz aktualisieren
    */
   updateContactPreference(
-    id: string, 
+    id: string,
     contactMethod: 'digital' | 'paper' | 'both'
   ): Observable<void> {
     return this.update(id, {
       preferences: {
         contactMethod,
-        emailNotifications: contactMethod !== 'paper'
-      }
+        emailNotifications: contactMethod !== 'paper',
+      },
     });
   }
 
   /**
    * Status ändern
    */
-  updateStatus(id: string, status: 'aktiv' | 'neu' | 'inaktiv'): Observable<void> {
+  updateStatus(
+    id: string,
+    status: 'aktiv' | 'neu' | 'inaktiv'
+  ): Observable<void> {
     return this.update(id, {
       zivilschutz: {
         ...this.getCurrentZivilschutzData(id),
-        status
-      }
+        status,
+      },
     });
   }
 
@@ -278,13 +330,17 @@ export class PersonService implements OnDestroy {
    */
   delete(id: string): Observable<void> {
     this.logger.log('PersonService', 'Deleting person', id);
-    
+
     return runInInjectionContext(this.injector, () => {
       const personDoc = doc(this.firestoreService.db, `persons/${id}`);
-      
+
       return from(deleteDoc(personDoc)).pipe(
-        catchError(error => {
-          this.logger.error('PersonService', `Error deleting person ${id}:`, error);
+        catchError((error) => {
+          this.logger.error(
+            'PersonService',
+            `Error deleting person ${id}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -300,15 +356,18 @@ export class PersonService implements OnDestroy {
       return of([]);
     }
     return runInInjectionContext(this.injector, () => {
-      const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
+      const kontakteCollection = collection(
+        this.firestoreService.db,
+        'notfallkontakte'
+      );
       const kontakteQuery = query(
         kontakteCollection,
         where('personId', '==', personId),
         orderBy('prioritaet', 'asc')
       );
-      
+
       return collectionData(kontakteQuery, { idField: 'id' }).pipe(
-        map(kontakte => kontakte as NotfallkontaktDoc[]),
+        map((kontakte) => kontakte as NotfallkontaktDoc[]),
         takeUntil(this.destroy$)
       );
     });
@@ -318,8 +377,9 @@ export class PersonService implements OnDestroy {
    * Notfallkontakte für Person laden
    */
   getNotfallkontakteByPersonId(personId: string): Observable<Notfallkontakt[]> {
-    return this.firestoreService['collection'](`persons/${personId}/notfallkontakte`)
-      .valueChanges({ idField: 'id' }) as Observable<Notfallkontakt[]>;
+    return this.firestoreService['collection'](
+      `persons/${personId}/notfallkontakte`
+    ).valueChanges({ idField: 'id' }) as Observable<Notfallkontakt[]>;
   }
 
   // Helper method - würde normalerweise die aktuellen Daten laden
@@ -328,46 +388,65 @@ export class PersonService implements OnDestroy {
     return {};
   }
 
-    /**
+  /**
    * Notfallkontakt erstellen
    */
-    createNotfallkontakt(kontaktData: Omit<NotfallkontaktDoc, 'id'>): Observable<string> {
-      return runInInjectionContext(this.injector, () => {
-        const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
-        
-        return from(addDoc(kontakteCollection, {
+  createNotfallkontakt(
+    kontaktData: Omit<NotfallkontaktDoc, 'id'>
+  ): Observable<string> {
+    return runInInjectionContext(this.injector, () => {
+      const kontakteCollection = collection(
+        this.firestoreService.db,
+        'notfallkontakte'
+      );
+
+      return from(
+        addDoc(kontakteCollection, {
           ...kontaktData,
-          erstelltAm: Date.now()
-        })).pipe(
-          map(docRef => docRef.id),
-          takeUntil(this.destroy$)
-        );
-      });
-    }
+          erstelltAm: kontaktData.erstelltAm || Date.now(),
+        })
+      ).pipe(
+        map((docRef) => {
+          this.logger.log(
+            'PersonService',
+            `Emergency contact created with ID: ${docRef.id}`
+          );
+          return docRef.id;
+        }),
+        takeUntil(this.destroy$)
+      );
+    });
+  }
+
+  /**
+   * Notfallkontakt aktualisieren
+   */
+  updateNotfallkontakt(
+    id: string,
+    updates: Partial<NotfallkontaktDoc>
+  ): Observable<void> {
+    return runInInjectionContext(this.injector, () => {
+      const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
+
+      return from(
+        updateDoc(kontaktDoc, {
+          ...updates,
+          aktualisiertAm: Date.now(),
+        })
+      ).pipe(takeUntil(this.destroy$));
+    });
+  }
+
+  /**
+   * Notfallkontakt löschen
+   */
+  deleteNotfallkontakt(id: string): Observable<void> {
+    return runInInjectionContext(this.injector, () => {
+      const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
+
+      return from(deleteDoc(kontaktDoc)).pipe(takeUntil(this.destroy$));
+    });
+  }
+
   
-    /**
-     * Notfallkontakt aktualisieren
-     */
-    updateNotfallkontakt(id: string, updates: Partial<NotfallkontaktDoc>): Observable<void> {
-      return runInInjectionContext(this.injector, () => {
-        const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
-        
-        return from(updateDoc(kontaktDoc, updates)).pipe(
-          takeUntil(this.destroy$)
-        );
-      });
-    }
-  
-    /**
-     * Notfallkontakt löschen
-     */
-    deleteNotfallkontakt(id: string): Observable<void> {
-      return runInInjectionContext(this.injector, () => {
-        const kontaktDoc = doc(this.firestoreService.db, `notfallkontakte/${id}`);
-        
-        return from(deleteDoc(kontaktDoc)).pipe(
-          takeUntil(this.destroy$)
-        );
-      });
-    }
 }

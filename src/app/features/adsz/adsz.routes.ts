@@ -5,16 +5,18 @@ export const adzsRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./adsz-overview/adsz-overview.page').then(m => m.AdzsOverviewPage),
+      import('./adsz-overview/adsz-overview.page').then(
+        (m) => m.AdzsOverviewPage
+      ),
   },
   {
     path: 'new',
     loadComponent: () =>
-      import('./adsz-detail/adsz-detail.page').then(m => m.AdzsDetailPage),
+      import('./adsz-detail/adsz-detail.page').then((m) => m.AdzsDetailPage),
   },
   {
     path: ':id',
     loadComponent: () =>
-      import('./adsz-detail/adsz-detail.page').then(m => m.AdzsDetailPage),
-  }
+      import('./adsz-detail/adsz-detail.page').then((m) => m.AdzsDetailPage),
+  },
 ];
