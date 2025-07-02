@@ -25,36 +25,38 @@ export class StateManagementService {
   // Separate State Subjects für bessere Performance
   private loadingState$ = new BehaviorSubject<LoadingState>({});
   private errorState$ = new BehaviorSubject<ErrorState>({});
-  private lastUpdatedState$ = new BehaviorSubject<{ [key: string]: number }>({});
+  private lastUpdatedState$ = new BehaviorSubject<{ [key: string]: number }>(
+    {}
+  );
 
   // Combined App State
   readonly appState$: Observable<AppState> = combineLatest([
     this.loadingState$,
     this.errorState$,
-    this.lastUpdatedState$
+    this.lastUpdatedState$,
   ]).pipe(
     map(([loading, errors, lastUpdated]) => ({
       loading,
       errors,
-      lastUpdated
+      lastUpdated,
     })),
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
   // Convenience Observables
   readonly isAnyLoading$ = this.loadingState$.pipe(
-    map(state => Object.values(state).some(loading => loading)),
+    map((state) => Object.values(state).some((loading) => loading)),
     distinctUntilChanged()
   );
 
   readonly hasAnyError$ = this.errorState$.pipe(
-    map(state => Object.values(state).some(error => error !== null)),
+    map((state) => Object.values(state).some((error) => error !== null)),
     distinctUntilChanged()
   );
 
   readonly globalError$ = this.errorState$.pipe(
-    map(state => {
-      const errors = Object.values(state).filter(error => error !== null);
+    map((state) => {
+      const errors = Object.values(state).filter((error) => error !== null);
       return errors.length > 0 ? errors[0] : null;
     }),
     distinctUntilChanged()
@@ -67,15 +69,15 @@ export class StateManagementService {
     const current = this.loadingState$.value;
     this.loadingState$.next({
       ...current,
-      [key]: isLoading
+      [key]: isLoading,
     });
-    
+
     this.logger.log('StateManagement', `Loading ${key}:`, isLoading);
   }
 
   isLoading$(key: string): Observable<boolean> {
     return this.loadingState$.pipe(
-      map(state => state[key] || false),
+      map((state) => state[key] || false),
       distinctUntilChanged()
     );
   }
@@ -91,7 +93,7 @@ export class StateManagementService {
     const current = this.errorState$.value;
     this.errorState$.next({
       ...current,
-      [key]: error
+      [key]: error,
     });
 
     if (error) {
@@ -103,7 +105,7 @@ export class StateManagementService {
 
   getError$(key: string): Observable<string | null> {
     return this.errorState$.pipe(
-      map(state => state[key] || null),
+      map((state) => state[key] || null),
       distinctUntilChanged()
     );
   }
@@ -128,13 +130,13 @@ export class StateManagementService {
     const current = this.lastUpdatedState$.value;
     this.lastUpdatedState$.next({
       ...current,
-      [key]: Date.now()
+      [key]: Date.now(),
     });
   }
 
   getLastUpdated$(key: string): Observable<number | null> {
     return this.lastUpdatedState$.pipe(
-      map(state => state[key] || null),
+      map((state) => state[key] || null),
       distinctUntilChanged()
     );
   }
@@ -165,14 +167,17 @@ export class StateManagementService {
    */
   setMultipleLoading(keys: string[], isLoading: boolean): void {
     const current = this.loadingState$.value;
-    const updates = keys.reduce((acc, key) => ({
-      ...acc,
-      [key]: isLoading
-    }), {});
-    
+    const updates = keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: isLoading,
+      }),
+      {}
+    );
+
     this.loadingState$.next({
       ...current,
-      ...updates
+      ...updates,
     });
   }
 
@@ -193,14 +198,14 @@ export class StateManagementService {
       this.loadingState$.next({ ...loading });
       this.errorState$.next({ ...errors });
       this.lastUpdatedState$.next({ ...timestamps });
-      
+
       this.logger.log('StateManagement', `State reset for key: ${key}`);
     } else {
       // Reset all state
       this.loadingState$.next({});
       this.errorState$.next({});
       this.lastUpdatedState$.next({});
-      
+
       this.logger.log('StateManagement', 'All state reset');
     }
   }
@@ -212,12 +217,16 @@ export class StateManagementService {
     return {
       loading: this.loadingState$.value,
       errors: this.errorState$.value,
-      lastUpdated: this.lastUpdatedState$.value
+      lastUpdated: this.lastUpdatedState$.value,
     };
   }
 
   logCurrentState(): void {
-    this.logger.log('StateManagement', 'Current State:', this.getCurrentState());
+    this.logger.log(
+      'StateManagement',
+      'Current State:',
+      this.getCurrentState()
+    );
   }
 
   /**
@@ -229,12 +238,14 @@ export class StateManagementService {
       loadingCount: Object.keys(state.loading).length,
       activeLoadingCount: Object.values(state.loading).filter(Boolean).length,
       errorCount: Object.keys(state.errors).length,
-      activeErrorCount: Object.values(state.errors).filter(error => error !== null).length,
+      activeErrorCount: Object.values(state.errors).filter(
+        (error) => error !== null
+      ).length,
       trackedKeysCount: new Set([
         ...Object.keys(state.loading),
         ...Object.keys(state.errors),
-        ...Object.keys(state.lastUpdated)
-      ]).size
+        ...Object.keys(state.lastUpdated),
+      ]).size,
     };
   }
 }

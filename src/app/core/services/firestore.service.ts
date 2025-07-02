@@ -1,10 +1,23 @@
 // src/app/core/services/firestore.service.ts
-import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import { FirebaseApp } from '@angular/fire/app';
 import {
-  Firestore, getFirestore,
-  collection, doc, setDoc, updateDoc, deleteDoc, getDoc,
-  CollectionReference, DocumentReference, DocumentData
+  Firestore,
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  CollectionReference,
+  DocumentReference,
+  DocumentData,
 } from '@angular/fire/firestore';
 import { Observable, from, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -30,40 +43,61 @@ export class FirestoreService {
     try {
       // For Firebase v11+, handle named database initialization more carefully
       this.db = getFirestore(firebaseApp, this.settings.firestoreDbId);
-      this.logger.info('Firestore', `verbunden mit „${this.settings.firestoreDbId}"`);
+      this.logger.info(
+        'Firestore',
+        `verbunden mit „${this.settings.firestoreDbId}"`
+      );
     } catch (error) {
       console.error('Firestore initialization error:', error);
       // Fallback to default database if named database fails
       this.db = getFirestore(firebaseApp);
-      this.logger.warn('Firestore', `Fallback to default database due to error: ${error}`);
+      this.logger.warn(
+        'Firestore',
+        `Fallback to default database due to error: ${error}`
+      );
     }
   }
 
   /* ---------- Convenience ---------- */
 
   col<T = unknown>(path: string): CollectionReference<T> {
-    return runInInjectionContext(this.injector, () =>
-      collection(this.db, path) as CollectionReference<T>
+    return runInInjectionContext(
+      this.injector,
+      () => collection(this.db, path) as CollectionReference<T>
     );
   }
 
   doc<T = unknown>(path: string): DocumentReference<T> {
-    return runInInjectionContext(this.injector, () =>
-      doc(this.db, path) as DocumentReference<T>
+    return runInInjectionContext(
+      this.injector,
+      () => doc(this.db, path) as DocumentReference<T>
     );
   }
 
   /**
    * Get a document from Firestore
    * @param path Path to the document (e.g., 'users/123')
-   * @returns Observable with the document data or null if not found
+   * @returns Observable with the document data including ID or null if not found
    */
-  getDoc<T = DocumentData>(path: string): Observable<T | null> {
+  getDoc<T = DocumentData>(
+    path: string
+  ): Observable<(T & { id: string }) | null> {
     const docRef = this.doc(path);
     return from(getDoc(docRef)).pipe(
-      map(docSnap => docSnap.exists() ? docSnap.data() as T : null),
-      catchError(error => {
-        this.logger.error('FirestoreService', `Error getting document ${path}:`, error);
+      map((docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as T;
+          // Include the document ID in the returned data
+          return { ...data, id: docSnap.id } as T & { id: string };
+        }
+        return null;
+      }),
+      catchError((error) => {
+        this.logger.error(
+          'FirestoreService',
+          `Error getting document ${path}:`,
+          error
+        );
         return of(null);
       })
     );
@@ -76,11 +110,19 @@ export class FirestoreService {
    * @param merge Whether to merge with existing document
    * @returns Observable that completes when the operation is done
    */
-  setDoc<T = DocumentData>(path: string, data: T, merge = true): Observable<void> {
+  setDoc<T = DocumentData>(
+    path: string,
+    data: T,
+    merge = true
+  ): Observable<void> {
     const docRef = this.doc(path);
     return from(setDoc(docRef, data as any, { merge })).pipe(
-      catchError(error => {
-        this.logger.error('FirestoreService', `Error setting document ${path}:`, error);
+      catchError((error) => {
+        this.logger.error(
+          'FirestoreService',
+          `Error setting document ${path}:`,
+          error
+        );
         return throwError(() => error);
       })
     );
@@ -92,11 +134,18 @@ export class FirestoreService {
    * @param data Partial document data to update
    * @returns Observable that completes when the operation is done
    */
-  updateDoc<T = DocumentData>(path: string, data: Partial<T>): Observable<void> {
+  updateDoc<T = DocumentData>(
+    path: string,
+    data: Partial<T>
+  ): Observable<void> {
     const docRef = this.doc(path);
     return from(updateDoc(docRef, data as any)).pipe(
-      catchError(error => {
-        this.logger.error('FirestoreService', `Error updating document ${path}:`, error);
+      catchError((error) => {
+        this.logger.error(
+          'FirestoreService',
+          `Error updating document ${path}:`,
+          error
+        );
         return throwError(() => error);
       })
     );
@@ -110,8 +159,12 @@ export class FirestoreService {
   deleteDoc(path: string): Observable<void> {
     const docRef = this.doc(path);
     return from(deleteDoc(docRef)).pipe(
-      catchError(error => {
-        this.logger.error('FirestoreService', `Error deleting document ${path}:`, error);
+      catchError((error) => {
+        this.logger.error(
+          'FirestoreService',
+          `Error deleting document ${path}:`,
+          error
+        );
         return throwError(() => error);
       })
     );

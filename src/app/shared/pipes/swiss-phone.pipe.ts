@@ -36,7 +36,12 @@ export class SwissPhonePipe implements PipeTransform {
     // build formatted string +41 xx xxx xx xx
     const country = cleaned.slice(0, 2);
     const rest = cleaned.slice(2);
-    const parts = [rest.slice(0, 2), rest.slice(2, 5), rest.slice(5, 7), rest.slice(7, 9)];
+    const parts = [
+      rest.slice(0, 2),
+      rest.slice(2, 5),
+      rest.slice(5, 7),
+      rest.slice(7, 9),
+    ];
     return `${plus}${country} ${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`.trim();
   }
 }

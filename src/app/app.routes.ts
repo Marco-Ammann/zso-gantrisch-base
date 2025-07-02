@@ -18,7 +18,9 @@ export const appRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./core/layout/shell/legal-shell/legal-shell').then(m => m.LegalShell),
+      import('./core/layout/shell/legal-shell/legal-shell').then(
+        (m) => m.LegalShell
+      ),
     children: legalRoutes,
   },
 
@@ -26,7 +28,9 @@ export const appRoutes: Routes = [
   {
     path: 'auth',
     loadComponent: () =>
-      import('./core/layout/shell/auth-shell/auth-shell').then(m => m.AuthShell),
+      import('./core/layout/shell/auth-shell/auth-shell').then(
+        (m) => m.AuthShell
+      ),
     children: authRoutes,
   },
 
@@ -34,13 +38,15 @@ export const appRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./core/layout/shell/main-shell/main-shell').then(m => m.MainShell),
+      import('./core/layout/shell/main-shell/main-shell').then(
+        (m) => m.MainShell
+      ),
     canActivate: [AuthGuard, EmailVerifiedGuard],
     children: [
       { path: 'dashboard', children: dashboardRoutes },
       { path: 'adsz', children: adzsRoutes }, // AdZS routes für alle User
       { path: 'users', children: adminRoutes },
-      { path: 'admin', canActivate: [AdminGuard], children: adminRoutes }
+      { path: 'admin', canActivate: [AdminGuard], children: adminRoutes },
     ],
   },
 

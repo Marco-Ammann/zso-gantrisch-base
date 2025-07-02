@@ -1,7 +1,23 @@
 // src/app/core/services/subscription.service.ts
 import { Injectable, inject, OnDestroy } from '@angular/core';
-import { Observable, Subject, BehaviorSubject, Subscription, EMPTY, timer } from 'rxjs';
-import { catchError, finalize, retry, retryWhen, delay, take, takeUntil, tap } from 'rxjs/operators';
+import {
+  Observable,
+  Subject,
+  BehaviorSubject,
+  Subscription,
+  EMPTY,
+  timer,
+} from 'rxjs';
+import {
+  catchError,
+  finalize,
+  retry,
+  retryWhen,
+  delay,
+  take,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
 import { LoggerService } from '@core/services/logger.service';
 
 export interface SubscriptionConfig {
@@ -29,26 +45,30 @@ export interface SubscriptionState {
 export class SubscriptionService implements OnDestroy {
   private logger = inject(LoggerService);
   private destroy$ = new Subject<void>();
-  
+
   // Globale State-Tracker
   private subscriptions = new Map<string, Subscription>();
   private componentCleanup = new Map<string, Subject<void>>();
-  private globalState$ = new BehaviorSubject<Map<string, SubscriptionState>>(new Map());
+  private globalState$ = new BehaviorSubject<Map<string, SubscriptionState>>(
+    new Map()
+  );
 
   // Performance Metrics
   private metrics = {
     totalSubscriptions: 0,
     activeSubscriptions: 0,
     errors: 0,
-    successfulOperations: 0
+    successfulOperations: 0,
   };
 
   constructor() {
     // Performance Monitoring
-    timer(0, 10000).pipe(
-      takeUntil(this.destroy$),
-      tap(() => this.logMetrics())
-    ).subscribe();
+    timer(0, 10000)
+      .pipe(
+        takeUntil(this.destroy$),
+        tap(() => this.logMetrics())
+      )
+      .subscribe();
   }
 
   /**
@@ -68,16 +88,16 @@ export class SubscriptionService implements OnDestroy {
       manageLoading = true,
       manageError = true,
       debugName = 'anonymous',
-      component = 'global'
+      component = 'global',
     } = config;
 
     const subscriptionId = this.generateId(debugName, component);
-    
+
     // State für diese Subscription
     const state$ = new BehaviorSubject<SubscriptionState>({
       isLoading: false,
       error: null,
-      lastUpdated: null
+      lastUpdated: null,
     });
 
     // Component Cleanup Subject erstellen falls nicht vorhanden
@@ -92,18 +112,25 @@ export class SubscriptionService implements OnDestroy {
         if (manageLoading) {
           state$.next({ ...state$.value, isLoading: true, error: null });
         }
-        this.logger.log('SubscriptionService', `Started: ${debugName}`, { component, subscriptionId });
+        this.logger.log('SubscriptionService', `Started: ${debugName}`, {
+          component,
+          subscriptionId,
+        });
       }),
-      retryWhen(errors => 
+      retryWhen((errors) =>
         errors.pipe(
-          tap(error => {
+          tap((error) => {
             this.metrics.errors++;
-            this.logger.error('SubscriptionService', `Error in ${debugName}:`, error);
+            this.logger.error(
+              'SubscriptionService',
+              `Error in ${debugName}:`,
+              error
+            );
             if (manageError) {
-              state$.next({ 
-                ...state$.value, 
+              state$.next({
+                ...state$.value,
                 error: error.message || 'Unbekannter Fehler',
-                isLoading: false 
+                isLoading: false,
               });
             }
           }),
@@ -111,23 +138,27 @@ export class SubscriptionService implements OnDestroy {
           take(retryAttempts)
         )
       ),
-      catchError(error => {
-        this.logger.error('SubscriptionService', `Final error in ${debugName}:`, error);
+      catchError((error) => {
+        this.logger.error(
+          'SubscriptionService',
+          `Final error in ${debugName}:`,
+          error
+        );
         if (manageError) {
-          state$.next({ 
-            ...state$.value, 
+          state$.next({
+            ...state$.value,
             error: `Endgültiger Fehler: ${error.message}`,
-            isLoading: false 
+            isLoading: false,
           });
         }
         return EMPTY;
       }),
       finalize(() => {
         if (manageLoading) {
-          state$.next({ 
-            ...state$.value, 
-            isLoading: false, 
-            lastUpdated: Date.now() 
+          state$.next({
+            ...state$.value,
+            isLoading: false,
+            lastUpdated: Date.now(),
           });
         }
         this.metrics.successfulOperations++;
@@ -153,7 +184,7 @@ export class SubscriptionService implements OnDestroy {
     return {
       data$,
       state$: state$.asObservable(),
-      unsubscribe
+      unsubscribe,
     };
   }
 
@@ -166,7 +197,10 @@ export class SubscriptionService implements OnDestroy {
       componentDestroy$.next();
       componentDestroy$.complete();
       this.componentCleanup.delete(componentName);
-      this.logger.log('SubscriptionService', `Component destroyed: ${componentName}`);
+      this.logger.log(
+        'SubscriptionService',
+        `Component destroyed: ${componentName}`
+      );
     }
   }
 
@@ -183,12 +217,19 @@ export class SubscriptionService implements OnDestroy {
       manageLoading: false,
       manageError: false,
       component,
-      debugName: 'simple'
+      debugName: 'simple',
     });
 
     data$.subscribe({
       next,
-      error: error || ((err) => this.logger.error('SubscriptionService', 'Simple subscription error:', err))
+      error:
+        error ||
+        ((err) =>
+          this.logger.error(
+            'SubscriptionService',
+            'Simple subscription error:',
+            err
+          )),
     });
 
     return unsubscribe;
@@ -198,7 +239,7 @@ export class SubscriptionService implements OnDestroy {
    * Batch-Operation für mehrere Observables
    */
   batchSubscribe<T>(
-    observables: { name: string; observable$: Observable<T>; }[],
+    observables: { name: string; observable$: Observable<T> }[],
     component = 'global'
   ): {
     states$: Observable<Map<string, SubscriptionState>>;
@@ -211,10 +252,10 @@ export class SubscriptionService implements OnDestroy {
     observables.forEach(({ name, observable$ }) => {
       const { state$, unsubscribe } = this.subscribe(observable$, {
         debugName: name,
-        component
+        component,
       });
 
-      state$.subscribe(state => {
+      state$.subscribe((state) => {
         states.set(name, state);
         states$.next(new Map(states));
       });
@@ -224,7 +265,7 @@ export class SubscriptionService implements OnDestroy {
 
     return {
       states$: states$.asObservable(),
-      unsubscribeAll: () => unsubscribeFunctions.forEach(fn => fn())
+      unsubscribeAll: () => unsubscribeFunctions.forEach((fn) => fn()),
     };
   }
 
@@ -232,10 +273,10 @@ export class SubscriptionService implements OnDestroy {
    * Globale Metriken abrufen
    */
   getMetrics() {
-    return { 
-      ...this.metrics, 
+    return {
+      ...this.metrics,
       activeSubscriptions: this.subscriptions.size,
-      componentCount: this.componentCleanup.size
+      componentCount: this.componentCleanup.size,
     };
   }
 
@@ -247,7 +288,9 @@ export class SubscriptionService implements OnDestroy {
   }
 
   private generateId(debugName: string, component: string): string {
-    return `${component}_${debugName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `${component}_${debugName}_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
   }
 
   private cleanupSubscription(subscriptionId: string): void {
@@ -256,7 +299,10 @@ export class SubscriptionService implements OnDestroy {
       subscription.unsubscribe();
     }
     this.subscriptions.delete(subscriptionId);
-    this.metrics.activeSubscriptions = Math.max(0, this.metrics.activeSubscriptions - 1);
+    this.metrics.activeSubscriptions = Math.max(
+      0,
+      this.metrics.activeSubscriptions - 1
+    );
   }
 
   private logMetrics(): void {
@@ -268,19 +314,23 @@ export class SubscriptionService implements OnDestroy {
 
   ngOnDestroy(): void {
     // Alle Subscriptions cleanup
-    this.subscriptions.forEach(sub => {
+    this.subscriptions.forEach((sub) => {
       if (!sub.closed) sub.unsubscribe();
     });
-    
+
     // Alle Component Subjects cleanup
-    this.componentCleanup.forEach(subject => {
+    this.componentCleanup.forEach((subject) => {
       subject.next();
       subject.complete();
     });
 
     this.destroy$.next();
     this.destroy$.complete();
-    
-    this.logger.log('SubscriptionService', 'Service destroyed. Final metrics:', this.getMetrics());
+
+    this.logger.log(
+      'SubscriptionService',
+      'Service destroyed. Final metrics:',
+      this.getMetrics()
+    );
   }
 }

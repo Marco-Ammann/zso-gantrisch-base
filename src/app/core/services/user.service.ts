@@ -1,7 +1,20 @@
 // src/app/core/services/user.service.ts
-import { Injectable, inject, Injector, runInInjectionContext, OnDestroy } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  Injector,
+  runInInjectionContext,
+  OnDestroy,
+} from '@angular/core';
 import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
-import { collection, collectionData, doc, updateDoc, query, orderBy } from '@angular/fire/firestore';
+import {
+  collection,
+  collectionData,
+  doc,
+  updateDoc,
+  query,
+  orderBy,
+} from '@angular/fire/firestore';
 import { Observable, from, of, throwError, Subject } from 'rxjs';
 import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 
@@ -37,13 +50,13 @@ export class UserService implements OnDestroy {
       try {
         const usersCollection = collection(this.firestoreService.db, 'users');
         const usersQuery = query(usersCollection, orderBy('createdAt', 'desc'));
-        
+
         return collectionData(usersQuery, { idField: 'uid' }).pipe(
-          map(users => {
+          map((users) => {
             this.logger.log('UserService', `Loaded ${users.length} users`);
             return users as UserDoc[];
           }),
-          catchError(error => {
+          catchError((error) => {
             this.logger.error('UserService', 'Error loading users:', error);
             return of([]);
           }),
@@ -62,11 +75,11 @@ export class UserService implements OnDestroy {
 
   getStats(): Observable<Stats> {
     return this.getAll().pipe(
-      map(users => ({
+      map((users) => ({
         total: users.length,
-        active: users.filter(u => u.approved && !u.blocked).length,
-        pending: users.filter(u => !u.approved).length,
-        blocked: users.filter(u => u.blocked).length
+        active: users.filter((u) => u.approved && !u.blocked).length,
+        pending: users.filter((u) => !u.approved).length,
+        blocked: users.filter((u) => u.blocked).length,
       }))
     );
   }
@@ -74,15 +87,21 @@ export class UserService implements OnDestroy {
   approve(uid: string): Observable<void> {
     this.logger.log('UserService', 'Approving user', uid);
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        approved: true, 
-        blocked: false, 
-        updatedAt: Date.now() 
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error approving user ${uid}:`, error);
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          approved: true,
+          blocked: false,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error approving user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -93,14 +112,20 @@ export class UserService implements OnDestroy {
   unapprove(uid: string): Observable<void> {
     this.logger.log('UserService', 'Unapproving user', uid);
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        approved: false, 
-        updatedAt: Date.now() 
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error unapproving user ${uid}:`, error);
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          approved: false,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error unapproving user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -109,16 +134,26 @@ export class UserService implements OnDestroy {
   }
 
   block(uid: string, blocked = true): Observable<void> {
-    this.logger.log('UserService', `${blocked ? 'Blocking' : 'Unblocking'} user`, uid);
+    this.logger.log(
+      'UserService',
+      `${blocked ? 'Blocking' : 'Unblocking'} user`,
+      uid
+    );
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        blocked,
-        updatedAt: Date.now() 
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error ${blocked ? 'blocking' : 'unblocking'} user ${uid}:`, error);
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          blocked,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error ${blocked ? 'blocking' : 'unblocking'} user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -129,14 +164,20 @@ export class UserService implements OnDestroy {
   setRoles(uid: string, roles: string[]): Observable<void> {
     this.logger.log('UserService', 'Setting roles', { uid, roles });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        roles,
-        updatedAt: Date.now() 
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error updating roles for user ${uid}:`, error);
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          roles,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error updating roles for user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -147,14 +188,20 @@ export class UserService implements OnDestroy {
   setEmail(uid: string, email: string): Observable<void> {
     this.logger.log('UserService', 'Setting email', { uid, email });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
+
     return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        email,
-        updatedAt: Date.now()
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error updating email for user ${uid}:`, error);
+      from(
+        updateDoc(userDoc, {
+          email,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error updating email for user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -163,17 +210,27 @@ export class UserService implements OnDestroy {
   }
 
   setNames(uid: string, firstName: string, lastName: string): Observable<void> {
-    this.logger.log('UserService', 'Setting names', { uid, firstName, lastName });
+    this.logger.log('UserService', 'Setting names', {
+      uid,
+      firstName,
+      lastName,
+    });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
+
     return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        firstName,
-        lastName,
-        updatedAt: Date.now()
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error updating names for user ${uid}:`, error);
+      from(
+        updateDoc(userDoc, {
+          firstName,
+          lastName,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error updating names for user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -183,28 +240,37 @@ export class UserService implements OnDestroy {
 
   setBirthDate(uid: string, birthDate: number | null): Observable<void> {
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, {
-        birthDate,
-        updatedAt: Date.now()
-      })).pipe(
-        takeUntil(this.destroy$)
-      )
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          birthDate,
+          updatedAt: Date.now(),
+        })
+      ).pipe(takeUntil(this.destroy$))
     );
   }
 
   setPhoneNumber(uid: string, phoneNumber: string | null): Observable<void> {
-    this.logger.log('UserService', 'Setting phone number', { uid, phoneNumber });
+    this.logger.log('UserService', 'Setting phone number', {
+      uid,
+      phoneNumber,
+    });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
+
     return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        phoneNumber,
-        updatedAt: Date.now()
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error updating phone for user ${uid}:`, error);
+      from(
+        updateDoc(userDoc, {
+          phoneNumber,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error updating phone for user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -215,14 +281,20 @@ export class UserService implements OnDestroy {
   setPhotoUrl(uid: string, photoUrl: string): Observable<void> {
     this.logger.log('UserService', 'Setting photo URL', { uid, photoUrl });
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
+
     return runInInjectionContext(this.injector, () =>
-      from(updateDoc(userDoc, {
-        photoUrl,
-        updatedAt: Date.now()
-      })).pipe(
-        catchError(error => {
-          this.logger.error('UserService', `Error updating photo for user ${uid}:`, error);
+      from(
+        updateDoc(userDoc, {
+          photoUrl,
+          updatedAt: Date.now(),
+        })
+      ).pipe(
+        catchError((error) => {
+          this.logger.error(
+            'UserService',
+            `Error updating photo for user ${uid}:`,
+            error
+          );
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
@@ -232,7 +304,7 @@ export class UserService implements OnDestroy {
 
   getUserDoc(uid: string): Observable<UserDoc | null> {
     return this.fs.getDoc<UserDoc>(`users/${uid}`).pipe(
-      catchError(error => {
+      catchError((error) => {
         this.logger.error('UserService', 'Error getting user doc', error);
         return of(null);
       })
@@ -241,14 +313,18 @@ export class UserService implements OnDestroy {
 
   resetPassword(email: string): Observable<void> {
     this.logger.log('UserService', 'Sending password reset email to', email);
-    
+
     return from(sendPasswordResetEmail(this.auth, email)).pipe(
       switchMap(() => {
         this.logger.log('UserService', 'Password reset email sent to', email);
         return of(undefined);
       }),
-      catchError(error => {
-        this.logger.error('UserService', 'Error sending password reset:', error);
+      catchError((error) => {
+        this.logger.error(
+          'UserService',
+          'Error sending password reset:',
+          error
+        );
         return throwError(() => error);
       }),
       takeUntil(this.destroy$)
@@ -257,13 +333,13 @@ export class UserService implements OnDestroy {
 
   updateLastActiveAt(uid: string): Observable<void> {
     const userDoc = doc(this.firestoreService.db, `users/${uid}`);
-    
-    return runInInjectionContext(this.injector, () => 
-      from(updateDoc(userDoc, { 
-        lastActiveAt: Date.now() 
-      })).pipe(
-        takeUntil(this.destroy$)
-      )
+
+    return runInInjectionContext(this.injector, () =>
+      from(
+        updateDoc(userDoc, {
+          lastActiveAt: Date.now(),
+        })
+      ).pipe(takeUntil(this.destroy$))
     );
   }
 }

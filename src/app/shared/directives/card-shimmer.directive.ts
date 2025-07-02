@@ -3,7 +3,7 @@ import { Directive, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
 
 @Directive({
   selector: '[zsoCardShimmer]',
-  standalone: true
+  standalone: true,
 })
 export class CardShimmerDirective implements AfterViewInit {
   constructor(private el: ElementRef, private r: Renderer2) {}

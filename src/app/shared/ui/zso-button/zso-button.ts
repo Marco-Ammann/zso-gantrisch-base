@@ -19,9 +19,7 @@ import { NgClass } from '@angular/common';
       [ngClass]="classes"
       class="px-5 py-3 rounded-xl flex items-center justify-center gap-2
              font-semibold transition-all animate-pop-in"
-
     >
-
       <!-- Lade-Spinner ------------------------------------------------ -->
       @if (loading) {
       <svg

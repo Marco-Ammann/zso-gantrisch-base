@@ -12,32 +12,61 @@ import { UserDoc } from '@core/models/user-doc';
   imports: [CommonModule, FormsModule, ZsoInputField, ZsoButton],
   template: `
     <!-- Backdrop ----------------------------------------------------------- -->
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
-         [class.opacity-100]="visible"
-         [class.pointer-events-auto]="visible"
-         (click)="onBackdrop($event)">
+    <div
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
+      [class.opacity-100]="visible"
+      [class.pointer-events-auto]="visible"
+      (click)="onBackdrop($event)"
+    >
       <!-- Dialog Card ------------------------------------------------------ -->
-      <div class="glass-card p-6 max-w-md w-full mx-auto transform transition-all scale-95"
-           [class.scale-100]="visible"
-           (click)="$event.stopPropagation()">
-        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div
+        class="glass-card p-6 max-w-md w-full mx-auto transform transition-all scale-95"
+        [class.scale-100]="visible"
+        (click)="$event.stopPropagation()"
+      >
+        <h3
+          class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+        >
           <span class="material-symbols-outlined text-base">person</span>
           Profil bearbeiten
         </h3>
 
         <div class="space-y-4">
-          <zso-input-field label="Vorname" [(ngModel)]="firstName"></zso-input-field>
-          <zso-input-field label="Nachname" [(ngModel)]="lastName"></zso-input-field>
-          <zso-input-field label="E-Mail" type="email" [(ngModel)]="email"></zso-input-field>
-          <zso-input-field label="Telefon" type="text" [(ngModel)]="phoneNumber"></zso-input-field>
-          <label class="block text-sm text-gray-300">Geburtsdatum
-            <input type="date" class="mt-1 w-full rounded bg-white/10 text-white p-2 outline-none" [(ngModel)]="birthDateStr" />
+          <zso-input-field
+            label="Vorname"
+            [(ngModel)]="firstName"
+          ></zso-input-field>
+          <zso-input-field
+            label="Nachname"
+            [(ngModel)]="lastName"
+          ></zso-input-field>
+          <zso-input-field
+            label="E-Mail"
+            type="email"
+            [(ngModel)]="email"
+          ></zso-input-field>
+          <zso-input-field
+            label="Telefon"
+            type="text"
+            [(ngModel)]="phoneNumber"
+          ></zso-input-field>
+          <label class="block text-sm text-gray-300"
+            >Geburtsdatum
+            <input
+              type="date"
+              class="mt-1 w-full rounded bg-white/10 text-white p-2 outline-none"
+              [(ngModel)]="birthDateStr"
+            />
           </label>
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-          <zso-button type="neutral" size="sm" (click)="cancel()">Abbrechen</zso-button>
-          <zso-button type="primary" size="sm" icon="save" (click)="save()">Speichern</zso-button>
+          <zso-button type="neutral" size="sm" (click)="cancel()"
+            >Abbrechen</zso-button
+          >
+          <zso-button type="primary" size="sm" icon="save" (click)="save()"
+            >Speichern</zso-button
+          >
         </div>
       </div>
     </div>
@@ -51,12 +80,21 @@ export class UserEditDialogComponent {
       this.lastName = u.lastName;
       this.email = u.email;
       this.phoneNumber = u.phoneNumber || '';
-      this.birthDateStr = u.birthDate ? new Date(u.birthDate).toISOString().substring(0,10) : '';
+      this.birthDateStr = u.birthDate
+        ? new Date(u.birthDate).toISOString().substring(0, 10)
+        : '';
       this._uid = u.uid;
     }
   }
 
-  @Output() saved = new EventEmitter<{ uid: string; firstName: string; lastName: string; email: string; phoneNumber: string; birthDate: number | null }>();
+  @Output() saved = new EventEmitter<{
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    birthDate: number | null;
+  }>();
   @Output() closed = new EventEmitter<void>();
 
   /* form model */
@@ -72,8 +110,17 @@ export class UserEditDialogComponent {
   }
 
   save() {
-    const birthDateTs = this.birthDateStr ? new Date(this.birthDateStr).getTime() : null;
-    this.saved.emit({ uid: this._uid, firstName: this.firstName.trim(), lastName: this.lastName.trim(), email: this.email.trim(), phoneNumber: this.phoneNumber.trim(), birthDate: birthDateTs });
+    const birthDateTs = this.birthDateStr
+      ? new Date(this.birthDateStr).getTime()
+      : null;
+    this.saved.emit({
+      uid: this._uid,
+      firstName: this.firstName.trim(),
+      lastName: this.lastName.trim(),
+      email: this.email.trim(),
+      phoneNumber: this.phoneNumber.trim(),
+      birthDate: birthDateTs,
+    });
     this.visible = false;
     this.closed.emit();
   }

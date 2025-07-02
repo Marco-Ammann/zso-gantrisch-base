@@ -69,7 +69,6 @@ export interface PersonDoc {
     aktualisiert_von: string;
   };
   photoUrl?: string;
-
 }
 
 export interface Notfallkontakt {

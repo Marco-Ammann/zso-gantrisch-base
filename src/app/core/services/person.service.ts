@@ -94,7 +94,29 @@ export class PersonService implements OnDestroy {
    * Person nach ID laden
    */
   getById(id: string): Observable<PersonDoc | null> {
-    return this.firestoreService.getDoc<PersonDoc>(`persons/${id}`);
+    this.logger.log('PersonService', `Loading person with ID: ${id}`);
+
+    return this.firestoreService.getDoc<PersonDoc>(`persons/${id}`).pipe(
+      map((person) => {
+        if (person) {
+          this.logger.log('PersonService', `Person loaded successfully:`, {
+            id: person.id,
+            name: `${person.grunddaten?.vorname} ${person.grunddaten?.nachname}`,
+          });
+        } else {
+          this.logger.warn('PersonService', `Person with ID ${id} not found`);
+        }
+        return person;
+      }),
+      catchError((error) => {
+        this.logger.error(
+          'PersonService',
+          `Error loading person ${id}:`,
+          error
+        );
+        return of(null);
+      })
+    );
   }
 
   /**
@@ -351,38 +373,68 @@ export class PersonService implements OnDestroy {
   /**
    * Get notfallkontakte for a person
    */
+  /**
+   * Get notfallkontakte for a person
+   */
   getNotfallkontakte(personId: string): Observable<NotfallkontaktDoc[]> {
+    // Defensive validation
+    if (!personId || personId === 'undefined' || personId.trim() === '') {
+      this.logger.error(
+        'PersonService',
+        'Cannot get emergency contacts: invalid personId:',
+        personId
+      );
+      return of([]);
+    }
+
     this.logger.log(
       'PersonService',
       `Getting emergency contacts for person: ${personId}`
     );
 
     return runInInjectionContext(this.injector, () => {
-      const kontakteCollection = collection(
-        this.firestoreService.db,
-        'notfallkontakte'
-      );
-      const q = query(kontakteCollection, where('personId', '==', personId));
+      try {
+        const kontakteCollection = collection(
+          this.firestoreService.db,
+          'notfallkontakte'
+        );
+        const q = query(kontakteCollection, where('personId', '==', personId));
 
-      return collectionData(q, { idField: 'id' }).pipe(
-        map((docs: any[]) => {
-          this.logger.log(
-            'PersonService',
-            `Found ${docs.length} emergency contacts for person ${personId}:`,
-            docs
-          );
-          return docs.map((doc) => ({
-            id: doc.id,
-            name: doc.name || '',
-            beziehung: doc.beziehung || '',
-            telefonnummer: doc.telefonnummer || '',
-            prioritaet: doc.prioritaet || 1,
-            personId: doc.personId || '',
-            erstelltAm: doc.erstelltAm || Date.now(),
-          }));
-        }),
-        takeUntil(this.destroy$)
-      );
+        return collectionData(q, { idField: 'id' }).pipe(
+          map((docs: any[]) => {
+            this.logger.log(
+              'PersonService',
+              `Found ${docs.length} emergency contacts for person ${personId}:`,
+              docs
+            );
+            return docs.map((doc) => ({
+              id: doc.id,
+              name: doc.name || '',
+              beziehung: doc.beziehung || '',
+              telefonnummer: doc.telefonnummer || '',
+              prioritaet: doc.prioritaet || 1,
+              personId: doc.personId || '',
+              erstelltAm: doc.erstelltAm || Date.now(),
+            }));
+          }),
+          catchError((error) => {
+            this.logger.error(
+              'PersonService',
+              `Error loading emergency contacts for person ${personId}:`,
+              error
+            );
+            return of([]);
+          }),
+          takeUntil(this.destroy$)
+        );
+      } catch (error) {
+        this.logger.error(
+          'PersonService',
+          'Error creating emergency contacts query:',
+          error
+        );
+        return of([]);
+      }
     });
   }
 

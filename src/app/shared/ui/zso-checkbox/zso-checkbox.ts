@@ -6,7 +6,11 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   selector: 'zso-checkbox',
   standalone: true,
   providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ZsoCheckbox), multi: true }
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ZsoCheckbox),
+      multi: true,
+    },
   ],
   template: `
     <label class="checkbox-wrapper group">
@@ -14,15 +18,23 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
         type="checkbox"
         class="checkbox-hidden peer"
         [checked]="value"
-        (change)="toggle($event)" />
+        (change)="toggle($event)"
+      />
 
       <span class="checkbox-box">
         @if (value) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white"
-               viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd"
-              d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z"/>
-          </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3.5 w-3.5 text-white"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z"
+          />
+        </svg>
         }
       </span>
 
@@ -44,8 +56,14 @@ export class ZsoCheckbox implements ControlValueAccessor {
     this.onTouched();
   }
 
-  writeValue(v: boolean)         { this.value = !!v; }
-  registerOnChange(fn: any)      { this.onChange  = fn; }
-  registerOnTouched(fn: any)     { this.onTouched = fn; }
-  setDisabledState(_: boolean)   {}
+  writeValue(v: boolean) {
+    this.value = !!v;
+  }
+  registerOnChange(fn: any) {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any) {
+    this.onTouched = fn;
+  }
+  setDisabledState(_: boolean) {}
 }

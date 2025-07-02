@@ -29,7 +29,6 @@ export interface UserDoc {
 
   photoUrl?: string;
   photoURL?: string;
-  
 }
 
 export class User {

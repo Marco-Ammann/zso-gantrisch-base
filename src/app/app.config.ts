@@ -1,6 +1,11 @@
 // src/app/app.config.ts - Updated mit Locale Support
 
-import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  APP_INITIALIZER,
+  LOCALE_ID,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localeDE from '@angular/common/locales/de';
@@ -10,7 +15,11 @@ import localeDeExtra from '@angular/common/locales/extra/de';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 // Moderne Firebase API
-import { provideFirebaseApp, initializeApp, deleteApp } from '@angular/fire/app';
+import {
+  provideFirebaseApp,
+  initializeApp,
+  deleteApp,
+} from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -30,13 +39,13 @@ export function provideFirebase() {
   return [
     // Provide the default Firebase App
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    
+
     // Provide Auth service
     provideAuth(() => getAuth()),
-    
+
     // Provide Firestore service
     provideFirestore(() => getFirestore()),
-    
+
     // Cleanup on app destroy
     {
       provide: APP_INITIALIZER,
@@ -44,13 +53,13 @@ export function provideFirebase() {
         const app = initializeApp(environment.firebase);
         return () => {
           console.log('Cleaning up Firebase app');
-          deleteApp(app).catch(err => 
+          deleteApp(app).catch((err) =>
             console.error('Error cleaning up Firebase app:', err)
           );
         };
       },
-      multi: true
-    }
+      multi: true,
+    },
   ];
 }
 
