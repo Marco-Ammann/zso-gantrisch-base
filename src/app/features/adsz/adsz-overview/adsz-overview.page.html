@@ -40,53 +40,30 @@
     </div>
   
     <!-- Statistics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined">groups</span>
-          <span class="text-sm">Gesamt</span>
+
+    <!-- Compact Statistics Bar -->
+    <div class="glass-card p-3 flex items-center justify-between overflow-x-auto">
+      <div class="flex items-center gap-6 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">Gesamt:</span>
+          <span class="font-bold text-white">{{ (stats$ | async)?.total ?? '—' }}</span>
         </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.total ?? '—' }}</p>
-      </div>
-  
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined text-green-400">verified</span>
-          <span class="text-sm">Aktiv</span>
+        <div class="h-4 w-px bg-gray-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-400"></span>
+          <span class="text-gray-400">Aktiv:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.active ?? '—' }}</span>
         </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.active ?? '—' }}</p>
-      </div>
-  
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined text-amber-400">schedule</span>
-          <span class="text-sm">Neu</span>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-gray-400">Neu:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.new ?? '—' }}</span>
         </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.new ?? '—' }}</p>
-      </div>
-  
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined text-blue-400">computer</span>
-          <span class="text-sm">Digital</span>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+          <span class="text-gray-400">Inaktiv:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.inactive ?? '—' }}</span>
         </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.digitalPreference ?? '—' }}</p>
-      </div>
-  
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined text-amber-400">description</span>
-          <span class="text-sm">Papier</span>
-        </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.paperPreference ?? '—' }}</p>
-      </div>
-  
-      <div class="glass-card p-4">
-        <div class="flex items-center gap-2 text-gray-400 mb-2">
-          <span class="material-symbols-outlined text-rose-400">block</span>
-          <span class="text-sm">Inaktiv</span>
-        </div>
-        <p class="text-2xl font-bold text-white">{{ (stats$ | async)?.inactive ?? '—' }}</p>
       </div>
     </div>
   
@@ -181,35 +158,24 @@
     </div>
   
     <!-- PDF Export Actions -->
-    <div class="glass-card p-4">
-      <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-        <span class="material-symbols-outlined text-cp-orange">picture_as_pdf</span>
+    <div class="glass-card p-4 flex items-center justify-between">
+      <h3 class="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <span class="material-symbols-outlined text-cp-orange text-base">picture_as_pdf</span>
         PDF Export
       </h3>
       
-      <div class="flex flex-wrap gap-3">
+      <div class="flex items-center gap-2">
         <button (click)="generateAllPDFs()" 
-                class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">download</span>
-          <span class="text-sm">Alle Personen ({{ filteredStats.total }})</span>
+                class="text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors">
+          Alle ({{ filteredStats.total }})
         </button>
-  
+
         <button (click)="generatePaperPreferencePDFs()" 
-                class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">description</span>
-          <span class="text-sm">Nur Papier-Präferenz ({{ filteredStats.paper }})</span>
-        </button>
-  
-        <button (click)="generateSelectedPDFs()" 
-                class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2"
-                disabled
-                title="Coming soon">
-          <span class="material-symbols-outlined text-base">checklist</span>
-          <span class="text-sm">Ausgewählte</span>
+                class="text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors">
+          Papier ({{ filteredStats.paper }})
         </button>
       </div>
     </div>
-  
     <!-- Loading State -->
     @if (isLoading) {
     <div class="glass-card p-8 text-center" [@itemFade]>

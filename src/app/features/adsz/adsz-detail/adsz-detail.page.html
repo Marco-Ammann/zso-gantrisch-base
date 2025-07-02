@@ -87,6 +87,51 @@
             <span class="material-symbols-outlined text-cp-orange">person</span>
             Grunddaten
           </h3>
+
+          <div class="flex items-start gap-4 mb-6">
+            <!-- Avatar with Upload -->
+            <div class="relative group">
+              @if (person?.photoUrl) {
+                <img [src]="person.photoUrl" alt="Avatar"
+                  class="w-24 h-24 rounded-full object-cover ring-2 ring-gray-700 
+                         group-hover:ring-cp-orange transition-all duration-200" />
+              } @else {
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                          flex items-center justify-center ring-2 ring-gray-700 
+                          group-hover:ring-cp-orange transition-all duration-200">
+                  <span class="text-gray-400 font-medium text-xl">
+                    {{ person ? getPersonInitials(person) : '?' }}
+                  </span>
+                </div>
+              }
+              
+              <!-- Upload Overlay (only in edit mode) -->
+              @if (isEditing && canEdit) {
+                <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center 
+                            opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                     (click)="fileInput.click()"
+                     [class.opacity-100]="uploading">
+                  @if (uploading) {
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span class="text-white text-xs">Upload...</span>
+                    </div>
+                  } @else {
+                    <div class="flex flex-col items-center gap-1">
+                      <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                      <span class="text-white text-xs font-medium">Foto ändern</span>
+                    </div>
+                  }
+                </div>
+                
+                <!-- Hidden File Input -->
+                <input #fileInput
+                       type="file"
+                       accept="image/*"
+                       (change)="onFileSelected($event)"
+                       class="hidden" />
+              }
+            </div>
   
           @if (isEditing) {
             <form [formGroup]="grunddatenForm" class="space-y-4">

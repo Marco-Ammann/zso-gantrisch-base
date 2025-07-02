@@ -139,52 +139,64 @@ export class JsonImportService {
    * Convert JSON person to PersonDoc format
    */
   private transformPersonData(jsonPerson: ImportJsonPerson): Omit<PersonDoc, 'id'> {
+    // Helper für Timestamp-Konvertierung
+    const convertTimestamp = (ts: any): number => {
+      if (!ts) return Date.now();
+      if (typeof ts === 'number') return ts;
+      if (ts.seconds) return ts.seconds * 1000;
+      return Date.now();
+    };
+
     return {
       grunddaten: {
-        vorname: jsonPerson.grunddaten.vorname,
-        nachname: jsonPerson.grunddaten.nachname,
-        geburtsdatum: jsonPerson.grunddaten.geburtsdatum.seconds * 1000, // Convert to timestamp
-        grad: jsonPerson.grunddaten.grad,
-        funktion: jsonPerson.grunddaten.funktion
+        vorname: jsonPerson.grunddaten.vorname || '',
+        nachname: jsonPerson.grunddaten.nachname || '',
+        geburtsdatum: convertTimestamp(jsonPerson.grunddaten.geburtsdatum),
+        grad: jsonPerson.grunddaten.grad || 'Soldat',
+        funktion: jsonPerson.grunddaten.funktion || 'Betreuer'
       },
       kontaktdaten: {
-        strasse: jsonPerson.kontaktdaten.strasse,
-        plz: jsonPerson.kontaktdaten.plz,
-        ort: jsonPerson.kontaktdaten.ort,
-        email: jsonPerson.kontaktdaten.email,
-        telefonMobil: jsonPerson.kontaktdaten.telefonMobil,
+        strasse: jsonPerson.kontaktdaten.strasse || '',
+        plz: jsonPerson.kontaktdaten.plz || '',
+        ort: jsonPerson.kontaktdaten.ort || '',
+        email: jsonPerson.kontaktdaten.email || '',
+        telefonMobil: jsonPerson.kontaktdaten.telefonMobil || '',
         telefonFestnetz: jsonPerson.kontaktdaten.telefonFestnetz || '',
         telefonGeschaeftlich: jsonPerson.kontaktdaten.telefonGeschaeftlich || ''
       },
       berufliches: {
-        erlernterBeruf: jsonPerson.berufliches.erlernterBeruf,
-        ausgeubterBeruf: jsonPerson.berufliches.ausgeubterBeruf,
-        arbeitgeber: jsonPerson.berufliches.arbeitgeber,
-        zivileSpezialausbildung: jsonPerson.berufliches.zivileSpezialausbildung || '',
-        führerausweisKategorie: jsonPerson.berufliches.führerausweisKategorie || []
+        erlernterBeruf: jsonPerson.berufliches?.erlernterBeruf || '',
+        ausgeubterBeruf: jsonPerson.berufliches?.ausgeubterBeruf || '',
+        arbeitgeber: jsonPerson.berufliches?.arbeitgeber || '',
+        zivileSpezialausbildung: jsonPerson.berufliches?.zivileSpezialausbildung || '',
+        führerausweisKategorie: jsonPerson.berufliches?.führerausweisKategorie || []
       },
       zivilschutz: {
-        grundausbildung: jsonPerson.zivilschutz.grundausbildung,
-        status: jsonPerson.zivilschutz.status,
+        grundausbildung: jsonPerson.zivilschutz?.grundausbildung || new Date().getFullYear().toString(),
+        status: jsonPerson.zivilschutz?.status || 'neu',
         einteilung: {
-          zug: jsonPerson.zivilschutz.einteilung.zug,
-          gruppe: jsonPerson.zivilschutz.einteilung.gruppe || ''
+          zug: jsonPerson.zivilschutz?.einteilung?.zug || 1,
+          gruppe: jsonPerson.zivilschutz?.einteilung?.gruppe || ''
         },
-        zusatzausbildungen: jsonPerson.zivilschutz.zusatzausbildungen || []
+        zusatzausbildungen: jsonPerson.zivilschutz?.zusatzausbildungen || []
       },
       persoenliches: {
-        blutgruppe: jsonPerson.persoenliches.blutgruppe || '',
-        allergien: jsonPerson.persoenliches.allergien || [],
-        essgewohnheiten: jsonPerson.persoenliches.essgewohnheiten || [],
-        sprachkenntnisse: jsonPerson.persoenliches.sprachkenntnisse || [],
-        besonderheiten: jsonPerson.persoenliches.besonderheiten || []
+        blutgruppe: jsonPerson.persoenliches?.blutgruppe || '',
+        allergien: jsonPerson.persoenliches?.allergien || [],
+        essgewohnheiten: jsonPerson.persoenliches?.essgewohnheiten || [],
+        sprachkenntnisse: jsonPerson.persoenliches?.sprachkenntnisse || [],
+        besonderheiten: jsonPerson.persoenliches?.besonderheiten || []
       },
       preferences: {
-        contactMethod: 'digital', // Default
+        contactMethod: 'digital',
         emailNotifications: true
       },
-      erstelltAm: jsonPerson.erstelltAm.seconds * 1000,
-      aktualisiertAm: jsonPerson.aktualisiertAm ? jsonPerson.aktualisiertAm.seconds * 1000 : Date.now()
+      erstelltAm: convertTimestamp(jsonPerson.erstelltAm),
+      aktualisiertAm: convertTimestamp(jsonPerson.aktualisiertAm || jsonPerson.metadaten?.letzteAktualisierung),
+      metadaten: jsonPerson.metadaten ? {
+        letzteAktualisierung: convertTimestamp(jsonPerson.metadaten.letzteAktualisierung),
+        aktualisiert_von: jsonPerson.metadaten.aktualisiert_von || 'Import'
+      } : undefined
     };
   }
 
