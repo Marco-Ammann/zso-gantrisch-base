@@ -572,36 +572,34 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length || !this.person) return;
-
+  
     const file = input.files[0];
     const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
-
+  
     if (file.size > MAX_SIZE) {
       this.showToast('Bild zu groß (max. 2 MB)', true);
       return;
     }
-
+  
     this.uploading = true;
     this.uploadMsg = 'Bild wird hochgeladen…';
     this.uploadError = false;
-
+  
     const storage = getStorage();
     const path = `persons/${this.person.id}/avatar_${Date.now()}`;
     const storageRef = ref(storage, path);
-
+  
     uploadBytes(storageRef, file)
       .then(() => getDownloadURL(storageRef))
-      .then((url: string) => {
+      .then((downloadUrl: string) => { // Variable umbenennen
         if (!this.person) return;
         return lastValueFrom(
-          this.personService.update(this.person.id, { photoUrl: url })
+          this.personService.update(this.person.id, { photoUrl: downloadUrl })
         );
       })
       .then(() => {
         this.showToast('Avatar aktualisiert', false);
-        if (this.person) {
-          this.person.photoUrl = 'URL_PLACEHOLDER'; // Will be refreshed on next load
-        }
+        // Page wird automatisch neu geladen, kein manuelles Update nötig
         this.cdr.markForCheck();
       })
       .catch((error) => {
@@ -710,13 +708,14 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   private showToast(message: string, isError: boolean): void {
     this.uploadMsg = message;
     this.uploadError = isError;
-    setTimeout(
-      () => {
-        this.uploadMsg = null;
-        this.cdr.markForCheck();
-      },
-      isError ? 4000 : 3000
-    );
+    this.cdr.markForCheck();
+    
+    // Auto-hide nach 3 Sekunden
+    setTimeout(() => {
+      this.uploadMsg = null;
+      this.uploadError = false;
+      this.cdr.markForCheck();
+    }, 3000);
   }
 
   // Template helpers

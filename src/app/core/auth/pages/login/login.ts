@@ -101,45 +101,50 @@ export class ZsoLogin implements OnInit, OnDestroy {
     
     if (!email || !password) {
       this.errorMsg = 'Bitte geben Sie E-Mail und Passwort ein.';
+      this.isLoading = false;
       return;
     }
-    
-    from(this.auth.login(email, password)).pipe(
+
+    // Use the Observable-based login method
+    this.auth.login(email, password).pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.resetFormState())
+      finalize(() => {
+        this.isLoading = false;
+      })
     ).subscribe({
-      next: (user: any) => {
-        if (user) {
-          this.router.navigate(['/dashboard']);
-        } else {
-          this.errorMsg = 'Anmeldung fehlgeschlagen';
-        }
+      next: () => {
+        this.logger.log('ZsoLogin', 'Login successful, navigating to:', this.returnUrl);
+        this.router.navigateByUrl(this.returnUrl);
       },
-      error: (err: any) => {
-        this.errorMsg = this.mapError(err);
+      error: (error) => {
+        this.logger.error('ZsoLogin', 'Login failed:', error);
+        this.handleLoginError(error);
       }
     });
   }
   
   private handleFormErrors(): void {
     this.form.markAllAsTouched();
-    const { email, password } = this.form.controls;
     
-    if (email.errors?.['required']) {
-      this.errorMsg = 'E-Mail ist erforderlich.';
-    } else if (email.errors?.['email']) {
-      this.errorMsg = 'Ungültige E-Mail-Adresse.';
-    } else if (password.errors?.['required']) {
-      this.errorMsg = 'Passwort ist erforderlich.';
-    } else if (password.errors?.['minlength']) {
-      this.errorMsg = 'Passwort muss mindestens 6 Zeichen lang sein.';
+    const emailControl = this.form.get('email');
+    const passwordControl = this.form.get('password');
+    
+    if (emailControl?.errors?.['required']) {
+      this.errorMsg = 'Bitte geben Sie Ihre E-Mail-Adresse ein.';
+    } else if (emailControl?.errors?.['email']) {
+      this.errorMsg = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+    } else if (passwordControl?.errors?.['required']) {
+      this.errorMsg = 'Bitte geben Sie Ihr Passwort ein.';
+    } else if (passwordControl?.errors?.['minlength']) {
+      this.errorMsg = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+    } else {
+      this.errorMsg = 'Bitte überprüfen Sie Ihre Eingaben.';
     }
   }
   
   private prepareLogin(): void {
-    this.errorMsg = null;
     this.isLoading = true;
-    this.form.disable();
+    this.errorMsg = null;
   }
 
   private handleSuccessfulLogin() {
@@ -162,10 +167,34 @@ export class ZsoLogin implements OnInit, OnDestroy {
     );
   }
   
-  private handleLoginError(error: any): Observable<never> {
-    this.logger.error('ZsoLogin', 'Login error:', error);
-    this.errorMsg = this.mapError(error?.code || error?.message || 'unknown-error');
-    return throwError(() => error);
+  private handleLoginError(error: any): void {
+    let message = 'Ein unbekannter Fehler ist aufgetreten.';
+    
+    if (error?.code) {
+      switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          message = 'E-Mail-Adresse oder Passwort ist falsch.';
+          break;
+        case 'auth/user-disabled':
+          message = 'Ihr Konto wurde deaktiviert. Kontaktieren Sie den Administrator.';
+          break;
+        case 'auth/too-many-requests':
+          message = 'Zu viele fehlgeschlagene Anmeldeversuche. Versuchen Sie es später erneut.';
+          break;
+        case 'auth/network-request-failed':
+          message = 'Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.';
+          break;
+        case 'auth/invalid-email':
+          message = 'Die E-Mail-Adresse ist ungültig.';
+          break;
+        default:
+          message = error.message || message;
+      }
+    }
+    
+    this.errorMsg = message;
   }
   
   private resetFormState(): void {

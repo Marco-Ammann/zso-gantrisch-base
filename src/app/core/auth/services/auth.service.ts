@@ -10,7 +10,10 @@ import {
   sendEmailVerification, 
   updateProfile, 
   onAuthStateChanged,
-  UserCredential 
+  UserCredential,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence
 } from '@angular/fire/auth';
 import { Observable, of, throwError, Subject, from, BehaviorSubject, combineLatest } from 'rxjs';
 import { catchError, map, shareReplay, switchMap, take, takeUntil, tap, distinctUntilChanged } from 'rxjs/operators';
@@ -132,23 +135,32 @@ export class AuthService implements OnDestroy {
     }
   }
 
-  async login(email: string, password: string): Promise<User | null> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      const user = userCredential.user;
-      if (!user) {
-        return null;
-      }
+/**
+   * Login mit Observable (für Login-Komponente)
+   */
+login(email: string, password: string): Observable<void> {
+  this.logger.log('AuthService', 'Attempting login for', email);
+  
+  return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+    switchMap((credential: UserCredential) => {
+      const user = credential.user;
+      this.logger.log('AuthService', 'Login successful', user.uid);
       
-      // Update last login time
-      await this.userService.updateLastActiveAt(user.uid);
-      
-      return user;
-    } catch (err) {
-      this.logger.error('AuthService', 'login failed', err);
-      return null;
-    }
-  }
+      // Update last active time
+      return from(this.userService.updateLastActiveAt(user.uid)).pipe(
+        catchError(error => {
+          this.logger.error('AuthService', 'Error updating last active:', error);
+          return of(void 0); // Continue even if this fails
+        })
+      );
+    }),
+    map(() => void 0), // Return void for Observable<void>
+    catchError(error => {
+      this.logger.error('AuthService', 'Login error:', error);
+      return throwError(() => error);
+    })
+  );
+}
 
   logout(): Observable<void> {
     this.logger.log('AuthService', 'Logging out user');

@@ -270,9 +270,13 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     this.loadPersons();
   }
 
-  // Navigation
-  viewDetails(person: PersonDoc): void {
+  // Navigation methods
+  viewPersonDetails(person: PersonDoc): void {
     this.router.navigate(['/adsz', person.id]);
+  }
+
+  viewDetails(person: PersonDoc): void {
+    this.viewPersonDetails(person); // Alias für Konsistenz
   }
 
   createNew(): void {

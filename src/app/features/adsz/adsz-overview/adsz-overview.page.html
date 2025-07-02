@@ -178,94 +178,83 @@
   @if (hasResults && !isLoading) {
   <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
     @for (person of filteredPersons; track person.id) {
-    <div class="glass-card p-5 user-card" [@itemFade]>
-      <!-- Person Header -->
-      <div class="flex items-center gap-3 mb-4">
-        <!-- Avatar -->
-        <div class="relative">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                        flex items-center justify-center ring-2 ring-gray-700">
-            <span class="text-gray-400 font-medium text-sm">
-              {{ getPersonInitials(person) }}
+      <div class="glass-card person-card-hover cursor-pointer" 
+           (click)="viewPersonDetails(person)"
+           [@itemFade]>
+        <div class="p-5">
+          <!-- Header mit Avatar und Basic Info -->
+          <div class="flex items-center gap-3 mb-4">
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+              @if (person.photoUrl) {
+                <img [src]="person.photoUrl" alt="Avatar"
+                  class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
+              } @else {
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                          flex items-center justify-center ring-2 ring-gray-700">
+                  <span class="text-gray-400 font-medium text-sm">
+                    {{ getPersonInitials(person) }}
+                  </span>
+                </div>
+              }
+              
+              <!-- Status Indicator -->
+              <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-800
+                        {{ person.zivilschutz.status === 'aktiv' ? 'bg-green-500' : 
+                           person.zivilschutz.status === 'neu' ? 'bg-yellow-500' : 'bg-red-500' }}">
+              </div>
+            </div>
+    
+            <!-- Person Info -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-white truncate">
+                {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
+              </h3>
+              <p class="text-sm text-gray-400 truncate">
+                {{ person.grunddaten.grad }} • {{ person.grunddaten.funktion }}
+              </p>
+            </div>
+    
+            <!-- Action Button -->
+            <button class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-cp-orange hover:text-white 
+                           transition-all duration-200 flex items-center justify-center group"
+                    (click)="$event.stopPropagation(); viewPersonDetails(person)"
+                    title="Details anzeigen">
+              <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">
+                arrow_forward
+              </span>
+            </button>
+          </div>
+    
+          <!-- Contact Info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2 text-gray-300">
+              <span class="material-symbols-outlined text-base text-cp-orange">mail</span>
+              <span class="truncate">{{ person.kontaktdaten.email }}</span>
+            </div>
+            
+            @if (person.kontaktdaten.telefonMobil) {
+              <div class="flex items-center gap-2 text-gray-300">
+                <span class="material-symbols-outlined text-base text-cp-orange">phone</span>
+                <span>{{ person.kontaktdaten.telefonMobil }}</span>
+              </div>
+            }
+          </div>
+    
+          <!-- Bottom Info -->
+          <div class="flex items-center justify-between pt-3 mt-3 border-t border-gray-700">
+            <span class="text-xs text-gray-500">
+              Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, Gr. {{ person.zivilschutz.einteilung.gruppe }}}
+            </span>
+            
+            <span class="text-xs px-2 py-1 rounded-full
+                  {{ person.zivilschutz.status === 'aktiv' ? 'bg-green-500/20 text-green-400' : 
+                     person.zivilschutz.status === 'neu' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400' }}">
+              {{ person.zivilschutz.status | titlecase }}
             </span>
           </div>
-
-          <!-- Contact Method Indicator -->
-          @if (person.preferences?.contactMethod) {
-          <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full 
-                          border-2 border-gray-900 flex items-center justify-center
-                          {{ getContactMethodBadgeClass(person.preferences?.contactMethod) }}"
-            [title]="'Präferenz: ' + (person.preferences?.contactMethod || '')">
-            <span class="material-symbols-outlined text-xs">
-              {{ getContactMethodIcon(person.preferences?.contactMethod) }}
-            </span>
-          </div>
-          }
-        </div>
-
-        <!-- Person Info -->
-        <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-white truncate flex items-center gap-1">
-            {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
-          </h3>
-          <p class="text-sm text-gray-400 truncate">{{ person.grunddaten.funktion }}</p>
-          <p class="text-xs text-gray-500 truncate">{{ person.kontaktdaten.email }}</p>
         </div>
       </div>
-
-      <!-- Status and Info -->
-      <div class="space-y-3 mb-4">
-        <!-- Status Badges -->
-        <div class="flex flex-wrap gap-1.5">
-          <span class="badge {{ getStatusBadgeClass(person.zivilschutz.status) }}">
-            {{ person.zivilschutz.status | titlecase }}
-          </span>
-
-          <span class="badge badge--verified">
-            {{ person.grunddaten.grad }}
-          </span>
-
-          <span class="badge badge--unverified">
-            Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, {{
-            person.zivilschutz.einteilung.gruppe }}}
-          </span>
-        </div>
-
-        <!-- Contact Info -->
-        <div class="text-xs text-gray-500 space-y-1">
-          @if (person.kontaktdaten.telefonMobil) {
-          <div class="flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-xs">phone</span>
-            <a [href]="'tel:' + person.kontaktdaten.telefonMobil" class="text-cp-orange hover:text-cp-orange/80">
-              {{ formatPhone(person.kontaktdaten.telefonMobil) }}
-            </a>
-          </div>
-          }
-
-          <div class="flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-xs">location_on</span>
-            <span>{{ person.kontaktdaten.plz }} {{ person.kontaktdaten.ort }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex items-center justify-between pt-4 border-t border-gray-800">
-        <div class="flex items-center gap-2">
-          @if (person.preferences?.contactMethod) {
-          <span class="text-xs text-gray-400">
-            {{ (person.preferences?.contactMethod === 'digital') ? '💻' :
-            (person.preferences?.contactMethod === 'paper') ? '📄' : '💻📄' }}
-          </span>
-          }
-        </div>
-
-        <button (click)="viewDetails(person)" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white 
-                   transition-all duration-200 flex items-center justify-center" title="Details anzeigen">
-          <span class="material-symbols-outlined text-base">arrow_forward</span>
-        </button>
-      </div>
-    </div>
     }
   </div>
   }
