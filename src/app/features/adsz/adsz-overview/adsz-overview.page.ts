@@ -1,5 +1,5 @@
 // src/app/features/adsz/adsz-overview/adsz-overview.page.ts
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -64,6 +64,9 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     contactMethod: 'all'
   });
   private readonly personService = inject(PersonService);
+
+  @ViewChild('jsonFileInput') jsonFileInput!: ElementRef<HTMLInputElement>;
+  importStatus = '';
 
   // State
   allPersons: PersonDoc[] = [];
@@ -275,6 +278,35 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   generateSelectedPDFs(): void {
     // TODO: Implement selected PDFs generation
     this.logger.log('AdzsOverviewPage', 'Generate PDFs for selected persons');
+  }
+
+  importButtonClick() {
+    this.jsonFileInput.nativeElement.click();
+  }
+
+  async handleJsonImport(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    
+    const file = input.files[0];
+    this.importStatus = 'Importing JSON file...';
+    
+    try {
+      const jsonData = await this.jsonImportService.readJsonFile(file);
+      this.jsonImportService.importPersonsFromJson(jsonData).subscribe({
+        next: (ids) => {
+          this.importStatus = `Successfully imported ${ids.length} persons`;
+          this.refresh(); // Refresh data after import
+        },
+        error: (err) => {
+          this.importStatus = `Import failed: ${err.message}`;
+          this.logger.error('JSON Import Error', err);
+        }
+      });
+    } catch (err) {
+      this.importStatus = `File error: ${(err as Error).message}`;
+      this.logger.error('JSON File Error', err);
+    }
   }
 
   // Helper methods

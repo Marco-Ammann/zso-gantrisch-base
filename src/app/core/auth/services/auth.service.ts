@@ -19,6 +19,7 @@ import { FirestoreService } from '@core/services/firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 import { UserService } from '@core/services/user.service';
 import { UserDoc } from '@core/models/user-doc';
+import { PersonService } from '@core/services/person.service';
 
 export interface RegisterData {
   email: string;
@@ -51,7 +52,8 @@ export class AuthService implements OnDestroy {
     private readonly auth: Auth,
     private readonly fs: FirestoreService,
     private readonly logger: LoggerService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly personService: PersonService
   ) {
     this.initializeAuth();
     this.user$ = this.authState$.asObservable();
@@ -130,38 +132,22 @@ export class AuthService implements OnDestroy {
     }
   }
 
-  // Simplified login without manual persistence management
-  login(email: string, password: string, rememberMe: boolean): Observable<void> {
-    this.logger.log('AuthService', `Login attempt for ${email}`, { rememberMe });
-    
-    // Firebase Auth automatically persists to local storage by default
-    // The rememberMe parameter is logged but Firebase handles persistence
-    
-    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      switchMap(({ user }) => {
-        // Update last login timestamp
-        const updateData = {
-          lastLoginAt: Date.now(),
-          updatedAt: Date.now()
-        };
-        
-        return this.fs.updateDoc(`users/${user.uid}`, updateData).pipe(
-          tap(() => {
-            this.logger.log('AuthService', `Login successful for ${email}`);
-            this.loadUserDoc(user.uid);
-          }),
-          map(() => void 0),
-          catchError(error => {
-            this.logger.error('AuthService', 'Error updating last login:', error);
-            return of(void 0);
-          })
-        );
-      }),
-      catchError(error => {
-        this.logger.error('AuthService', 'Login error:', error);
-        return throwError(() => error);
-      })
-    );
+  async login(email: string, password: string): Promise<User | null> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      const user = userCredential.user;
+      if (!user) {
+        return null;
+      }
+      
+      // Update last login time
+      await this.userService.updateLastActiveAt(user.uid);
+      
+      return user;
+    } catch (err) {
+      this.logger.error('AuthService', 'login failed', err);
+      return null;
+    }
   }
 
   logout(): Observable<void> {
@@ -221,12 +207,30 @@ export class AuthService implements OnDestroy {
             displayName: `${data.firstName} ${data.lastName}`
           }))),
           switchMap(() => from(sendEmailVerification(cred.user))),
+          switchMap(() => this.linkPersonToUser(uid, data.email)),
           map(() => void 0)
         );
       }),
       catchError(error => {
         this.logger.error('AuthService', 'Registration error:', error);
         return throwError(() => error);
+      })
+    );
+  }
+
+  private linkPersonToUser(uid: string, email: string): Observable<void> {
+    return from(this.personService.getByEmail(email)).pipe(
+      switchMap(persons => {
+        if (persons.length > 0) {
+          const person = persons[0];
+          return from(this.personService.update(person.id, { userId: uid }));
+        } else {
+          return of(void 0);
+        }
+      }),
+      catchError(error => {
+        this.logger.error('AuthService', 'Error linking person to user:', error);
+        return of(void 0);
       })
     );
   }

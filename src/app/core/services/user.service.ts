@@ -22,6 +22,7 @@ export class UserService implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly logger = inject(LoggerService);
   private readonly destroy$ = new Subject<void>();
+  private readonly fs = inject(FirestoreService);
 
   constructor(private firestoreService: FirestoreService) {}
 
@@ -226,6 +227,15 @@ export class UserService implements OnDestroy {
         }),
         takeUntil(this.destroy$)
       )
+    );
+  }
+
+  getUserDoc(uid: string): Observable<UserDoc | null> {
+    return this.fs.getDoc<UserDoc>(`users/${uid}`).pipe(
+      catchError(error => {
+        this.logger.error('UserService', 'Error getting user doc', error);
+        return of(null);
+      })
     );
   }
 

@@ -4,7 +4,7 @@ import { collection, collectionData, doc, updateDoc, query, orderBy, where, addD
 import { Observable, from, of, throwError, Subject } from 'rxjs';
 import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 
-import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
+import { PersonDoc, NotfallkontaktDoc, Notfallkontakt } from '@core/models/person.model';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 
@@ -74,60 +74,55 @@ export class PersonService implements OnDestroy {
   /**
    * Personen nach Status filtern
    */
-  getByStatus(status: 'aktiv' | 'neu' | 'inaktiv'): Observable<PersonDoc[]> {
-    return runInInjectionContext(this.injector, () => {
+  getByStatus(status: string): Observable<PersonDoc[]> {
+    try {
       const personsCollection = collection(this.firestoreService.db, 'persons');
-      const statusQuery = query(
-        personsCollection,
-        where('zivilschutz.status', '==', status),
-        orderBy('grunddaten.nachname', 'asc')
-      );
-      
-      return collectionData(statusQuery, { idField: 'id' }).pipe(
-        map(persons => persons as PersonDoc[]),
-        takeUntil(this.destroy$)
-      );
-    });
+      const queryConstraints = [];
+      if (status !== undefined) {
+        queryConstraints.push(where('zivilschutz.status', '==', status));
+      }
+      const statusQuery = query(personsCollection, ...queryConstraints);
+      return collectionData(statusQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+    } catch (err) {
+      this.logger.error('PersonService', 'getByStatus failed', err);
+      return of([]);
+    }
   }
 
   /**
    * Personen nach Zug filtern
    */
   getByZug(zug: number): Observable<PersonDoc[]> {
-    return runInInjectionContext(this.injector, () => {
+    try {
       const personsCollection = collection(this.firestoreService.db, 'persons');
-      const zugQuery = query(
-        personsCollection,
-        where('zivilschutz.einteilung.zug', '==', zug),
-        orderBy('grunddaten.nachname', 'asc')
-      );
-      
-      return collectionData(zugQuery, { idField: 'id' }).pipe(
-        map(persons => persons as PersonDoc[]),
-        takeUntil(this.destroy$)
-      );
-    });
+      const queryConstraints = [];
+      if (zug !== undefined) {
+        queryConstraints.push(where('zivilschutz.einteilung.zug', '==', zug));
+      }
+      const zugQuery = query(personsCollection, ...queryConstraints);
+      return collectionData(zugQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+    } catch (err) {
+      this.logger.error('PersonService', 'getByZug failed', err);
+      return of([]);
+    }
   }
 
   /**
    * Personen nach E-Mail suchen (für User-Verknüpfung)
    */
-  getByEmail(email: string): Observable<PersonDoc | null> {
-    return runInInjectionContext(this.injector, () => {
+  getByEmail(email: string): Observable<PersonDoc[]> {
+    try {
       const personsCollection = collection(this.firestoreService.db, 'persons');
-      const emailQuery = query(
-        personsCollection,
-        where('kontaktdaten.email', '==', email)
-      );
-      
-      return collectionData(emailQuery, { idField: 'id' }).pipe(
-        map(persons => {
-          const personList = persons as PersonDoc[];
-          return personList.length > 0 ? personList[0] : null;
-        }),
-        takeUntil(this.destroy$)
-      );
-    });
+      const queryConstraints = [];
+      if (email !== undefined) {
+        queryConstraints.push(where('kontaktdaten.email', '==', email));
+      }
+      const emailQuery = query(personsCollection, ...queryConstraints);
+      return collectionData(emailQuery, { idField: 'id' }) as Observable<PersonDoc[]>;
+    } catch (err) {
+      this.logger.error('PersonService', 'getByEmail failed', err);
+      return of([]);
+    }
   }
 
   /**
@@ -301,6 +296,9 @@ export class PersonService implements OnDestroy {
    * Notfallkontakte für Person laden
    */
   getNotfallkontakte(personId: string): Observable<NotfallkontaktDoc[]> {
+    if (!personId) {
+      return of([]);
+    }
     return runInInjectionContext(this.injector, () => {
       const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
       const kontakteQuery = query(
@@ -314,6 +312,15 @@ export class PersonService implements OnDestroy {
         takeUntil(this.destroy$)
       );
     });
+  }
+
+  /**
+   * Notfallkontakte für Person laden
+   */
+  getNotfallkontakteByPersonId(personId: string): Observable<Notfallkontakt[]> {
+    return this.firestoreService
+      .collection<Notfallkontakt>(`persons/${personId}/notfallkontakte`)
+      .valueChanges({ idField: 'id' });
   }
 
   // Helper method - würde normalerweise die aktuellen Daten laden

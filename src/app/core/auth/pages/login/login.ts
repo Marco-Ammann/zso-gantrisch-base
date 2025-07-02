@@ -15,7 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { LoggerService } from '@core/services/logger.service';
 
 // RxJS
-import { Observable, Subject, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError, from } from 'rxjs';
 import { finalize, take, takeUntil, filter, switchMap, tap, catchError } from 'rxjs/operators';
 
 @Component({
@@ -96,20 +96,29 @@ export class ZsoLogin implements OnInit, OnDestroy {
     }
     
     this.prepareLogin();
-    const { email, password, rememberMe } = this.form.getRawValue();
+    const email = this.form.get('email')?.value;
+    const password = this.form.get('password')?.value;
     
     if (!email || !password) {
-      this.handleLoginError({ code: 'auth/invalid-credentials' });
+      this.errorMsg = 'Bitte geben Sie E-Mail und Passwort ein.';
       return;
     }
     
-    this.logger.log('ZsoLogin', 'Login attempt', { email, rememberMe });
-    
-    this.auth.login(email, password, !!rememberMe).pipe(
-      switchMap(() => this.handleSuccessfulLogin()),
-      catchError(error => this.handleLoginError(error)),
+    from(this.auth.login(email, password)).pipe(
+      takeUntil(this.destroy$),
       finalize(() => this.resetFormState())
-    ).subscribe();
+    ).subscribe({
+      next: (user: any) => {
+        if (user) {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.errorMsg = 'Anmeldung fehlgeschlagen';
+        }
+      },
+      error: (err: any) => {
+        this.errorMsg = this.mapError(err);
+      }
+    });
   }
   
   private handleFormErrors(): void {
@@ -132,7 +141,7 @@ export class ZsoLogin implements OnInit, OnDestroy {
     this.isLoading = true;
     this.form.disable();
   }
-  
+
   private handleSuccessfulLogin() {
     return this.auth.user$.pipe(
       filter((user): user is NonNullable<typeof user> => user !== null),

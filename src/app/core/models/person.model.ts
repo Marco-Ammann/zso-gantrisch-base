@@ -1,6 +1,7 @@
 // src/app/core/models/person.model.ts
 export interface PersonDoc {
     id: string;
+    userId?: string; // Link to user account
     
     // Grunddaten
     grunddaten: {
@@ -58,7 +59,7 @@ export interface PersonDoc {
     };
   
     // Verknüpfung zu User-Account
-    userId?: string;
+    // userId?: string;
   
     // Metadaten
     erstelltAm: number | { seconds: number; nanoseconds: number };
@@ -68,7 +69,17 @@ export interface PersonDoc {
       aktualisiert_von: string;
     };
   }
-  
+
+  export interface Notfallkontakt {
+    id?: string;
+    name: string;
+    beziehung: string;
+    telefonnummer: string;
+    prioritaet: number;
+    erstelltAm: number | { seconds: number; nanoseconds: number };
+    personId: string;
+  }
+
   export interface NotfallkontaktDoc {
     id: string;
     personId: string;

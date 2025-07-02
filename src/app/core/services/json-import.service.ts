@@ -1,10 +1,12 @@
 // src/app/core/services/json-import.service.ts
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { PersonService } from './person.service';
 import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
 import { LoggerService } from './logger.service';
-import { Observable, from, forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { FirestoreService } from './firestore.service';
+import { lastValueFrom } from 'rxjs';
+import { collection, addDoc } from '@angular/fire/firestore';
 
 interface ImportJsonPerson {
   id: string;
@@ -66,46 +68,77 @@ interface ImportJsonPerson {
 
 @Injectable({ providedIn: 'root' })
 export class JsonImportService {
-  private readonly personService = inject(PersonService);
-  private readonly logger = inject(LoggerService);
+  private readonly personService: PersonService;
+  private readonly firestoreService: FirestoreService;
+  private readonly logger: LoggerService;
+
+  constructor(
+    personService: PersonService,
+    firestoreService: FirestoreService,
+    logger: LoggerService
+  ) {
+    this.personService = personService;
+    this.firestoreService = firestoreService;
+    this.logger = logger;
+  }
 
   /**
    * Import persons from JSON array
    */
-  importPersonsFromJson(jsonData: ImportJsonPerson[]): Observable<string[]> {
-    this.logger.log('JsonImportService', `Starting import of ${jsonData.length} persons`);
-    
-    const importPromises = jsonData.map(jsonPerson => this.importSinglePerson(jsonPerson));
-    
-    return forkJoin(importPromises);
-  }
-
-  /**
-   * Import single person with notfallkontakte
-   */
-  private importSinglePerson(jsonPerson: ImportJsonPerson): Observable<string> {
-    const personDoc = this.convertToPersonDoc(jsonPerson);
-    
-    return this.personService.create(personDoc).pipe(
-      switchMap(newPersonId => {
-        this.logger.log('JsonImportService', `Created person: ${personDoc.grunddaten.vorname} ${personDoc.grunddaten.nachname}`);
-        
-        // Import Notfallkontakte if they exist
-        if (jsonPerson.notfallkontakte && jsonPerson.notfallkontakte.length > 0) {
-          return this.importNotfallkontakte(newPersonId, jsonPerson.notfallkontakte).pipe(
-            switchMap(() => from([newPersonId]))
-          );
+  importPersonsFromJson(jsonData: any): Observable<string[]> {
+    return new Observable<string[]>(observer => {
+      const ids: string[] = [];
+      
+      // Process each person sequentially
+      const processNext = (index: number) => {
+        if (index >= jsonData.length) {
+          observer.next(ids);
+          observer.complete();
+          return;
         }
         
-        return from([newPersonId]);
-      })
-    );
+        const person = jsonData[index];
+        
+        // Transform the person data to match PersonDoc
+        const personData = this.transformPersonData(person);
+        
+        lastValueFrom(this.personService.create(personData)).then((personId: string) => {
+          ids.push(personId);
+          
+          // Import Notfallkontakte
+          if (person.notfallkontakte && Array.isArray(person.notfallkontakte)) {
+            const notfallkontaktePromises = person.notfallkontakte.map((kontakt: any) => {
+              const kontaktData = {
+                ...kontakt,
+                personId: personId
+              };
+              const kontakteCollection = collection(this.firestoreService.db, 'notfallkontakte');
+              return addDoc(kontakteCollection, kontaktData);
+            });
+            
+            Promise.all(notfallkontaktePromises).then(() => {
+              processNext(index + 1);
+            }).catch((err: any) => {
+              this.logger.error('JsonImportService', 'Failed to import notfallkontakte', err);
+              processNext(index + 1);
+            });
+          } else {
+            processNext(index + 1);
+          }
+        }).catch((err: any) => {
+          this.logger.error('JsonImportService', 'Failed to import person', err);
+          processNext(index + 1);
+        });
+      };
+      
+      processNext(0);
+    });
   }
 
   /**
    * Convert JSON person to PersonDoc format
    */
-  private convertToPersonDoc(jsonPerson: ImportJsonPerson): Omit<PersonDoc, 'id'> {
+  private transformPersonData(jsonPerson: ImportJsonPerson): Omit<PersonDoc, 'id'> {
     return {
       grunddaten: {
         vorname: jsonPerson.grunddaten.vorname,
@@ -153,18 +186,6 @@ export class JsonImportService {
       erstelltAm: jsonPerson.erstelltAm.seconds * 1000,
       aktualisiertAm: jsonPerson.aktualisiertAm ? jsonPerson.aktualisiertAm.seconds * 1000 : Date.now()
     };
-  }
-
-  /**
-   * Import notfallkontakte for a person
-   */
-  private importNotfallkontakte(personId: string, kontakte: any[]): Observable<string[]> {
-    // This would need to be implemented in PersonService or separate NotfallkontaktService
-    this.logger.log('JsonImportService', `Importing ${kontakte.length} emergency contacts for person ${personId}`);
-    
-    // For now, just return empty array
-    // TODO: Implement NotfallkontaktService.createMultiple()
-    return from([[]]);
   }
 
   /**
