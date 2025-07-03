@@ -1,0 +1,199 @@
+<!-- src/app/features/dashboard/dashboard.page.html -->
+<div class="min-h-screen p-4 md:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="text-center">
+          <div class="spinner-lg mb-4"></div>
+          <p class="text-gray-400">Dashboard wird geladen...</p>
+        </div>
+      </div>
+    }
+
+    @if (!loading) {
+      <!-- Welcome Header -->
+      <div @fadeIn class="glass-card p-6 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+              Willkommen zurück, 
+              <span class="text-cp-orange">{{ (appUser$ | async)?.doc?.firstName ?? 'Gast' }}</span>!
+            </h1>
+            <p class="text-gray-400">
+              Hier ist deine aktuelle Übersicht für heute, 
+              <span class="font-medium">{{ currentDate | date:'EEEE, dd. MMMM yyyy':'de-CH' }}</span>
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-gray-400">
+            <span class="material-symbols-outlined">schedule</span>
+            <span>{{ currentDate | date:'HH:mm' }} Uhr</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4" @staggerIn>
+        @let stats = stats$ | async;
+        
+        <!-- User Stats -->
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-gray-400">group</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Total</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.total ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Benutzer</p>
+        </div>
+
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-green-400">verified</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Aktiv</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.active ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Genehmigte User</p>
+        </div>
+
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-amber-400">schedule</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Wartend</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.pending ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Ausstehend</p>
+        </div>
+
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-rose-400">block</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Gesperrt</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.blocked ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Blockiert</p>
+        </div>
+
+        <!-- AdZS Stats -->
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-blue-400">badge</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">AdZS</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.persons ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Angehörige</p>
+        </div>
+
+        <div @fadeIn class="glass-card p-5 hover:scale-105 transition-transform cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <span class="material-symbols-outlined text-2xl text-purple-400">military_tech</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Aktiv</span>
+          </div>
+          <p class="text-3xl font-bold text-white">{{ stats?.activePersons ?? 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Im Dienst</p>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Quick Links -->
+        <div class="lg:col-span-2">
+          <div @fadeIn class="glass-card p-6">
+            <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-cp-orange">rocket_launch</span>
+              Schnellzugriff
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (link of getFilteredQuickLinks((appUser$ | async)?.doc?.roles?.includes('admin') ?? false); track link.route) {
+                <a [routerLink]="link.route" 
+                   class="group relative overflow-hidden rounded-xl p-4 transition-all duration-300 {{ link.color }}">
+                  <div class="relative z-10">
+                    <div class="flex items-start gap-3">
+                      <span class="material-symbols-outlined text-2xl">{{ link.icon }}</span>
+                      <div class="flex-1">
+                        <h3 class="font-semibold text-white group-hover:text-cp-orange transition-colors">
+                          {{ link.label }}
+                        </h3>
+                        <p class="text-sm text-gray-300 mt-1">{{ link.description }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent to-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="lg:col-span-1">
+          <div @fadeIn class="glass-card p-6 h-full">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-cp-orange">history</span>
+                Aktivitäten
+              </h2>
+              @if ((appUser$ | async)?.doc?.roles?.includes('admin')) {
+                <a routerLink="/admin/users" 
+                   class="text-sm text-gray-400 hover:text-cp-orange transition-colors">
+                  Alle anzeigen
+                </a>
+              }
+            </div>
+            
+            <div class="space-y-3">
+              @for (user of (latestUsers$ | async); track user.uid; let i = $index) {
+                <div @fadeIn 
+                     class="group flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+                     [style.animation-delay]="i * 100 + 'ms'">
+                  <div class="relative">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-sm font-medium text-white">
+                      {{ getUserInitials(user) }}
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center {{ getActivityColor(user) }} bg-gray-800">
+                      <span class="material-symbols-outlined text-xs">{{ getActivityIcon(user) }}</span>
+                    </span>
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-white truncate">
+                      {{ user.firstName }} {{ user.lastName }}
+                    </p>
+                    <p class="text-xs text-gray-400">{{ getActivityText(user) }}</p>
+                  </div>
+                  
+                  <span class="text-xs text-gray-500">
+                    {{ getRelativeTime(user.updatedAt || user.createdAt) }}
+                  </span>
+                </div>
+              } @empty {
+                <div class="text-center py-8 text-gray-500">
+                  <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
+                  <p>Keine Aktivitäten</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Info -->
+      <div @fadeIn class="glass-card p-4 bg-gradient-to-r from-cp-orange/10 to-transparent">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-cp-orange">info</span>
+            <p class="text-sm text-gray-300">
+              <span class="font-medium">ZSO Gantrisch Base</span> - Version 1.0.0
+            </p>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-400">
+            <a href="/legal/privacy" class="hover:text-cp-orange transition-colors">Datenschutz</a>
+            <a href="/legal/terms" class="hover:text-cp-orange transition-colors">Nutzungsbedingungen</a>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
