@@ -1,6 +1,6 @@
 <!-- src/app/features/adsz/adsz-detail/adsz-detail.page.html -->
-<div class="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white min-h-screen">
-  <!-- Header -->
+<div class="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
+  <!-- Header without avatar -->
   <div class="sticky top-0 z-40 backdrop-blur-lg bg-gray-900/80 border-b border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-3 items-center h-16">
@@ -13,7 +13,7 @@
           </button>
         </div>
 
-        <!-- Person Name -->
+        <!-- Only the person's name in the center -->
         <div class="flex justify-center">
           @if (person && !isNewPerson) {
           <h1 class="text-lg font-semibold truncate">
@@ -25,12 +25,14 @@
         </div>
 
         <!-- Empty for balance -->
-        <div class="flex justify-end"></div>
+        <div class="flex justify-end">
+          <!-- We can leave this empty -->
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Avatar Section -->
+  <!-- New Avatar Section in a card -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
     <div class="glass-card p-6 flex flex-col items-center">
       @if (person && !isNewPerson) {
@@ -48,23 +50,20 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="mt-4 flex flex-wrap justify-center gap-2 action-buttons">
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
         <!-- PDF Button -->
         <button (click)="generatePDF()" class="glass-btn-neutral p-2 rounded-lg flex items-center justify-center"
           title="PDF generieren">
           <span class="material-symbols-outlined text-base">picture_as_pdf</span>
         </button>
 
-        <!-- Edit Button - nur zeigen wenn nicht im Edit-Modus und nicht neue Person -->
         @if (showEditButton) {
-        <button (click)="toggleEdit()" class="glass-btn-primary p-2 rounded-lg flex items-center justify-center"
-          title="Bearbeiten">
+        <button (click)="toggleEdit()" class="glass-btn-primary p-2 rounded-lg flex items-center justify-center">
           <span class="material-symbols-outlined text-base">edit</span>
         </button>
         }
 
-        <!-- Delete Button - nur für Admins, nicht im Edit-Modus und nicht bei neuen Personen -->
-        @if (canEdit && !isEditing && !isNewPerson) {
+        @if (showDeleteButton) {
         <button (click)="openDeleteDialog()" [disabled]="isDeleting"
           class="glass-btn-danger p-2 rounded-lg flex items-center justify-center"
           title="Person löschen (unwiderruflich)">
@@ -76,19 +75,15 @@
         </button>
         }
 
-        <!-- Cancel Button - nur im Edit-Modus -->
         @if (showCancelButton) {
-        <button (click)="cancel()" class="glass-btn-neutral p-2 rounded-lg flex items-center justify-center"
-          title="Abbrechen">
+        <button (click)="cancel()" class="glass-btn-neutral p-2 rounded-lg flex items-center justify-center">
           <span class="material-symbols-outlined text-base">close</span>
         </button>
         }
 
-
-        <!-- Save Button - nur im Edit-Modus -->
         @if (showSaveButton) {
         <button (click)="save()" [disabled]="isSaving"
-          class="glass-btn-primary p-2 rounded-lg flex items-center justify-center" title="Speichern">
+          class="glass-btn-primary p-2 rounded-lg flex items-center justify-center">
           @if (isSaving) {
           <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           } @else {
@@ -97,9 +92,10 @@
         </button>
         }
       </div>
+      }
 
       <!-- File Upload (nur im Edit-Modus) -->
-      @if (isEditing) {
+      @if (isEditing && person) {
       <div class="mt-4 text-center">
         <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" class="hidden" />
         <button (click)="fileInput.click()" [disabled]="uploading"
@@ -113,13 +109,12 @@
         </button>
       </div>
       }
-      }
     </div>
   </div>
 
   <!-- Messages -->
   @if (errorMsg || successMsg) {
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
     @if (errorMsg) {
     <div class="glass-card border-rose-500/20 bg-rose-500/10 p-4 mb-4">
       <div class="flex items-center gap-3">
@@ -141,11 +136,11 @@
   }
 
   <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-    <!-- Content Grid - Responsive: 1 Spalte auf Mobile, 2 auf Desktop -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Content Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <!-- ===== LINKE SPALTE ===== -->
+      <!-- Left Column -->
       <div class="space-y-6">
 
         <!-- Grunddaten -->
@@ -158,47 +153,41 @@
           <form [formGroup]="grunddatenForm" class="space-y-4">
             <!-- Vorname & Nachname -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Vorname" formControlName="vorname" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
+              <zso-input-field label="Vorname" formControlName="vorname" [required]="true"></zso-input-field>
 
-              <zso-input-field label="Nachname" formControlName="nachname" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
+              <zso-input-field label="Nachname" formControlName="nachname" [required]="true"></zso-input-field>
             </div>
 
             <!-- Geburtsdatum & Grad -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Geburtsdatum <span class="text-rose-400">*</span>
-                </label>
-                <input type="date" formControlName="geburtsdatum" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed" />
-              </div>
+            <div class="input-wrapper">
+              <label class="input-label">
+                Geburtsdatum <span class="text-rose-400">*</span>
+              </label>
+              <input type="date" formControlName="geburtsdatum" class="form-input" />
+            </div>
 
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Grad <span class="text-rose-400">*</span>
-                </label>
-                <select formControlName="grad" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  <option value="">Grad auswählen</option>
-                  @for (grad of gradOptions; track grad) {
-                  <option [value]="grad" class="bg-gray-800 text-white">{{ grad }}</option>
-                  }
-                </select>
-              </div>
+            <!-- Select Dropdown -->
+            <div class="input-wrapper">
+              <label class="input-label">
+                Grad <span class="text-rose-400">*</span>
+              </label>
+              <select formControlName="grad" class="form-input">
+                <option value="">Grad auswählen</option>
+                @for (grad of gradOptions; track grad) {
+                <option [value]="grad">{{ grad }}</option>
+                }
+              </select>
             </div>
 
             <!-- Funktion -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Funktion <span class="text-rose-400">*</span>
               </label>
-              <select formControlName="funktion" [disabled]="!isEditing"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <select formControlName="funktion" class="form-input">
                 <option value="">Funktion auswählen</option>
                 @for (funktion of funktionOptions; track funktion) {
-                <option [value]="funktion" class="bg-gray-800 text-white">{{ funktion }}</option>
+                <option [value]="funktion">{{ funktion }}</option>
                 }
               </select>
             </div>
@@ -214,39 +203,34 @@
 
           <form [formGroup]="kontaktdatenForm" class="space-y-4">
             <!-- Strasse -->
-            <zso-input-field label="Strasse" formControlName="strasse" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
+            <zso-input-field label="Strasse" formControlName="strasse" [required]="true"></zso-input-field>
 
             <!-- PLZ & Ort -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="PLZ" formControlName="plz" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
+              <zso-input-field label="PLZ" formControlName="plz" [required]="true"></zso-input-field>
 
-              <zso-input-field label="Ort" formControlName="ort" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
+              <zso-input-field label="Ort" formControlName="ort" [required]="true"></zso-input-field>
             </div>
 
             <!-- E-Mail -->
-            <zso-input-field label="E-Mail" type="email" formControlName="email" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
+            <zso-input-field label="E-Mail" type="email" formControlName="email" [required]="true"></zso-input-field>
 
             <!-- Telefon Mobil -->
-            <zso-input-field label="Telefon Mobil" type="tel" formControlName="telefonMobil" [disabled]="!isEditing"
+            <zso-input-field label="Telefon Mobil" type="tel" formControlName="telefonMobil"
               [required]="true"></zso-input-field>
 
             <!-- Telefon Festnetz -->
-            <zso-input-field label="Telefon Festnetz" type="tel" formControlName="telefonFestnetz"
-              [disabled]="!isEditing"></zso-input-field>
+            <zso-input-field label="Telefon Festnetz" type="tel" formControlName="telefonFestnetz"></zso-input-field>
 
             <!-- Telefon Geschäftlich -->
-            <zso-input-field label="Telefon Geschäftlich" type="tel" formControlName="telefonGeschaeftlich"
-              [disabled]="!isEditing"></zso-input-field>
+            <zso-input-field label="Telefon Geschäftlich" type="tel"
+              formControlName="telefonGeschaeftlich"></zso-input-field>
           </form>
         </div>
 
       </div>
 
-      <!-- ===== RECHTE SPALTE ===== -->
+      <!-- Right Column -->
       <div class="space-y-6">
 
         <!-- Zivilschutz -->
@@ -259,18 +243,17 @@
           <form [formGroup]="zivilschutzForm" class="space-y-4">
             <!-- Grundausbildung & Status -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Grundausbildung (Jahr)" formControlName="grundausbildung" [disabled]="!isEditing"
+              <zso-input-field label="Grundausbildung (Jahr)" formControlName="grundausbildung"
                 [required]="true"></zso-input-field>
 
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
+              <div class="input-wrapper">
+                <label class="input-label">
                   Status <span class="text-rose-400">*</span>
                 </label>
-                <select formControlName="status" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <select formControlName="status" class="form-input">
                   <option value="">Status auswählen</option>
                   @for (status of statusOptions; track status) {
-                  <option [value]="status" class="bg-gray-800 text-white">{{ status }}</option>
+                  <option [value]="status">{{ status }}</option>
                   }
                 </select>
               </div>
@@ -278,41 +261,42 @@
 
             <!-- Zug & Gruppe -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
+              <div class="input-wrapper">
+                <label class="input-label">
                   Zug <span class="text-rose-400">*</span>
                 </label>
-                <select formControlName="zug" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <select formControlName="zug" class="form-input">
                   <option value="">Zug auswählen</option>
                   @for (zug of zugOptions; track zug) {
-                  <option [value]="zug" class="bg-gray-800 text-white">Zug {{ zug }}</option>
+                  <option [value]="zug">Zug {{ zug }}</option>
                   }
                 </select>
               </div>
 
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
+              <div class="input-wrapper">
+                <label class="input-label">
                   Gruppe
                 </label>
-                <select formControlName="gruppe" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <select formControlName="gruppe" class="form-input">
                   <option value="">Keine Gruppe</option>
                   @for (gruppe of gruppeOptions; track gruppe) {
-                  <option [value]="gruppe" class="bg-gray-800 text-white">{{ gruppe }}</option>
+                  <option [value]="gruppe">{{ gruppe }}</option>
                   }
                 </select>
               </div>
             </div>
 
             <!-- Zusatzausbildungen -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Zusatzausbildungen (kommagetrennt)
               </label>
-              <textarea formControlName="zusatzausbildungen" [disabled]="!isEditing" rows="3"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Sanitäter, Kraftfahrer, ..."></textarea>
+              <textarea
+              formControlName="zusatzausbildungen"
+              rows="3"
+              class="form-input resize-none"
+              placeholder="Sanitäter, Kraftfahrer, ..."
+            ></textarea>
             </div>
           </form>
         </div>
@@ -327,47 +311,42 @@
           <form [formGroup]="persoenlichesForm" class="space-y-4">
             <!-- Blutgruppe -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Blutgruppe" formControlName="blutgruppe" [disabled]="!isEditing"
-                placeholder="B+"></zso-input-field>
+              <zso-input-field label="Blutgruppe" formControlName="blutgruppe" placeholder="B+"></zso-input-field>
             </div>
 
             <!-- Allergien -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Allergien (kommagetrennt)
               </label>
-              <textarea formControlName="allergien" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              <textarea formControlName="allergien" rows="2" class="form-input resize-none"
                 placeholder="Nüsse, Pollen, ..."></textarea>
             </div>
 
             <!-- Essgewohnheiten -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Essgewohnheiten (kommagetrennt)
               </label>
-              <textarea formControlName="essgewohnheiten" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              <textarea formControlName="essgewohnheiten" rows="2" class="form-input resize-none"
                 placeholder="Vegetarisch, Glutenfrei, ..."></textarea>
             </div>
 
             <!-- Sprachkenntnisse -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Sprachkenntnisse (kommagetrennt)
               </label>
-              <textarea formControlName="sprachkenntnisse" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              <textarea formControlName="sprachkenntnisse" rows="2" class="form-input resize-none"
                 placeholder="Deutsch, Englisch, Französisch, ..."></textarea>
             </div>
 
             <!-- Besonderheiten -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
+            <div class="input-wrapper">
+              <label class="input-label">
                 Besonderheiten (kommagetrennt)
               </label>
-              <textarea formControlName="besonderheiten" [disabled]="!isEditing" rows="3"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              <textarea formControlName="besonderheiten" rows="3" class="form-input resize-none"
                 placeholder="Brille, Hörhilfe, ..."></textarea>
             </div>
           </form>
@@ -389,28 +368,25 @@
         <form [formGroup]="beruflichesForm" class="space-y-4">
           <!-- Erlernter & ausgeübter Beruf -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <zso-input-field label="Erlernter Beruf" formControlName="erlernterBeruf" [disabled]="!isEditing"
+            <zso-input-field label="Erlernter Beruf" formControlName="erlernterBeruf"
               [required]="true"></zso-input-field>
 
-            <zso-input-field label="Ausgeübter Beruf" formControlName="ausgeubterBeruf" [disabled]="!isEditing"
+            <zso-input-field label="Ausgeübter Beruf" formControlName="ausgeubterBeruf"
               [required]="true"></zso-input-field>
           </div>
 
           <!-- Arbeitgeber -->
-          <zso-input-field label="Arbeitgeber" formControlName="arbeitgeber" [disabled]="!isEditing"
-            [required]="true"></zso-input-field>
+          <zso-input-field label="Arbeitgeber" formControlName="arbeitgeber" [required]="true"></zso-input-field>
 
           <!-- Zivile Spezialausbildung -->
-          <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"
-            [disabled]="!isEditing"></zso-input-field>
+          <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"></zso-input-field>
 
           <!-- Führerausweis -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-gray-300 mb-1">
+          <div class="input-wrapper">
+            <label class="input-label">
               Führerausweis Kategorien (kommagetrennt)
             </label>
-            <textarea formControlName="fuehrerausweisKategorie" [disabled]="!isEditing" rows="2"
-              class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            <textarea formControlName="fuehrerausweisKategorie" rows="2" class="form-input resize-none"
               placeholder="B, C, D, BE, ..."></textarea>
           </div>
         </form>
@@ -425,15 +401,15 @@
 
         <form [formGroup]="preferencesForm" class="space-y-4">
           <!-- Kontaktmethode -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-gray-300 mb-3">
+          <div class="input-wrapper">
+            <label class="input-label mb-3">
               Bevorzugte Kontaktmethode
             </label>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               @for (option of contactMethodOptions; track option.value) {
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" formControlName="contactMethod" [value]="option.value" [disabled]="!isEditing"
-                  class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 focus:ring-2 focus:ring-cp-orange/20" />
+                <input type="radio" formControlName="contactMethod" [value]="option.value"
+                  class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 focus:ring-2 focus:ring-cp-orange/20 disabled:opacity-50 disabled:cursor-not-allowed" />
                 <span class="text-sm text-gray-300">{{ option.label }}</span>
               </label>
               }
@@ -441,10 +417,10 @@
           </div>
 
           <!-- E-Mail Benachrichtigungen -->
-          <div class="form-field">
+          <div class="input-wrapper">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" formControlName="emailNotifications" [disabled]="!isEditing"
-                class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 rounded focus:ring-2 focus:ring-cp-orange/20" />
+              <input type="checkbox" formControlName="emailNotifications"
+                class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 rounded focus:ring-2 focus:ring-cp-orange/20 disabled:opacity-50 disabled:cursor-not-allowed" />
               <span class="text-sm text-gray-300">E-Mail Benachrichtigungen erhalten</span>
             </label>
           </div>
@@ -529,8 +505,7 @@
 
 <!-- Upload Toast -->
 @if (uploadMsg) {
-<div class="fixed bottom-4 right-4 glass-card p-4 border-l-4 z-50 max-w-sm" [class.border-green-500]="!uploadError"
-  [class.border-rose-500]="uploadError">
+<div class="upload-toast" [class.border-green-500]="!uploadError" [class.border-rose-500]="uploadError">
   <div class="flex items-center gap-3">
     @if (uploadError) {
     <span class="material-symbols-outlined text-rose-400">error</span>
