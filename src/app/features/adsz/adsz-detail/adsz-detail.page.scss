@@ -65,9 +65,61 @@ input[type="radio"] {
   }
 }
 
+// Safari-spezifische Korrekturen
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .glass-card {
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+
+.action-buttons {
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    
+    .glass-btn-danger,
+    .glass-btn-primary,
+    .glass-btn-neutral {
+      min-width: 44px; // Touch-friendly Mindestgröße
+      min-height: 44px;
+    }
+  }
+}
+
+// Delete Button spezifische Styles
+.glass-btn-danger {
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
 // Responsive adjustments
 @media (max-width: 1024px) {
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+// Mobile-optimierte Button-Gruppierung
+@media (max-width: 640px) {
+  .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    margin: 0 -1rem -1rem -1rem;
+    border-radius: 0 0 1rem 1rem;
   }
 }

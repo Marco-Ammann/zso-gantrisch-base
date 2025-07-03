@@ -369,6 +369,46 @@
     }
   }
 
+  /* Safari-sichere Dialog Hintergründe */
+  .dialog-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* Safari Transform-Fix für Dialoge */
+  .dialog-content {
+    transform: translateZ(0); /* Hardware-Beschleunigung */
+    -webkit-transform: translateZ(0);
+  }
+
+  /* iOS Safari: Verhindere Zoom bei Input-Focus */
+  @media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select,
+    textarea {
+      font-size: 16px; /* Verhindert Zoom auf iOS */
+    }
+  }
+
+  .safe-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+  }
+
+  .safe-flex-center {
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+  }
+
   /* Radio button styling improvement */
   input[type="radio"] {
     @apply w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 

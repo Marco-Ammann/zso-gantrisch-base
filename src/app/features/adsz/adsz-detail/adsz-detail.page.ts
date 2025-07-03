@@ -33,6 +33,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { NotfallkontaktDialogComponent } from '@shared/components/notfallkontakt-dialog/notfallkontakt-dialog';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'zso-adsz-detail',
@@ -43,6 +44,7 @@ import { NotfallkontaktDialogComponent } from '@shared/components/notfallkontakt
     RouterModule,
     ZsoInputField,
     NotfallkontaktDialogComponent,
+    ConfirmationDialogComponent,
   ],
   templateUrl: './adsz-detail.page.html',
   styleUrls: ['./adsz-detail.page.scss'],
@@ -81,6 +83,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   uploading = false;
   uploadMsg: string | null = null;
   uploadError = false;
+  // Delete-Dialog State
+  deleteDialogVisible = false;
+  isDeleting = false;
+  isAdmin = false;
 
   // Dialog states
   notfallkontaktDialogVisible = false;
@@ -127,8 +133,15 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     { value: 'both', label: 'Digital & Papier' },
   ];
 
+  // In der ngOnInit() Methode das isAdmin$ Observable subscriben
   ngOnInit(): void {
     this.initializeForms();
+
+    // Admin-Status subscriben
+    this.isAdmin$.pipe(takeUntil(this.destroy$)).subscribe((isAdmin) => {
+      this.isAdmin = isAdmin;
+      this.cdr.markForCheck();
+    });
 
     this.route.paramMap
       .pipe(
@@ -138,10 +151,12 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
 
           if (id === 'new') {
             this.isNewPerson = true;
-            this.isEditing = true;
+            this.isEditing = true; // Neue Person: direkt im Edit-Modus
             this.cdr.markForCheck();
             return of(null);
           } else if (id) {
+            this.isNewPerson = false;
+            this.isEditing = false; // Bestehende Person: zunächst im Anzeige-Modus
             this.logger.log('AdzsDetailPage', 'Loading person with ID:', id);
             return this.personService.getById(id);
           }
@@ -158,25 +173,13 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
         next: (person) => {
           this.logger.log('AdzsDetailPage', 'Person loaded:', person);
 
-          if (person && person.id) {
+          if (person) {
             this.person = person;
-            this.logger.log(
-              'AdzsDetailPage',
-              'Person has valid ID, loading emergency contacts for:',
-              person.id
-            );
-            this.loadNotfallkontakte(person.id);
             this.populateForms(person);
-          } else if (person && !person.id) {
-            this.logger.error(
-              'AdzsDetailPage',
-              'Person loaded but has no ID:',
-              person
-            );
-            this.errorMsg = 'Fehler: Person hat keine gültige ID';
-          } else if (!this.isNewPerson) {
-            this.logger.warn('AdzsDetailPage', 'Person not found');
-            this.errorMsg = 'Person nicht gefunden';
+            this.loadNotfallkontakte(person.id);
+          } else if (this.isNewPerson) {
+            // Neue Person: Formulare mit Standardwerten initialisieren
+            this.initializeNewPersonForms();
           }
 
           this.cdr.markForCheck();
@@ -240,6 +243,61 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     this.preferencesForm = this.fb.group({
       contactMethod: ['digital', Validators.required],
       emailNotifications: [true],
+    });
+  }
+
+  private initializeNewPersonForms(): void {
+    // Grunddaten mit Standardwerten
+    this.grunddatenForm.patchValue({
+      vorname: '',
+      nachname: '',
+      geburtsdatum: '',
+      grad: '',
+      funktion: '',
+    });
+
+    // Kontaktdaten mit Standardwerten
+    this.kontaktdatenForm.patchValue({
+      strasse: '',
+      plz: '',
+      ort: '',
+      email: '',
+      telefonMobil: '',
+      telefonFestnetz: '',
+      telefonGeschaeftlich: '',
+    });
+
+    // Zivilschutz mit Standardwerten
+    this.zivilschutzForm.patchValue({
+      grundausbildung: '',
+      status: 'neu', // Standardwert für neue Personen
+      zug: '',
+      gruppe: '',
+      zusatzausbildungen: '',
+    });
+
+    // Berufliches mit Standardwerten
+    this.beruflichesForm.patchValue({
+      erlernterBeruf: '',
+      ausgeubterBeruf: '',
+      arbeitgeber: '',
+      zivileSpezialausbildung: '',
+      fuehrerausweisKategorie: '',
+    });
+
+    // Persönliches mit Standardwerten
+    this.persoenlichesForm.patchValue({
+      blutgruppe: '',
+      allergien: '',
+      essgewohnheiten: '',
+      sprachkenntnisse: '',
+      besonderheiten: '',
+    });
+
+    // Präferenzen mit Standardwerten
+    this.preferencesForm.patchValue({
+      contactMethod: 'digital',
+      emailNotifications: true,
     });
   }
 
@@ -366,11 +424,21 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
 
   // Actions
   toggleEdit(): void {
+    if (this.isNewPerson) {
+      // Bei neuen Personen immer im Edit-Modus bleiben
+      return;
+    }
+
     this.isEditing = !this.isEditing;
     this.clearMessages();
-    if (this.isEditing && this.person) {
+
+    if (!this.isEditing && this.person) {
+      // Beim Verlassen des Edit-Modus: Formulare zurücksetzen
       this.populateForms(this.person);
     }
+
+    this.logger.log('AdzsDetailPage', 'Edit mode toggled:', this.isEditing);
+    this.cdr.markForCheck();
   }
 
   save(): void {
@@ -395,10 +463,11 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           next: (newId: string) => {
             this.logger.log('AdzsDetailPage', 'Person created with ID:', newId);
             this.successMsg = 'Person erfolgreich erstellt';
-            this.isEditing = false;
+            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
             this.isNewPerson = false;
             this.isSaving = false;
-            // Navigate to the person detail page
+
+            // Zur Detail-Ansicht der neuen Person navigieren
             this.router.navigate(['/adsz', newId], { replaceUrl: true });
             this.cdr.markForCheck();
           },
@@ -425,9 +494,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           next: () => {
             this.logger.log('AdzsDetailPage', 'Person updated successfully');
             this.successMsg = 'Änderungen erfolgreich gespeichert';
-            this.isEditing = false;
+            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
             this.isSaving = false;
-            // Update local person object
+
+            // Lokale Person-Daten aktualisieren
             this.person = { ...this.person!, ...personData } as PersonDoc;
             this.scrollToTop();
             this.cdr.markForCheck();
@@ -440,24 +510,23 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
             this.cdr.markForCheck();
           },
         });
-    } else {
-      this.logger.error('AdzsDetailPage', 'No person ID available for update');
-      this.errorMsg = 'Fehler: Keine Person-ID verfügbar';
-      this.isSaving = false;
-      this.cdr.markForCheck();
     }
   }
 
+  // Cancel Methode korrigieren
   cancel(): void {
     if (this.isNewPerson) {
+      // Bei neuen Personen: zurück zur Übersicht
       this.router.navigate(['/adsz']);
     } else {
+      // Bei bestehenden Personen: Edit-Modus verlassen
       this.isEditing = false;
       if (this.person) {
         this.populateForms(this.person);
       }
       this.clearMessages();
     }
+    this.cdr.markForCheck();
   }
 
   back(): void {
@@ -570,26 +639,27 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length || !this.person) return;
-  
+
     const file = input.files[0];
     const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
-  
+
     if (file.size > MAX_SIZE) {
       this.showToast('Bild zu groß (max. 2 MB)', true);
       return;
     }
-  
+
     this.uploading = true;
     this.uploadMsg = 'Bild wird hochgeladen…';
     this.uploadError = false;
-  
+
     const storage = getStorage();
     const path = `persons/${this.person.id}/avatar_${Date.now()}`;
     const storageRef = ref(storage, path);
-  
+
     uploadBytes(storageRef, file)
       .then(() => getDownloadURL(storageRef))
-      .then((downloadUrl: string) => { // Variable umbenennen
+      .then((downloadUrl: string) => {
+        // Variable umbenennen
         if (!this.person) return;
         return lastValueFrom(
           this.personService.update(this.person.id, { photoUrl: downloadUrl })
@@ -610,22 +680,105 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       });
   }
 
+  openDeleteDialog(): void {
+    if (!this.person) return;
+
+    this.deleteDialogVisible = true;
+    this.logger.log(
+      'AdzsDetailPage',
+      'Delete dialog opened for person',
+      this.person.id
+    );
+  }
+
+  onDeleteConfirmed(confirmed: boolean): void {
+    this.deleteDialogVisible = false;
+
+    if (confirmed && this.person?.id) {
+      this.deletePerson();
+    }
+  }
+
+  private deletePerson(): void {
+    if (!this.person?.id) return;
+
+    this.isDeleting = true;
+    this.clearMessages();
+
+    const personName = `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname}`;
+    this.logger.log('AdzsDetailPage', 'Deleting person:', personName);
+
+    this.personService
+      .deletePersonWithNotfallkontakte(this.person.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.logger.log(
+            'AdzsDetailPage',
+            'Person deleted successfully:',
+            personName
+          );
+          this.successMsg = `${personName} wurde erfolgreich gelöscht`;
+          this.isDeleting = false;
+
+          // Nach 2 Sekunden zur Übersicht zurückkehren
+          setTimeout(() => {
+            this.router.navigate(['/adsz']);
+          }, 2000);
+
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          this.logger.error('AdzsDetailPage', 'Delete error:', error);
+          this.errorMsg = `Fehler beim Löschen von ${personName}`;
+          this.isDeleting = false;
+          this.scrollToTop();
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  // Getter für Template
+  get deleteDialogTitle(): string {
+    if (!this.person) return 'Person löschen';
+    return `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname} löschen`;
+  }
+
+  get deleteDialogMessage(): string {
+    if (!this.person) return 'Möchten Sie diese Person wirklich löschen?';
+
+    const notfallkontakteCount = this.notfallkontakte.length;
+    const baseMessage = `Möchten Sie ${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname} wirklich löschen?`;
+
+    if (notfallkontakteCount > 0) {
+      return `${baseMessage}\n\nDabei werden auch ${notfallkontakteCount} Notfallkontakt${
+        notfallkontakteCount > 1 ? 'e' : ''
+      } gelöscht.\n\nDiese Aktion kann nicht rückgängig gemacht werden.`;
+    }
+
+    return `${baseMessage}\n\nDiese Aktion kann nicht rückgängig gemacht werden.`;
+  }
+
   // Utility methods
   calculateAge(geburtsdatum: any): number {
     if (!geburtsdatum) return 0;
-    
-    const birthDate = typeof geburtsdatum === 'number' 
-      ? new Date(geburtsdatum)
-      : new Date(geburtsdatum.seconds * 1000);
-      
+
+    const birthDate =
+      typeof geburtsdatum === 'number'
+        ? new Date(geburtsdatum)
+        : new Date(geburtsdatum.seconds * 1000);
+
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }
 
@@ -725,7 +878,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     this.uploadMsg = message;
     this.uploadError = isError;
     this.cdr.markForCheck();
-    
+
     // Auto-hide nach 3 Sekunden
     setTimeout(() => {
       this.uploadMsg = null;
@@ -741,8 +894,25 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     return `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname}`;
   }
 
+  // Korrigierte Getter-Methoden
   get canEdit(): boolean {
-    return true; // For now, everyone can edit
+    return this.isAdmin;
+  }
+
+  get showEditButton(): boolean {
+    return this.canEdit && !this.isEditing && !this.isNewPerson;
+  }
+
+  get showSaveButton(): boolean {
+    return this.isEditing;
+  }
+
+  get showCancelButton(): boolean {
+    return this.isEditing;
+  }
+
+  get showDeleteButton(): boolean {
+    return this.canEdit && !this.isEditing && !this.isNewPerson;
   }
 
   getPersonInitials(person: PersonDoc): string {
@@ -801,15 +971,17 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   private debugRoute(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.logger.log('AdzsDetailPage', 'Route params:', params);
     });
-    
-    this.route.paramMap.subscribe(paramMap => {
+
+    this.route.paramMap.subscribe((paramMap) => {
       this.logger.log('AdzsDetailPage', 'Route paramMap:', {
         id: paramMap.get('id'),
         keys: paramMap.keys,
-        params: Object.fromEntries(paramMap.keys.map(key => [key, paramMap.get(key)]))
+        params: Object.fromEntries(
+          paramMap.keys.map((key) => [key, paramMap.get(key)])
+        ),
       });
     });
   }

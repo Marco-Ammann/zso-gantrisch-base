@@ -23,7 +23,7 @@ import {
 })
 export class ZsoInputField implements ControlValueAccessor {
   @Input() label = '';
-  @Input() type: 'text' | 'email' | 'password' | 'date' = 'text';
+  @Input() type: 'text' | 'email' | 'password' | 'date' | 'tel' = 'text';
   @Input() placeholder = '';
   @Input() toggleVisibility = false;
 

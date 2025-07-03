@@ -17,8 +17,8 @@ import {
   addDoc,
   deleteDoc,
 } from '@angular/fire/firestore';
-import { Observable, from, of, throwError, Subject } from 'rxjs';
-import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
+import { Observable, from, of, throwError, Subject, forkJoin } from 'rxjs';
+import { switchMap, catchError, map, takeUntil, take } from 'rxjs/operators';
 
 import {
   PersonDoc,
@@ -283,6 +283,70 @@ export class PersonService implements OnDestroy {
           return throwError(() => error);
         }),
         takeUntil(this.destroy$)
+      );
+    });
+  }
+
+  /**
+   * Person mit allen Notfallkontakten löschen (kaskadierende Löschung)
+   */
+  deletePersonWithNotfallkontakte(personId: string): Observable<void> {
+    this.logger.log(
+      'PersonService',
+      'Deleting person with emergency contacts',
+      personId
+    );
+
+    return runInInjectionContext(this.injector, () => {
+      // Zuerst alle Notfallkontakte laden und löschen
+      return this.getNotfallkontakte(personId).pipe(
+        take(1),
+        switchMap((kontakte) => {
+          if (kontakte.length === 0) {
+            // Keine Notfallkontakte vorhanden, direkt Person löschen
+            this.logger.log(
+              'PersonService',
+              'No emergency contacts found, deleting person directly'
+            );
+            return this.delete(personId);
+          }
+
+          // Notfallkontakte löschen
+          this.logger.log(
+            'PersonService',
+            `Deleting ${kontakte.length} emergency contacts first`
+          );
+          const deletePromises = kontakte.map((kontakt) =>
+            this.deleteNotfallkontakt(kontakt.id).pipe(
+              catchError((error) => {
+                this.logger.error(
+                  'PersonService',
+                  `Failed to delete emergency contact ${kontakt.id}:`,
+                  error
+                );
+                return of(null); // Weiter machen auch wenn ein Kontakt nicht gelöscht werden kann
+              })
+            )
+          );
+
+          return forkJoin(deletePromises).pipe(
+            switchMap(() => {
+              this.logger.log(
+                'PersonService',
+                'Emergency contacts deleted, now deleting person'
+              );
+              return this.delete(personId);
+            })
+          );
+        }),
+        catchError((error) => {
+          this.logger.error(
+            'PersonService',
+            `Failed to delete person ${personId}:`,
+            error
+          );
+          return throwError(() => error);
+        })
       );
     });
   }
