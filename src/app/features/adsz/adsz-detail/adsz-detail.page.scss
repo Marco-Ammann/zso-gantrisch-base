@@ -22,6 +22,7 @@
 
 // Radio button styling for contact method
 input[type="radio"] {
+  /* stylelint-disable-next-line */
   @apply w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 focus:ring-2 focus:ring-cp-orange/20 focus:ring-offset-0 checked:bg-cp-orange checked:border-cp-orange;
 }
 
@@ -38,14 +39,17 @@ input[type="radio"] {
 // Status indicators
 .status-indicator {
   &.active {
+    /* stylelint-disable-next-line */
     @apply bg-green-500/20 text-green-400 border border-green-500/30;
   }
 
   &.new {
+    /* stylelint-disable-next-line */
     @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
   }
 
   &.inactive {
+    /* stylelint-disable-next-line */
     @apply bg-rose-500/20 text-rose-300 border border-rose-500/30;
   }
 }
@@ -56,6 +60,7 @@ input[type="radio"] {
   input,
   select,
   textarea {
+    /* stylelint-disable-next-line */
     @apply border-rose-500 focus:border-rose-500 focus:ring-rose-500/20;
   }
 }

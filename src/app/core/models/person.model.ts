@@ -25,6 +25,7 @@ export interface PersonDoc {
 
   // Berufliches
   berufliches: {
+    [x: string]: any;
     erlernterBeruf: string;
     ausgeubterBeruf: string;
     arbeitgeber: string;

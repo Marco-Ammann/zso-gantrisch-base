@@ -128,8 +128,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.debugRoute(); // Temporärer Debug
-
     this.initializeForms();
 
     this.route.paramMap
@@ -613,6 +611,24 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   // Utility methods
+  calculateAge(geburtsdatum: any): number {
+    if (!geburtsdatum) return 0;
+    
+    const birthDate = typeof geburtsdatum === 'number' 
+      ? new Date(geburtsdatum)
+      : new Date(geburtsdatum.seconds * 1000);
+      
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  }
+
   private validateAllForms(): boolean {
     const forms = [
       this.grunddatenForm,
