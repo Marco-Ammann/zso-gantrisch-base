@@ -38,22 +38,29 @@
                       <div
                         class="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-200"
                         [class]="{
-                          'bg-cp-orange border-cp-orange text-white': i < currentStep,
+                          'bg-white/5 border-white/5 text-white': i < currentStep,
                           'bg-cp-orange/20 border-cp-orange text-cp-orange': i === currentStep,
                           'border-gray-600 text-gray-500': i > currentStep
                         }"
                       >
-                        @if (i < currentStep) {
-                          <span class="material-symbols-outlined text-xs sm:text-sm">check</span>
-                        } @else {
+
+                      <!-- Icon -->
+                        @if (i < currentStep) { <!-- Check -->
+                          <span class="material-symbols-outlined text-xs sm:text-sm"
+                          [class]="{
+                            'text-white': i < currentStep,
+                            'text-cp-orange': i === currentStep,
+                            'text-gray-500': i > currentStep
+                          }"
+                          >check</span>
+                        } @else { <!-- Number -->
                           {{ i + 1 }}
                         }
                       </div>
                       <span
                         class="ml-2 text-xs sm:text-sm font-medium hidden lg:block transition-colors truncate"
                         [class]="{
-                          'text-white': i <= currentStep,
-                          'text-gray-500': i > currentStep
+                            'display-none': i != currentStep,
                         }"
                       >
                         {{ step.title }}
