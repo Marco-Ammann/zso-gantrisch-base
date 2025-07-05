@@ -1,4 +1,4 @@
-// src/app/features/adsz/adsz-overview/adsz-overview.page.ts
+// src/app/features/adzs/adzs-overview/adzs-overview.page.ts - Aktualisiert für Modal
 import {
   Component,
   inject,
@@ -6,8 +6,6 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  ViewChild,
-  ElementRef,
 } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
@@ -20,15 +18,14 @@ import {
   distinctUntilChanged,
   BehaviorSubject,
   combineLatest,
-  Observable,
 } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { PersonService } from '@core/services/person.service';
-import { JsonImportService } from '@core/services/json-import.service';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
-import { PersonDoc, Person } from '@core/models/person.model';
+import { PersonDoc } from '@core/models/person.model';
+import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-create-modal';
 
 interface FilterState {
   status: 'all' | 'aktiv' | 'neu' | 'inaktiv';
@@ -47,11 +44,16 @@ interface Stats {
 }
 
 @Component({
-  selector: 'zso-adsz-overview',
+  selector: 'zso-adzs-overview',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './adsz-overview.page.html',
-  styleUrls: ['./adsz-overview.page.scss'],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule, 
+    AdzsCreateModal  // Neue Modal-Komponente
+  ],
+  templateUrl: './adzs-overview.page.html',
+  styleUrls: ['./adzs-overview.page.scss'],
   animations: [
     trigger('itemFade', [
       transition(':enter', [
@@ -62,11 +64,26 @@ interface Stats {
         ),
       ]),
     ]),
+    trigger('modalSlide', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.9)' }),
+        animate(
+          '200ms ease-out',
+          style({ opacity: 1, transform: 'scale(1)' })
+        ),
+      ]),
+      transition(':leave', [
+        animate(
+          '150ms ease-in',
+          style({ opacity: 0, transform: 'scale(0.9)' })
+        ),
+      ]),
+    ]),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdzsOverviewPage implements OnInit, OnDestroy {
-  private readonly jsonImportService = inject(JsonImportService);
+  private readonly personService = inject(PersonService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
@@ -79,19 +96,13 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     gruppe: 'all',
     contactMethod: 'all',
   });
-  private readonly personService = inject(PersonService);
-
-  @ViewChild('jsonFileInput') jsonFileInput!: ElementRef<HTMLInputElement>;
-  importStatus = '';
 
   // State
   allPersons: PersonDoc[] = [];
   filteredPersons: PersonDoc[] = [];
-  searchQuery = '';
   isLoading = false;
   errorMsg: string | null = null;
-
-  // Filter state
+  searchQuery = '';
   currentFilters: FilterState = {
     status: 'all',
     zug: 'all',
@@ -99,89 +110,93 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     contactMethod: 'all',
   };
 
-  // Statistics
-  stats$: Observable<Stats> = this.personService.getStats();
+  // Modal State - NEU
+  createModalVisible = false;
+  successMsg: string | null = null;
 
-  // Current user for highlighting own record
-  currentUserId$ = this.authService.appUser$.pipe(
-    map((user) => user?.auth.uid || null)
+  // Computed properties
+  get hasResults(): boolean {
+    return this.filteredPersons.length > 0;
+  }
+
+  get hasActiveFilters(): boolean {
+    return (
+      this.searchQuery.length > 0 ||
+      this.currentFilters.status !== 'all' ||
+      this.currentFilters.zug !== 'all' ||
+      this.currentFilters.gruppe !== 'all' ||
+      this.currentFilters.contactMethod !== 'all'
+    );
+  }
+
+  // Observables
+  stats$ = this.personService.getAll().pipe(
+    map((persons: PersonDoc[]) => this.calculateStats(persons)),
+    takeUntil(this.destroy$)
   );
 
-  // Available filter options
-  readonly statusOptions = [
-    { value: 'all', label: 'Alle Status' },
-    { value: 'aktiv', label: 'Aktiv' },
-    { value: 'neu', label: 'Neu' },
-    { value: 'inaktiv', label: 'Inaktiv' },
-  ];
-
-  readonly zugOptions = [
-    { value: 'all', label: 'Alle Züge' },
-    { value: 1, label: 'Zug 1' },
-    { value: 2, label: 'Zug 2' },
-  ];
-
-  readonly gruppeOptions = [
-    { value: 'all', label: 'Alle Gruppen' },
-    { value: 'A', label: 'Gruppe A' },
-    { value: 'B', label: 'Gruppe B' },
-    { value: 'C', label: 'Gruppe C' },
-    { value: 'D', label: 'Gruppe D' },
-  ];
-
-  readonly contactMethodOptions = [
-    { value: 'all', label: 'Alle Präferenzen' },
-    { value: 'digital', label: 'Digital' },
-    { value: 'paper', label: 'Papier' },
-    { value: 'both', label: 'Beides' },
-  ];
+  isAdmin$ = this.authService.appUser$.pipe(
+    map(user => user?.doc.roles?.includes('admin') ?? false)
+  );
 
   ngOnInit(): void {
-    this.logger.log('AdzsOverviewPage', 'Initializing');
-
-    // Set up search debounce
-    this.searchTerm$
-      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.applyFilters();
-      });
-
-    // Set up filter changes
-    this.filters$.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.applyFilters();
-    });
-
-    // Combine data loading with filtering
-    combineLatest([
-      this.personService.getAll(),
-      this.searchTerm$,
-      this.filters$,
-    ])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(([persons]) => {
-        this.allPersons = persons;
-        this.applyFilters();
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      });
-
+    this.logger.log('AdzsOverviewPage', 'Component initialized');
     this.loadPersons();
+    this.setupSearch();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.searchTerm$.complete();
-    this.filters$.complete();
     this.logger.log('AdzsOverviewPage', 'Component destroyed');
   }
 
   private loadPersons(): void {
-    if (this.isLoading) return;
-
     this.isLoading = true;
     this.errorMsg = null;
-    this.cdr.markForCheck();
+
+    this.personService.getAll().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (persons: PersonDoc[]) => {
+        this.allPersons = persons;
+        this.applyFilters();
+        this.isLoading = false;
+        this.logger.log('AdzsOverviewPage', `Loaded ${persons.length} persons`);
+        this.cdr.markForCheck();
+      },
+      error: (error: any) => {
+        this.logger.error('AdzsOverviewPage', 'Error loading persons:', error);
+        this.errorMsg = 'Fehler beim Laden der Personendaten';
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private setupSearch(): void {
+    combineLatest([
+      this.searchTerm$.pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      ),
+      this.filters$
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.applyFilters();
+    });
+  }
+
+  private calculateStats(persons: PersonDoc[]): Stats {
+    return {
+      total: persons.length,
+      active: persons.filter(p => p.zivilschutz.status === 'aktiv').length,
+      new: persons.filter(p => p.zivilschutz.status === 'neu').length,
+      inactive: persons.filter(p => p.zivilschutz.status === 'inaktiv').length,
+      digitalPreference: persons.filter(p => p.preferences?.contactMethod === 'digital' || p.preferences?.contactMethod === 'both').length,
+      paperPreference: persons.filter(p => p.preferences?.contactMethod === 'paper' || p.preferences?.contactMethod === 'both').length,
+    };
   }
 
   private applyFilters(): void {
@@ -189,37 +204,34 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
 
     // Apply search filter
     if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (person) =>
-          `${person.grunddaten.vorname} ${person.grunddaten.nachname}`
-            .toLowerCase()
-            .includes(query) ||
-          person.kontaktdaten.email.toLowerCase().includes(query) ||
-          person.kontaktdaten.telefonMobil.includes(query) ||
-          person.grunddaten.funktion.toLowerCase().includes(query)
+      const query = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(person =>
+        person.grunddaten.vorname.toLowerCase().includes(query) ||
+        person.grunddaten.nachname.toLowerCase().includes(query) ||
+        person.kontaktdaten.email.toLowerCase().includes(query) ||
+        person.grunddaten.grad.toLowerCase().includes(query) ||
+        person.grunddaten.funktion.toLowerCase().includes(query)
       );
     }
 
     // Apply status filter
     if (this.currentFilters.status !== 'all') {
       filtered = filtered.filter(
-        (person) => person.zivilschutz.status === this.currentFilters.status
+        person => person.zivilschutz.status === this.currentFilters.status
       );
     }
 
     // Apply zug filter
     if (this.currentFilters.zug !== 'all') {
       filtered = filtered.filter(
-        (person) =>
-          person.zivilschutz.einteilung.zug === this.currentFilters.zug
+        person => person.zivilschutz.einteilung.zug === this.currentFilters.zug
       );
     }
 
     // Apply gruppe filter
     if (this.currentFilters.gruppe !== 'all') {
       filtered = filtered.filter(
-        (person) =>
+        person =>
           person.zivilschutz.einteilung.gruppe === this.currentFilters.gruppe
       );
     }
@@ -227,7 +239,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     // Apply contact method filter
     if (this.currentFilters.contactMethod !== 'all') {
       filtered = filtered.filter(
-        (person) =>
+        person =>
           person.preferences?.contactMethod ===
             this.currentFilters.contactMethod ||
           (this.currentFilters.contactMethod === 'both' &&
@@ -275,15 +287,50 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
     this.router.navigate(['/adsz', person.id]);
   }
 
-  viewDetails(person: PersonDoc): void {
-    this.viewPersonDetails(person); // Alias für Konsistenz
+  // NEU: Modal-Methoden statt Navigation
+  openCreateModal(): void {
+    this.createModalVisible = true;
+    this.logger.log('AdzsOverviewPage', 'Create modal opened');
   }
 
+  onPersonCreated(person: PersonDoc): void {
+    this.logger.log('AdzsOverviewPage', 'Person created successfully:', person.id);
+    
+    // Success-Message anzeigen
+    this.successMsg = `${person.grunddaten.vorname} ${person.grunddaten.nachname} wurde erfolgreich erstellt.`;
+    
+    // Daten neu laden
+    this.loadPersons();
+    
+    // Success-Message nach 5 Sekunden ausblenden
+    setTimeout(() => {
+      this.successMsg = null;
+      this.cdr.markForCheck();
+    }, 5000);
+
+    this.cdr.markForCheck();
+  }
+
+  onCreateModalClosed(): void {
+    this.createModalVisible = false;
+    this.logger.log('AdzsOverviewPage', 'Create modal closed');
+  }
+
+  // Utility methods
+  getPersonInitials(person: PersonDoc): string {
+    return `${person.grunddaten.vorname.charAt(0)}${person.grunddaten.nachname.charAt(0)}`;
+  }
+
+  // Legacy methods (für Kompatibilität)
   createNew(): void {
-    this.router.navigate(['/adsz/new']);
+    this.openCreateModal(); // Redirect zu Modal statt Navigation
   }
 
-  // PDF Export functions
+  viewDetails(person: PersonDoc): void {
+    this.viewPersonDetails(person);
+  }
+
+  // PDF Export functions (unverändert)
   generateAllPDFs(): void {
     // TODO: Implement PDF generation for all persons
     this.logger.log('AdzsOverviewPage', 'Generate PDFs for all persons');
@@ -291,132 +338,19 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
 
   generatePaperPreferencePDFs(): void {
     const paperPersons = this.allPersons.filter(
-      (person) =>
+      person =>
         person.preferences?.contactMethod === 'paper' ||
         person.preferences?.contactMethod === 'both'
     );
-
-    this.logger.log(
-      'AdzsOverviewPage',
-      `Generate PDFs for ${paperPersons.length} paper preference persons`
-    );
-    // TODO: Implement PDF generation
+    this.logger.log('AdzsOverviewPage', `Generate PDFs for ${paperPersons.length} paper preference persons`);
   }
 
-  generateSelectedPDFs(): void {
-    // TODO: Implement selected PDFs generation
-    this.logger.log('AdzsOverviewPage', 'Generate PDFs for selected persons');
+  // Message management
+  dismissSuccessMsg(): void {
+    this.successMsg = null;
   }
 
-  importButtonClick() {
-    this.jsonFileInput.nativeElement.click();
-  }
-
-  async handleJsonImport(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-
-    const file = input.files[0];
-    this.importStatus = 'Importing JSON file...';
-
-    try {
-      const jsonData = await this.jsonImportService.readJsonFile(file);
-      this.jsonImportService.importPersonsFromJson(jsonData).subscribe({
-        next: (ids) => {
-          this.importStatus = `Successfully imported ${ids.length} persons`;
-          this.refresh(); // Refresh data after import
-        },
-        error: (err) => {
-          this.importStatus = `Import failed: ${err.message}`;
-          this.logger.error('JSON Import Error', err);
-        },
-      });
-    } catch (err) {
-      this.importStatus = `File error: ${(err as Error).message}`;
-      this.logger.error('JSON File Error', err);
-    }
-  }
-
-  // Helper methods
-  getPersonInitials(person: PersonDoc): string {
-    return `${person.grunddaten.vorname.charAt(
-      0
-    )}${person.grunddaten.nachname.charAt(0)}`;
-  }
-
-  getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'aktiv':
-        return 'badge--approved';
-      case 'neu':
-        return 'badge--pending';
-      case 'inaktiv':
-        return 'badge--blocked';
-      default:
-        return 'badge--unverified';
-    }
-  }
-
-  getContactMethodBadgeClass(method?: string): string {
-    switch (method) {
-      case 'digital':
-        return 'text-blue-400';
-      case 'paper':
-        return 'text-amber-400';
-      case 'both':
-        return 'text-purple-400';
-      default:
-        return 'text-gray-400';
-    }
-  }
-
-  getContactMethodIcon(method?: string): string {
-    switch (method) {
-      case 'digital':
-        return 'computer';
-      case 'paper':
-        return 'description';
-      case 'both':
-        return 'swap_horiz';
-      default:
-        return 'help';
-    }
-  }
-
-  formatPhone(phone: string): string {
-    if (!phone) return '';
-    // Simple Swiss phone formatting
-    return phone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
-  }
-
-  // Computed properties
-  get hasResults(): boolean {
-    return this.filteredPersons.length > 0;
-  }
-
-  get hasActiveFilters(): boolean {
-    return (
-      this.currentFilters.status !== 'all' ||
-      this.currentFilters.zug !== 'all' ||
-      this.currentFilters.gruppe !== 'all' ||
-      this.currentFilters.contactMethod !== 'all' ||
-      this.searchQuery.trim() !== ''
-    );
-  }
-
-  get filteredStats() {
-    return {
-      total: this.filteredPersons.length,
-      active: this.filteredPersons.filter(
-        (p) => p.zivilschutz.status === 'aktiv'
-      ).length,
-      new: this.filteredPersons.filter((p) => p.zivilschutz.status === 'neu')
-        .length,
-      paper: this.filteredPersons.filter(
-        (p) =>
-          p.preferences?.contactMethod === 'paper' ||
-          p.preferences?.contactMethod === 'both'
-      ).length,
-    };
+  dismissErrorMsg(): void {
+    this.errorMsg = null;
   }
 }

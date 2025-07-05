@@ -1,0 +1,305 @@
+<!-- src/app/features/adzs/adzs-overview/adzs-overview.page.html - Aktualisiert für Modal -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+    <!-- Success Alert - NEU -->
+    @if (successMsg) {
+      <div class="glass-card p-4 border-l-4 border-green-500 bg-green-500/10" [@itemFade]>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-green-400">check_circle</span>
+            <span class="text-green-300">{{ successMsg }}</span>
+          </div>
+          <button (click)="dismissSuccessMsg()"
+            class="text-green-400 hover:text-green-300 p-1 rounded-lg hover:bg-green-500/10 transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+    }
+  
+    <!-- Error Alert -->
+    @if (errorMsg) {
+      <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10" [@itemFade]>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-rose-400">error</span>
+            <span class="text-rose-300">{{ errorMsg }}</span>
+          </div>
+          <button (click)="dismissErrorMsg()"
+            class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+    }
+  
+    <!-- Page Header -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="auth-icon-wrapper">
+          <span class="material-symbols-outlined text-2xl text-cp-orange">groups</span>
+        </div>
+        <div>
+          <h1 class="text-2xl lg:text-3xl font-bold text-white">AdZS Verwaltung</h1>
+          <p class="text-sm text-gray-400">Angehörige des Zivilschutzes verwalten</p>
+        </div>
+      </div>
+  
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- GEÄNDERT: Öffnet Modal statt Navigation -->
+        <button (click)="openCreateModal()" class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">person_add</span>
+          <span class="text-sm font-medium">Neue Person</span>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Compact Statistics Bar -->
+    <div class="glass-card p-3 flex items-center justify-between overflow-x-auto">
+      <div class="flex items-center gap-6 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">Gesamt:</span>
+          <span class="font-bold text-white">{{ (stats$ | async)?.total ?? '—' }}</span>
+        </div>
+        <div class="h-4 w-px bg-gray-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-400"></span>
+          <span class="text-gray-400">Aktiv:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.active ?? '—' }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-gray-400">Neu:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.new ?? '—' }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+          <span class="text-gray-400">Inaktiv:</span>
+          <span class="font-medium text-white">{{ (stats$ | async)?.inactive ?? '—' }}</span>
+        </div>
+      </div>
+  
+      <!-- Filters & Actions -->
+      <div class="flex items-center gap-2">
+        <button (click)="refresh()" 
+          [disabled]="isLoading"
+          class="p-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700 hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200 disabled:opacity-50" 
+          title="Aktualisieren">
+          <span class="material-symbols-outlined text-base" [class.animate-spin]="isLoading">refresh</span>
+        </button>
+        
+        @if (hasActiveFilters) {
+          <button (click)="clearFilters()" 
+            class="text-xs px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
+            title="Filter zurücksetzen">
+            Filter löschen
+          </button>
+        }
+      </div>
+    </div>
+  
+    <!-- Search & Filters -->
+    <div class="glass-card p-4 space-y-4">
+      <!-- Search Bar -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          search
+        </span>
+        <input 
+          type="search" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Name, E-Mail, Grad oder Funktion suchen..." 
+          class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none" 
+        />
+      </div>
+  
+      <!-- Filter Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+          <select (change)="onFilterChange('status', $any($event.target).value)" 
+            [value]="currentFilters.status"
+            class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all">
+            <option value="all">Alle</option>
+            <option value="aktiv">Aktiv</option>
+            <option value="neu">Neu</option>
+            <option value="inaktiv">Inaktiv</option>
+          </select>
+        </div>
+  
+        <!-- Zug Filter -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Zug</label>
+          <select (change)="onFilterChange('zug', $any($event.target).value === 'all' ? 'all' : +$any($event.target).value)" 
+            [value]="currentFilters.zug"
+            class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all">
+            <option value="all">Alle</option>
+            <option value="1">Zug 1</option>
+            <option value="2">Zug 2</option>
+          </select>
+        </div>
+  
+        <!-- Gruppe Filter -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Gruppe</label>
+          <select (change)="onFilterChange('gruppe', $any($event.target).value)" 
+            [value]="currentFilters.gruppe"
+            class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all">
+            <option value="all">Alle</option>
+            <option value="A">Gruppe A</option>
+            <option value="B">Gruppe B</option>
+            <option value="C">Gruppe C</option>
+            <option value="D">Gruppe D</option>
+          </select>
+        </div>
+  
+        <!-- Kontakt-Methode Filter -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Kontakt</label>
+          <select (change)="onFilterChange('contactMethod', $any($event.target).value)" 
+            [value]="currentFilters.contactMethod"
+            class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all">
+            <option value="all">Alle</option>
+            <option value="digital">Digital</option>
+            <option value="paper">Papier</option>
+            <option value="both">Beide</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="glass-card p-8 text-center" [@itemFade]>
+        <div class="inline-flex items-center gap-3">
+          <div class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-gray-300">Lade Personendaten...</span>
+        </div>
+      </div>
+    }
+  
+    <!-- Persons Grid -->
+    @if (hasResults && !isLoading) {
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        @for (person of filteredPersons; track person.id) {
+          <div class="glass-card person-card-hover cursor-pointer" 
+               (click)="viewPersonDetails(person)"
+               [@itemFade]>
+            <div class="p-5">
+              <!-- Header mit Avatar und Basic Info -->
+              <div class="flex items-center gap-3 mb-4">
+                <!-- Avatar -->
+                <div class="relative flex-shrink-0">
+                  @if (person.photoUrl) {
+                    <img [src]="person.photoUrl" alt="Avatar"
+                      class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700" />
+                  } @else {
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                              flex items-center justify-center ring-2 ring-gray-700">
+                      <span class="text-gray-400 font-medium text-sm">
+                        {{ getPersonInitials(person) }}
+                      </span>
+                    </div>
+                  }
+                  
+                  <!-- Status Indicator -->
+                  <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-800"
+                       [class]="{
+                         'bg-green-500': person.zivilschutz.status === 'aktiv',
+                         'bg-yellow-500': person.zivilschutz.status === 'neu',
+                         'bg-red-500': person.zivilschutz.status === 'inaktiv'
+                       }">
+                  </div>
+                </div>
+        
+                <!-- Person Info -->
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-white truncate">
+                    {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
+                  </h3>
+                  <p class="text-sm text-gray-400 truncate">
+                    {{ person.grunddaten.grad }} • {{ person.grunddaten.funktion }}
+                  </p>
+                </div>
+        
+                <!-- Action Button -->
+                <button class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-cp-orange hover:text-white 
+                               transition-all duration-200 flex items-center justify-center group"
+                        (click)="$event.stopPropagation(); viewPersonDetails(person)"
+                        title="Details anzeigen">
+                  <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">
+                    arrow_forward
+                  </span>
+                </button>
+              </div>
+        
+              <!-- Contact Info -->
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2 text-gray-300">
+                  <span class="material-symbols-outlined text-base text-cp-orange">mail</span>
+                  <span class="truncate">{{ person.kontaktdaten.email }}</span>
+                </div>
+                
+                @if (person.kontaktdaten.telefonMobil) {
+                  <div class="flex items-center gap-2 text-gray-300">
+                    <span class="material-symbols-outlined text-base text-cp-orange">phone</span>
+                    <span>{{ person.kontaktdaten.telefonMobil }}</span>
+                  </div>
+                }
+              </div>
+        
+              <!-- Bottom Info -->
+              <div class="flex items-center justify-between pt-3 mt-3 border-t border-gray-700">
+                <span class="text-xs text-gray-500">
+                  Zug {{ person.zivilschutz.einteilung.zug }}@if (person.zivilschutz.einteilung.gruppe) {, Gr. {{ person.zivilschutz.einteilung.gruppe }}}
+                </span>
+                
+                <span class="text-xs px-2 py-1 rounded-full"
+                      [class]="{
+                        'bg-green-500/20 text-green-400': person.zivilschutz.status === 'aktiv',
+                        'bg-yellow-500/20 text-yellow-400': person.zivilschutz.status === 'neu',
+                        'bg-red-500/20 text-red-400': person.zivilschutz.status === 'inaktiv'
+                      }">
+                  {{ person.zivilschutz.status | titlecase }}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  
+    <!-- Empty State -->
+    @if (!hasResults && !isLoading) {
+      <div class="glass-card p-12 text-center">
+        <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
+        <h3 class="text-xl font-medium text-white mb-2">Keine Personen gefunden</h3>
+        <p class="text-gray-400 mb-4">
+          @if (hasActiveFilters) {
+            Versuche andere Filter oder Suchbegriffe.
+          } @else {
+            Noch keine Personen erfasst.
+          }
+        </p>
+  
+        @if (!hasActiveFilters) {
+          <!-- GEÄNDERT: Öffnet Modal statt Navigation -->
+          <button (click)="openCreateModal()" class="glass-btn-primary px-4 py-2 rounded-lg">
+            Erste Person erfassen
+          </button>
+        }
+      </div>
+    }
+  
+    <!-- CREATE MODAL - NEU -->
+    <zso-adzs-create-modal
+      [visible]="createModalVisible"
+      (created)="onPersonCreated($event)"
+      (closed)="onCreateModalClosed()"
+      [@modalSlide]>
+    </zso-adzs-create-modal>
+  
+  </div>

@@ -10,11 +10,6 @@ export const adzsRoutes: Routes = [
       ),
   },
   {
-    path: 'new',
-    loadComponent: () =>
-      import('./adsz-detail/adsz-detail.page').then((m) => m.AdzsDetailPage),
-  },
-  {
     path: ':id',
     loadComponent: () =>
       import('./adsz-detail/adsz-detail.page').then((m) => m.AdzsDetailPage),
