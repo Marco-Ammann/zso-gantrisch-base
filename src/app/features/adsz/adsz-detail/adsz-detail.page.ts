@@ -18,8 +18,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { Subject, takeUntil, switchMap, of, lastValueFrom } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Subject, Observable, takeUntil, switchMap, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import {
   getStorage,
   ref,
@@ -49,15 +49,18 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
   templateUrl: './adsz-detail.page.html',
   styleUrls: ['./adsz-detail.page.scss'],
   animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
     trigger('slideIn', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate(
-          '300ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })
-        ),
-      ]),
-    ]),
+        style({ opacity: 0, transform: 'translateX(-20px)' }),
+        animate('250ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ])
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -71,918 +74,593 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   // State
   person: PersonDoc | null = null;
   notfallkontakte: NotfallkontaktDoc[] = [];
   isLoading = false;
   isEditing = false;
   isSaving = false;
+  isNewPerson = false;
+  isAdmin = false;
+  uploading = false;
+  
+  // UI State
+  activeTab: 'grunddaten' | 'kontakt' | 'beruflich' | 'zivilschutz' | 'persoenlich' | 'notfall' = 'grunddaten';
   errorMsg: string | null = null;
   successMsg: string | null = null;
-  isNewPerson = false;
-  uploading = false;
-  uploadMsg: string | null = null;
-  uploadError = false;
-  // Delete-Dialog State
-  deleteDialogVisible = false;
-  isDeleting = false;
-  isAdmin = false;
-
-  // Dialog states
+  
+  // Dialog States
   notfallkontaktDialogVisible = false;
   editingKontakt: NotfallkontaktDoc | null = null;
+  deleteDialogVisible = false;
+  isDeleting = false;
 
   // Forms
-  grunddatenForm!: FormGroup;
-  kontaktdatenForm!: FormGroup;
-  beruflichesForm!: FormGroup;
-  zivilschutzForm!: FormGroup;
-  persoenlichesForm!: FormGroup;
-  preferencesForm!: FormGroup;
+  mainForm!: FormGroup;
 
-  // Current user for permissions
-  currentUser$ = this.authService.appUser$;
-  isAdmin$ = this.currentUser$.pipe(
-    map((user) => user?.doc.roles?.includes('admin') ?? false)
-  );
-
-  // Form options
+  // Form Options
   readonly gradOptions = [
-    'Soldat',
-    'Korporal',
-    'Wachtmeister',
-    'Oberwachtmeister',
-    'Adjutant',
-    'Leutnant',
-    'Oberleutnant',
-    'Hauptmann',
+    'Soldat', 'Korporal', 'Wachtmeister', 'Oberwachtmeister',
+    'Adjutant', 'Leutnant', 'Oberleutnant', 'Hauptmann'
   ];
+  
   readonly funktionOptions = [
-    'Betreuer',
-    'C-Betreuer',
-    'Betreuer Uof',
-    'Gruppenführer',
-    'Zugführer',
+    'Betreuer', 'C-Betreuer', 'Betreuer Uof', 'Gruppenführer', 'Zugführer'
   ];
+  
   readonly statusOptions = ['aktiv', 'neu', 'inaktiv'];
   readonly zugOptions = [1, 2];
   readonly gruppeOptions = ['A', 'B', 'C', 'D'];
+  
   readonly contactMethodOptions = [
     { value: 'digital', label: 'Digital (E-Mail)' },
     { value: 'paper', label: 'Papier (Post)' },
-    { value: 'both', label: 'Digital & Papier' },
+    { value: 'both', label: 'Digital & Papier' }
   ];
 
-  // In der ngOnInit() Methode das isAdmin$ Observable subscriben
+  // Computed Properties
+  get isAdmin$() {
+    return this.authService.appUser$.pipe(
+      map(user => user?.doc.roles?.includes('admin') ?? false)
+    );
+  }
+
+  get pageTitle(): string {
+    if (this.isNewPerson) return 'Neue Person erfassen';
+    return this.person ? 
+      `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname}` : 
+      'Person laden...';
+  }
+
+  get pageSubtitle(): string {
+    if (this.isNewPerson) return 'Neue AdZS-Person zur Datenbank hinzufügen';
+    return this.person ? 
+      `${this.person.zivilschutz.einteilung.zug}. Zug, Gruppe ${this.person.zivilschutz.einteilung.gruppe} • ${this.person.grunddaten.grad}` : 
+      '';
+  }
+
+  get selectedContactMethodLabel(): string {
+    const selectedValue = this.mainForm.get('preferences.contactMethod')?.value;
+    const option = this.contactMethodOptions.find(opt => opt.value === selectedValue);
+    return option?.label || '—';
+  }
+
   ngOnInit(): void {
-    this.initializeForms();
-
-    // Admin-Status subscriben
-    this.isAdmin$.pipe(takeUntil(this.destroy$)).subscribe((isAdmin) => {
-      this.isAdmin = isAdmin;
-      this.cdr.markForCheck();
-    });
-
-    this.route.paramMap
-      .pipe(
-        switchMap((params) => {
-          const id = params.get('id');
-          this.logger.log('AdzsDetailPage', 'Route params - ID:', id);
-
-          if (id === 'new') {
-            this.isNewPerson = true;
-            this.isEditing = true; // Neue Person: direkt im Edit-Modus
-            this.cdr.markForCheck();
-            return of(null);
-          } else if (id) {
-            this.isNewPerson = false;
-            this.isEditing = false; // Bestehende Person: zunächst im Anzeige-Modus
-            this.logger.log('AdzsDetailPage', 'Loading person with ID:', id);
-            return this.personService.getById(id);
-          }
-
-          this.logger.warn(
-            'AdzsDetailPage',
-            'No valid ID found in route params'
-          );
-          return of(null);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (person) => {
-          this.logger.log('AdzsDetailPage', 'Person loaded:', person);
-
-          if (person) {
-            this.person = person;
-            this.populateForms(person);
-            this.loadNotfallkontakte(person.id);
-          } else if (this.isNewPerson) {
-            // Neue Person: Formulare mit Standardwerten initialisieren
-            this.initializeNewPersonForms();
-          }
-
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.logger.error('AdzsDetailPage', 'Error loading person:', error);
-          this.errorMsg = 'Fehler beim Laden der Person';
-          this.cdr.markForCheck();
-        },
-      });
+    this.initializeForm();
+    this.subscribeToRouteParams();
+    this.subscribeToAdminStatus();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.logger.log('AdzsDetailPage', 'Component destroyed');
   }
 
-  private initializeForms(): void {
-    this.grunddatenForm = this.fb.group({
-      vorname: ['', Validators.required],
-      nachname: ['', Validators.required],
-      geburtsdatum: ['', Validators.required],
-      grad: ['', Validators.required],
-      funktion: ['', Validators.required],
-    });
-
-    this.kontaktdatenForm = this.fb.group({
-      strasse: ['', Validators.required],
-      plz: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
-      ort: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      telefonMobil: ['', Validators.required],
-      telefonFestnetz: [''],
-      telefonGeschaeftlich: [''],
-    });
-
-    this.beruflichesForm = this.fb.group({
-      erlernterBeruf: [''],
-      ausgeubterBeruf: [''],
-      arbeitgeber: [''],
-      zivileSpezialausbildung: [''],
-      fuehrerausweisKategorie: [''],
-    });
-
-    this.zivilschutzForm = this.fb.group({
-      grundausbildung: ['', Validators.required],
-      status: ['aktiv', Validators.required],
-      zug: [1, Validators.required],
-      gruppe: [''],
-      zusatzausbildungen: [''],
-    });
-
-    this.persoenlichesForm = this.fb.group({
-      blutgruppe: [''],
-      allergien: [''],
-      essgewohnheiten: [''],
-      sprachkenntnisse: [''],
-      besonderheiten: [''],
-    });
-
-    this.preferencesForm = this.fb.group({
-      contactMethod: ['digital', Validators.required],
-      emailNotifications: [true],
-    });
-  }
-
-  private initializeNewPersonForms(): void {
-    // Grunddaten mit Standardwerten
-    this.grunddatenForm.patchValue({
-      vorname: '',
-      nachname: '',
-      geburtsdatum: '',
-      grad: '',
-      funktion: '',
-    });
-
-    // Kontaktdaten mit Standardwerten
-    this.kontaktdatenForm.patchValue({
-      strasse: '',
-      plz: '',
-      ort: '',
-      email: '',
-      telefonMobil: '',
-      telefonFestnetz: '',
-      telefonGeschaeftlich: '',
-    });
-
-    // Zivilschutz mit Standardwerten
-    this.zivilschutzForm.patchValue({
-      grundausbildung: '',
-      status: 'neu', // Standardwert für neue Personen
-      zug: '',
-      gruppe: '',
-      zusatzausbildungen: '',
-    });
-
-    // Berufliches mit Standardwerten
-    this.beruflichesForm.patchValue({
-      erlernterBeruf: '',
-      ausgeubterBeruf: '',
-      arbeitgeber: '',
-      zivileSpezialausbildung: '',
-      fuehrerausweisKategorie: '',
-    });
-
-    // Persönliches mit Standardwerten
-    this.persoenlichesForm.patchValue({
-      blutgruppe: '',
-      allergien: '',
-      essgewohnheiten: '',
-      sprachkenntnisse: '',
-      besonderheiten: '',
-    });
-
-    // Präferenzen mit Standardwerten
-    this.preferencesForm.patchValue({
-      contactMethod: 'digital',
-      emailNotifications: true,
+  private initializeForm(): void {
+    this.mainForm = this.fb.group({
+      // Grunddaten
+      grunddaten: this.fb.group({
+        vorname: ['', Validators.required],
+        nachname: ['', Validators.required],
+        geburtsdatum: ['', Validators.required],
+        grad: ['Soldat', Validators.required],
+        funktion: ['Betreuer', Validators.required]
+      }),
+      
+      // Kontaktdaten
+      kontaktdaten: this.fb.group({
+        strasse: ['', Validators.required],
+        plz: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
+        ort: ['', Validators.required],
+        email: ['', [Validators.required, Validators.email]],
+        telefonMobil: ['', Validators.required],
+        telefonFestnetz: [''],
+        telefonGeschaeftlich: ['']
+      }),
+      
+      // Berufliches
+      berufliches: this.fb.group({
+        erlernterBeruf: [''],
+        ausgeubterBeruf: [''],
+        arbeitgeber: [''],
+        zivileSpezialausbildung: [''],
+        führerausweisKategorie: [[]]
+      }),
+      
+      // Zivilschutz
+      zivilschutz: this.fb.group({
+        grundausbildung: [''],
+        status: ['aktiv', Validators.required],
+        einteilung: this.fb.group({
+          zug: [1, Validators.required],
+          gruppe: ['A', Validators.required]
+        }),
+        zusatzausbildungen: [[]]
+      }),
+      
+      // Persönliches
+      persoenliches: this.fb.group({
+        blutgruppe: [''],
+        allergien: [[]],
+        essgewohnheiten: [[]],
+        sprachkenntnisse: [[]],
+        besonderheiten: [[]]
+      }),
+      
+      // Preferences
+      preferences: this.fb.group({
+        contactMethod: ['digital'],
+        emailNotifications: [true]
+      })
     });
   }
 
-  private populateForms(person: PersonDoc): void {
-    // Helper function to safely get timestamp value
-    const getTimestamp = (timestamp: any): number => {
-      if (!timestamp) return 0;
-      if (typeof timestamp === 'number') return timestamp;
-      if (timestamp.seconds) return timestamp.seconds * 1000;
-      return 0;
-    };
+  private subscribeToRouteParams(): void {
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = params.get('id');
+        this.logger.log('AdzsDetailPage', 'Route param ID:', id);
 
-    // Format date for input field
-    const birthTimestamp = getTimestamp(person.grunddaten.geburtsdatum);
-    const birthDate = birthTimestamp
-      ? new Date(birthTimestamp).toISOString().split('T')[0]
-      : '';
+        if (id === 'new') {
+          this.isNewPerson = true;
+          this.isEditing = true;
+          this.cdr.markForCheck();
+          return of(null);
+        } else if (id) {
+          this.isNewPerson = false;
+          this.loadPerson(id);
+          return of(null);
+        }
+        
+        this.logger.warn('AdzsDetailPage', 'No valid ID in route');
+        this.router.navigate(['/adsz']);
+        return of(null);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe();
+  }
 
-    // Populate Grunddaten
-    this.grunddatenForm.patchValue({
-      vorname: person.grunddaten.vorname || '',
-      nachname: person.grunddaten.nachname || '',
-      geburtsdatum: birthDate,
-      grad: person.grunddaten.grad || '',
-      funktion: person.grunddaten.funktion || '',
+  private subscribeToAdminStatus(): void {
+    this.isAdmin$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(isAdmin => {
+      this.isAdmin = isAdmin;
+      this.cdr.markForCheck();
     });
+  }
 
-    // Populate Kontaktdaten
-    this.kontaktdatenForm.patchValue({
-      strasse: person.kontaktdaten.strasse || '',
-      plz: person.kontaktdaten.plz || '',
-      ort: person.kontaktdaten.ort || '',
-      email: person.kontaktdaten.email || '',
-      telefonMobil: person.kontaktdaten.telefonMobil || '',
-      telefonFestnetz: person.kontaktdaten.telefonFestnetz || '',
-      telefonGeschaeftlich: person.kontaktdaten.telefonGeschaeftlich || '',
+  private loadPerson(id: string): void {
+    this.isLoading = true;
+    this.errorMsg = null;
+    
+    this.personService.getById(id).pipe(
+      catchError(error => {
+        this.logger.error('AdzsDetailPage', 'Error loading person:', error);
+        this.errorMsg = 'Fehler beim Laden der Person';
+        return of(null);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(person => {
+      this.isLoading = false;
+      if (person) {
+        this.person = person;
+        this.populateForm();
+        this.loadNotfallkontakte(id);
+      } else {
+        this.errorMsg = 'Person nicht gefunden';
+      }
+      this.cdr.markForCheck();
     });
-
-    // Populate Berufliches
-    this.beruflichesForm.patchValue({
-      erlernterBeruf: person.berufliches.erlernterBeruf || '',
-      ausgeubterBeruf: person.berufliches.ausgeubterBeruf || '',
-      arbeitgeber: person.berufliches.arbeitgeber || '',
-      zivileSpezialausbildung: person.berufliches.zivileSpezialausbildung || '',
-      fuehrerausweisKategorie: (
-        person.berufliches.führerausweisKategorie || []
-      ).join(', '),
-    });
-
-    // Populate Zivilschutz
-    this.zivilschutzForm.patchValue({
-      grundausbildung: person.zivilschutz.grundausbildung || '',
-      status: person.zivilschutz.status || 'aktiv',
-      zug: person.zivilschutz.einteilung?.zug || 1,
-      gruppe: person.zivilschutz.einteilung?.gruppe || '',
-      zusatzausbildungen: (person.zivilschutz.zusatzausbildungen || []).join(
-        ', '
-      ),
-    });
-
-    // Populate Persönliches
-    this.persoenlichesForm.patchValue({
-      blutgruppe: person.persoenliches.blutgruppe || '',
-      allergien: (person.persoenliches.allergien || []).join(', '),
-      essgewohnheiten: (person.persoenliches.essgewohnheiten || []).join(', '),
-      sprachkenntnisse: (person.persoenliches.sprachkenntnisse || []).join(
-        ', '
-      ),
-      besonderheiten: (person.persoenliches.besonderheiten || []).join(', '),
-    });
-
-    // Populate Preferences
-    this.preferencesForm.patchValue({
-      contactMethod: person.preferences?.contactMethod || 'digital',
-      emailNotifications: person.preferences?.emailNotifications ?? true,
-    });
-
-    this.logger.log('AdzsDetailPage', 'Forms populated successfully');
   }
 
   private loadNotfallkontakte(personId: string): void {
-    // Defensive check
-    if (!personId || personId === 'undefined' || personId.trim() === '') {
-      this.logger.error(
-        'AdzsDetailPage',
-        'Cannot load emergency contacts: invalid personId:',
-        personId
-      );
-      return;
-    }
-
-    this.logger.log(
-      'AdzsDetailPage',
-      `Loading emergency contacts for person: ${personId}`
-    );
-
-    this.personService
-      .getNotfallkontakte(personId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (kontakte) => {
-          this.logger.log(
-            'AdzsDetailPage',
-            `Loaded ${kontakte.length} emergency contacts:`,
-            kontakte
-          );
-          this.notfallkontakte = kontakte.sort(
-            (a, b) => a.prioritaet - b.prioritaet
-          );
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.logger.error(
-            'AdzsDetailPage',
-            'Error loading emergency contacts:',
-            error
-          );
-          // Don't show error to user for emergency contacts, just log it
-          this.notfallkontakte = [];
-          this.cdr.markForCheck();
-        },
-      });
+    this.personService.getNotfallkontakteByPersonId(personId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(kontakte => {
+      this.notfallkontakte = kontakte;
+      this.cdr.markForCheck();
+    });
   }
 
-  // Actions
+  private populateForm(): void {
+    if (!this.person) return;
+
+    const formData = {
+      grunddaten: {
+        vorname: this.person.grunddaten.vorname,
+        nachname: this.person.grunddaten.nachname,
+        geburtsdatum: this.formatDateForInput(this.person.grunddaten.geburtsdatum),
+        grad: this.person.grunddaten.grad,
+        funktion: this.person.grunddaten.funktion
+      },
+      kontaktdaten: this.person.kontaktdaten,
+      berufliches: {
+        ...this.person.berufliches,
+        führerausweisKategorie: this.person.berufliches.führerausweisKategorie || []
+      },
+      zivilschutz: {
+        ...this.person.zivilschutz,
+        zusatzausbildungen: this.person.zivilschutz.zusatzausbildungen || []
+      },
+      persoenliches: {
+        ...this.person.persoenliches,
+        allergien: this.person.persoenliches.allergien || [],
+        essgewohnheiten: this.person.persoenliches.essgewohnheiten || [],
+        sprachkenntnisse: this.person.persoenliches.sprachkenntnisse || [],
+        besonderheiten: this.person.persoenliches.besonderheiten || []
+      },
+      preferences: {
+        contactMethod: this.person.preferences?.contactMethod || 'digital',
+        emailNotifications: this.person.preferences?.emailNotifications ?? true
+      }
+    };
+
+    this.mainForm.patchValue(formData);
+    
+    // Set the correct enabled/disabled state
+    if (this.isEditing) {
+      this.mainForm.enable();
+    } else {
+      this.mainForm.disable();
+    }
+    
+    this.cdr.markForCheck();
+  }
+
+  private formatDateForInput(date: any): string {
+    if (!date) return '';
+    
+    let timestamp: number;
+    if (typeof date === 'number') {
+      timestamp = date;
+    } else if (date.seconds) {
+      timestamp = date.seconds * 1000;
+    } else {
+      return '';
+    }
+    
+    return new Date(timestamp).toISOString().split('T')[0];
+  }
+
+  // Tab Navigation
+  setActiveTab(tab: typeof this.activeTab): void {
+    this.activeTab = tab;
+    this.cdr.markForCheck();
+  }
+
+  // Form Actions
   toggleEdit(): void {
-    if (this.isNewPerson) {
-      // Bei neuen Personen immer im Edit-Modus bleiben
-      return;
-    }
-
     this.isEditing = !this.isEditing;
-    this.clearMessages();
-
-    if (!this.isEditing && this.person) {
-      // Beim Verlassen des Edit-Modus: Formulare zurücksetzen
-      this.populateForms(this.person);
+    this.errorMsg = null;
+    this.successMsg = null;
+    
+    if (this.isEditing) {
+      // Enable all form controls for editing
+      this.mainForm.enable();
+    } else {
+      // Disable all form controls and reload form if not new person
+      this.mainForm.disable();
+      if (!this.isNewPerson) {
+        this.populateForm();
+      }
     }
-
-    this.logger.log('AdzsDetailPage', 'Edit mode toggled:', this.isEditing);
+    
     this.cdr.markForCheck();
   }
 
   save(): void {
-    if (!this.validateAllForms()) {
-      this.errorMsg = 'Bitte alle Pflichtfelder ausfüllen';
-      this.scrollToTop();
+    if (this.mainForm.invalid) {
+      this.mainForm.markAllAsTouched();
+      this.errorMsg = 'Bitte alle Pflichtfelder korrekt ausfüllen';
+      this.activeTab = 'grunddaten'; // Go to first tab with errors
+      this.cdr.markForCheck();
       return;
     }
 
     this.isSaving = true;
-    this.clearMessages();
-
-    const personData = this.buildPersonData();
+    this.errorMsg = null;
+    
+    const formData = this.mainForm.value;
+    const personData: Omit<PersonDoc, 'id'> = {
+      ...formData,
+      grunddaten: {
+        ...formData.grunddaten,
+        geburtsdatum: new Date(formData.grunddaten.geburtsdatum).getTime()
+      },
+      erstelltAm: this.person?.erstelltAm || Date.now(),
+      aktualisiertAm: Date.now()
+    };
 
     if (this.isNewPerson) {
-      this.logger.log('AdzsDetailPage', 'Creating new person:', personData);
-
-      this.personService
-        .create(personData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (newId: string) => {
-            this.logger.log('AdzsDetailPage', 'Person created with ID:', newId);
-            this.successMsg = 'Person erfolgreich erstellt';
-            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
-            this.isNewPerson = false;
-            this.isSaving = false;
-
-            // Zur Detail-Ansicht der neuen Person navigieren
-            this.router.navigate(['/adsz', newId], { replaceUrl: true });
+      // Create new person
+      this.personService.create(personData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (newPersonId: string) => {
+          this.isSaving = false;
+          this.successMsg = 'Person erfolgreich erstellt';
+          this.isEditing = false;
+          
+          // Navigate to the new person's detail page
+          setTimeout(() => {
+            this.router.navigate(['/adsz', newPersonId]);
+          }, 1500);
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMsg = null;
             this.cdr.markForCheck();
-          },
-          error: (error: any) => {
-            this.logger.error('AdzsDetailPage', 'Create error:', error);
-            this.errorMsg = 'Fehler beim Erstellen der Person';
-            this.isSaving = false;
-            this.scrollToTop();
+          }, 3000);
+          
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          this.logger.error('AdzsDetailPage', 'Create error:', error);
+          this.errorMsg = 'Fehler beim Erstellen der Person';
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      // Update existing person
+      this.personService.update(this.person!.id, personData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.successMsg = 'Änderungen gespeichert';
+          this.isEditing = false;
+          
+          // Reload the person data
+          this.loadPerson(this.person!.id);
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMsg = null;
             this.cdr.markForCheck();
-          },
-        });
-    } else if (this.person?.id) {
-      this.logger.log(
-        'AdzsDetailPage',
-        'Updating person with ID:',
-        this.person.id,
-        personData
-      );
-
-      this.personService
-        .update(this.person.id, personData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.logger.log('AdzsDetailPage', 'Person updated successfully');
-            this.successMsg = 'Änderungen erfolgreich gespeichert';
-            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
-            this.isSaving = false;
-
-            // Lokale Person-Daten aktualisieren
-            this.person = { ...this.person!, ...personData } as PersonDoc;
-            this.scrollToTop();
-            this.cdr.markForCheck();
-          },
-          error: (error: any) => {
-            this.logger.error('AdzsDetailPage', 'Update error:', error);
-            this.errorMsg = 'Fehler beim Speichern der Änderungen';
-            this.isSaving = false;
-            this.scrollToTop();
-            this.cdr.markForCheck();
-          },
-        });
+          }, 3000);
+          
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          this.logger.error('AdzsDetailPage', 'Update error:', error);
+          this.errorMsg = 'Fehler beim Speichern der Änderungen';
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        }
+      });
     }
   }
 
-  // Cancel Methode korrigieren
-  cancel(): void {
-    if (this.isNewPerson) {
-      // Bei neuen Personen: zurück zur Übersicht
-      this.router.navigate(['/adsz']);
-    } else {
-      // Bei bestehenden Personen: Edit-Modus verlassen
-      this.isEditing = false;
-      if (this.person) {
-        this.populateForms(this.person);
-      }
-      this.clearMessages();
-    }
+  deletePerson(): void {
+    if (!this.person || !this.isAdmin) return;
+    
+    this.deleteDialogVisible = true;
     this.cdr.markForCheck();
   }
 
-  back(): void {
-    this.router.navigate(['/adsz']);
-  }
-
-  generatePDF(): void {
+  confirmDelete(): void {
     if (!this.person) return;
 
-    this.logger.log(
-      'AdzsDetailPage',
-      'Generate PDF for person',
-      this.person.id
-    );
-    this.successMsg = 'PDF-Generierung wird implementiert...';
+    this.isDeleting = true;
+    
+    this.personService.delete(this.person.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.isDeleting = false;
+        this.deleteDialogVisible = false;
+        this.successMsg = 'Person erfolgreich gelöscht';
+        setTimeout(() => {
+          this.router.navigate(['/adsz']);
+        }, 1500);
+        this.cdr.markForCheck();
+      },
+      error: (error: any) => {
+        this.logger.error('AdzsDetailPage', 'Delete error:', error);
+        this.errorMsg = 'Fehler beim Löschen';
+        this.isDeleting = false;
+        this.deleteDialogVisible = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.deleteDialogVisible = false;
     this.cdr.markForCheck();
   }
 
-  // Notfallkontakt Management
-  openNotfallkontaktDialog(): void {
+  onDeleteConfirmed(confirmed: boolean): void {
+    if (confirmed) {
+      this.confirmDelete();
+    } else {
+      this.cancelDelete();
+    }
+  }
+
+  // Avatar Upload
+  triggerFileUpload(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    if (!file || !this.person) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      this.errorMsg = 'Bitte wählen Sie eine Bilddatei aus';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      this.errorMsg = 'Bild ist zu groß (max. 5MB)';
+      return;
+    }
+
+    this.uploadAvatar(file);
+  }
+
+  private uploadAvatar(file: File): void {
+    this.uploading = true;
+    this.errorMsg = null;
+
+    const storage = getStorage();
+    const fileName = `person-avatars/${this.person!.id}_${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, fileName);
+
+    uploadBytes(storageRef, file).then(() => {
+      return getDownloadURL(storageRef);
+    }).then(downloadURL => {
+      // Update person with new photo URL
+      return this.personService.update(this.person!.id, { photoUrl: downloadURL });
+    }).then(() => {
+      this.successMsg = 'Avatar erfolgreich aktualisiert';
+      // Reload person data
+      this.loadPerson(this.person!.id);
+      
+      setTimeout(() => {
+        this.successMsg = null;
+        this.cdr.markForCheck();
+      }, 3000);
+    }).catch(error => {
+      this.logger.error('AdzsDetailPage', 'Avatar upload error:', error);
+      this.errorMsg = 'Fehler beim Hochladen des Avatars';
+    }).finally(() => {
+      this.uploading = false;
+      this.cdr.markForCheck();
+    });
+  }
+
+  // Notfallkontakte
+  addNotfallkontakt(): void {
+    if (!this.person) return;
+    
     this.editingKontakt = null;
     this.notfallkontaktDialogVisible = true;
+    this.cdr.markForCheck();
   }
 
   editNotfallkontakt(kontakt: NotfallkontaktDoc): void {
     this.editingKontakt = kontakt;
     this.notfallkontaktDialogVisible = true;
+    this.cdr.markForCheck();
   }
 
   onNotfallkontaktSaved(kontaktData: any): void {
     if (!this.person) return;
 
-    if (kontaktData.id) {
-      // Update existing
-      this.personService
-        .updateNotfallkontakt(kontaktData.id, kontaktData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.loadNotfallkontakte(this.person!.id);
-            this.successMsg = 'Notfallkontakt aktualisiert';
-            this.notfallkontaktDialogVisible = false;
+    const operation$: Observable<string | void> = this.editingKontakt ? 
+      this.personService.updateNotfallkontakt(this.editingKontakt.id, kontaktData) :
+      this.personService.createNotfallkontakt({
+        ...kontaktData,
+        personId: this.person.id,
+      });
+
+    operation$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (result: string | void) => {
+        if (this.editingKontakt || result) {
+          this.successMsg = this.editingKontakt ? 
+            'Notfallkontakt aktualisiert' : 
+            'Notfallkontakt hinzugefügt';
+          
+          this.loadNotfallkontakte(this.person!.id);
+          
+          setTimeout(() => {
+            this.successMsg = null;
             this.cdr.markForCheck();
-          },
-          error: (error) => {
-            this.logger.error(
-              'AdzsDetailPage',
-              'Error updating emergency contact:',
-              error
-            );
-            this.errorMsg = 'Fehler beim Aktualisieren des Notfallkontakts';
-            this.cdr.markForCheck();
-          },
-        });
-    } else {
-      // Create new
-      this.personService
-        .createNotfallkontakt(kontaktData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.loadNotfallkontakte(this.person!.id);
-            this.successMsg = 'Notfallkontakt hinzugefügt';
-            this.notfallkontaktDialogVisible = false;
-            this.cdr.markForCheck();
-          },
-          error: (error) => {
-            this.logger.error(
-              'AdzsDetailPage',
-              'Error creating emergency contact:',
-              error
-            );
-            this.errorMsg = 'Fehler beim Hinzufügen des Notfallkontakts';
-            this.cdr.markForCheck();
-          },
-        });
-    }
+          }, 3000);
+        }
+        
+        this.notfallkontaktDialogVisible = false;
+        this.editingKontakt = null;
+        this.cdr.markForCheck();
+      },
+      error: (error: any) => {
+        this.logger.error('AdzsDetailPage', 'Notfallkontakt save error:', error);
+        this.errorMsg = 'Fehler beim Speichern des Notfallkontakts';
+        this.notfallkontaktDialogVisible = false;
+        this.editingKontakt = null;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   onNotfallkontaktDialogClosed(): void {
     this.notfallkontaktDialogVisible = false;
     this.editingKontakt = null;
+    this.cdr.markForCheck();
   }
 
-  deleteNotfallkontakt(kontaktId: string): void {
-    if (!confirm('Notfallkontakt wirklich löschen?')) return;
+  deleteNotfallkontakt(kontakt: NotfallkontaktDoc): void {
+    if (!confirm(`Notfallkontakt "${kontakt.name}" wirklich löschen?`)) return;
 
-    this.personService
-      .deleteNotfallkontakt(kontaktId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadNotfallkontakte(this.person!.id);
-          this.successMsg = 'Notfallkontakt gelöscht';
+    this.personService.deleteNotfallkontakt(kontakt.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.successMsg = 'Notfallkontakt gelöscht';
+        this.loadNotfallkontakte(this.person!.id);
+        
+        setTimeout(() => {
+          this.successMsg = null;
           this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.logger.error(
-            'AdzsDetailPage',
-            'Error deleting emergency contact:',
-            error
-          );
-          this.errorMsg = 'Fehler beim Löschen des Notfallkontakts';
-          this.cdr.markForCheck();
-        },
-      });
-  }
-
-  // File Upload
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length || !this.person) return;
-
-    const file = input.files[0];
-    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
-
-    if (file.size > MAX_SIZE) {
-      this.showToast('Bild zu groß (max. 2 MB)', true);
-      return;
-    }
-
-    this.uploading = true;
-    this.uploadMsg = 'Bild wird hochgeladen…';
-    this.uploadError = false;
-
-    const storage = getStorage();
-    const path = `persons/${this.person.id}/avatar_${Date.now()}`;
-    const storageRef = ref(storage, path);
-
-    uploadBytes(storageRef, file)
-      .then(() => getDownloadURL(storageRef))
-      .then((downloadUrl: string) => {
-        // Variable umbenennen
-        if (!this.person) return;
-        return lastValueFrom(
-          this.personService.update(this.person.id, { photoUrl: downloadUrl })
-        );
-      })
-      .then(() => {
-        this.showToast('Avatar aktualisiert', false);
-        // Page wird automatisch neu geladen, kein manuelles Update nötig
+        }, 3000);
+        
         this.cdr.markForCheck();
-      })
-      .catch((error) => {
-        this.logger.error('AdzsDetailPage', 'Upload failed:', error);
-        this.showToast('Upload fehlgeschlagen', true);
-      })
-      .finally(() => {
-        this.uploading = false;
+      },
+      error: (error: any) => {
+        this.logger.error('AdzsDetailPage', 'Delete kontakt error:', error);
+        this.errorMsg = 'Fehler beim Löschen des Notfallkontakts';
         this.cdr.markForCheck();
-      });
-  }
-
-  openDeleteDialog(): void {
-    if (!this.person) return;
-
-    this.deleteDialogVisible = true;
-    this.logger.log(
-      'AdzsDetailPage',
-      'Delete dialog opened for person',
-      this.person.id
-    );
-  }
-
-  onDeleteConfirmed(confirmed: boolean): void {
-    this.deleteDialogVisible = false;
-
-    if (confirmed && this.person?.id) {
-      this.deletePerson();
-    }
-  }
-
-  private deletePerson(): void {
-    if (!this.person?.id) return;
-
-    this.isDeleting = true;
-    this.clearMessages();
-
-    const personName = `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname}`;
-    this.logger.log('AdzsDetailPage', 'Deleting person:', personName);
-
-    this.personService
-      .deletePersonWithNotfallkontakte(this.person.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.logger.log(
-            'AdzsDetailPage',
-            'Person deleted successfully:',
-            personName
-          );
-          this.successMsg = `${personName} wurde erfolgreich gelöscht`;
-          this.isDeleting = false;
-
-          // Nach 2 Sekunden zur Übersicht zurückkehren
-          setTimeout(() => {
-            this.router.navigate(['/adsz']);
-          }, 2000);
-
-          this.cdr.markForCheck();
-        },
-        error: (error: any) => {
-          this.logger.error('AdzsDetailPage', 'Delete error:', error);
-          this.errorMsg = `Fehler beim Löschen von ${personName}`;
-          this.isDeleting = false;
-          this.scrollToTop();
-          this.cdr.markForCheck();
-        },
-      });
-  }
-
-  // Getter für Template
-  get deleteDialogTitle(): string {
-    if (!this.person) return 'Person löschen';
-    return `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname} löschen`;
-  }
-
-  get deleteDialogMessage(): string {
-    if (!this.person) return 'Möchten Sie diese Person wirklich löschen?';
-
-    const notfallkontakteCount = this.notfallkontakte.length;
-    const baseMessage = `Möchten Sie ${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname} wirklich löschen?`;
-
-    if (notfallkontakteCount > 0) {
-      return `${baseMessage}\n\nDabei werden auch ${notfallkontakteCount} Notfallkontakt${
-        notfallkontakteCount > 1 ? 'e' : ''
-      } gelöscht.\n\nDiese Aktion kann nicht rückgängig gemacht werden.`;
-    }
-
-    return `${baseMessage}\n\nDiese Aktion kann nicht rückgängig gemacht werden.`;
-  }
-
-  // Utility methods
-  calculateAge(geburtsdatum: any): number {
-    if (!geburtsdatum) return 0;
-
-    const birthDate =
-      typeof geburtsdatum === 'number'
-        ? new Date(geburtsdatum)
-        : new Date(geburtsdatum.seconds * 1000);
-
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  }
-
-  private validateAllForms(): boolean {
-    const forms = [
-      this.grunddatenForm,
-      this.kontaktdatenForm,
-      this.zivilschutzForm,
-      this.preferencesForm,
-    ];
-
-    let isValid = true;
-    forms.forEach((form) => {
-      if (form.invalid) {
-        form.markAllAsTouched();
-        isValid = false;
       }
     });
-
-    return isValid;
   }
 
-  private buildPersonData(): Omit<PersonDoc, 'id'> {
-    const grunddaten = this.grunddatenForm.value;
-    const kontaktdaten = this.kontaktdatenForm.value;
-    const berufliches = this.beruflichesForm.value;
-    const zivilschutz = this.zivilschutzForm.value;
-    const persoenliches = this.persoenlichesForm.value;
-    const preferences = this.preferencesForm.value;
-
-    return {
-      grunddaten: {
-        vorname: grunddaten.vorname,
-        nachname: grunddaten.nachname,
-        geburtsdatum: new Date(grunddaten.geburtsdatum).getTime(),
-        grad: grunddaten.grad,
-        funktion: grunddaten.funktion,
-      },
-      kontaktdaten,
-      berufliches: {
-        erlernterBeruf: berufliches.erlernterBeruf,
-        ausgeubterBeruf: berufliches.ausgeubterBeruf,
-        arbeitgeber: berufliches.arbeitgeber,
-        zivileSpezialausbildung: berufliches.zivileSpezialausbildung,
-        führerausweisKategorie: this.parseCommaSeparated(
-          berufliches.fuehrerausweisKategorie
-        ),
-      },
-      zivilschutz: {
-        grundausbildung: zivilschutz.grundausbildung,
-        status: zivilschutz.status,
-        einteilung: {
-          zug: zivilschutz.zug,
-          gruppe: zivilschutz.gruppe || '',
-        },
-        zusatzausbildungen: this.parseCommaSeparated(
-          zivilschutz.zusatzausbildungen
-        ),
-      },
-      persoenliches: {
-        blutgruppe: persoenliches.blutgruppe,
-        allergien: this.parseCommaSeparated(persoenliches.allergien),
-        essgewohnheiten: this.parseCommaSeparated(
-          persoenliches.essgewohnheiten
-        ),
-        sprachkenntnisse: this.parseCommaSeparated(
-          persoenliches.sprachkenntnisse
-        ),
-        besonderheiten: this.parseCommaSeparated(persoenliches.besonderheiten),
-      },
-      preferences,
-      erstelltAm: this.isNewPerson
-        ? Date.now()
-        : this.person?.erstelltAm || Date.now(),
-      aktualisiertAm: Date.now(),
-    };
+  // Navigation
+  goBack(): void {
+    this.router.navigate(['/adsz']);
   }
 
-  private parseCommaSeparated(value: string): string[] {
-    if (!value) return [];
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+  // Utility
+  getPersonInitials(): string {
+    if (!this.person) return '?';
+    const first = this.person.grunddaten.vorname.charAt(0);
+    const last = this.person.grunddaten.nachname.charAt(0);
+    return `${first}${last}`.toUpperCase();
   }
 
-  private clearMessages(): void {
+  clearMessages(): void {
     this.errorMsg = null;
     this.successMsg = null;
-  }
-
-  private scrollToTop(): void {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  private showToast(message: string, isError: boolean): void {
-    this.uploadMsg = message;
-    this.uploadError = isError;
     this.cdr.markForCheck();
-
-    // Auto-hide nach 3 Sekunden
-    setTimeout(() => {
-      this.uploadMsg = null;
-      this.uploadError = false;
-      this.cdr.markForCheck();
-    }, 3000);
-  }
-
-  // Template helpers
-  get pageTitle(): string {
-    if (this.isNewPerson) return 'Neue Person erfassen';
-    if (!this.person) return 'Person laden...';
-    return `${this.person.grunddaten.vorname} ${this.person.grunddaten.nachname}`;
-  }
-
-  // Korrigierte Getter-Methoden
-  get canEdit(): boolean {
-    return this.isAdmin;
-  }
-
-  get showEditButton(): boolean {
-    return this.canEdit && !this.isEditing && !this.isNewPerson;
-  }
-
-  get showSaveButton(): boolean {
-    return this.isEditing;
-  }
-
-  get showCancelButton(): boolean {
-    return this.isEditing;
-  }
-
-  get showDeleteButton(): boolean {
-    return this.canEdit && !this.isEditing && !this.isNewPerson;
-  }
-
-  getPersonInitials(person: PersonDoc): string {
-    return `${person.grunddaten.vorname.charAt(
-      0
-    )}${person.grunddaten.nachname.charAt(0)}`;
-  }
-
-  formatDate(timestamp: any): string {
-    if (!timestamp) return '-';
-
-    try {
-      const date =
-        typeof timestamp === 'number'
-          ? new Date(timestamp)
-          : new Date(timestamp.seconds * 1000);
-
-      return date.toLocaleDateString('de-CH');
-    } catch {
-      return '-';
-    }
-  }
-
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'aktiv':
-        return 'Aktiv';
-      case 'neu':
-        return 'Neu';
-      case 'inaktiv':
-        return 'Inaktiv';
-      default:
-        return status;
-    }
-  }
-
-  getFuehrerausweisKategorien(person: PersonDoc): string[] {
-    return person.berufliches?.führerausweisKategorie || [];
-  }
-
-  hasFuehrerausweis(person: PersonDoc): boolean {
-    return this.getFuehrerausweisKategorien(person).length > 0;
-  }
-
-  getContactMethodLabel(method: string): string {
-    switch (method) {
-      case 'digital':
-        return 'Digital (E-Mail)';
-      case 'paper':
-        return 'Papier (Post)';
-      case 'both':
-        return 'Digital & Papier';
-      default:
-        return 'Nicht festgelegt';
-    }
-  }
-
-  private debugRoute(): void {
-    this.route.params.subscribe((params) => {
-      this.logger.log('AdzsDetailPage', 'Route params:', params);
-    });
-
-    this.route.paramMap.subscribe((paramMap) => {
-      this.logger.log('AdzsDetailPage', 'Route paramMap:', {
-        id: paramMap.get('id'),
-        keys: paramMap.keys,
-        params: Object.fromEntries(
-          paramMap.keys.map((key) => [key, paramMap.get(key)])
-        ),
-      });
-    });
   }
 }

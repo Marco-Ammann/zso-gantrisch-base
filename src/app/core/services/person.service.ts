@@ -505,10 +505,8 @@ export class PersonService implements OnDestroy {
   /**
    * Notfallkontakte für Person laden
    */
-  getNotfallkontakteByPersonId(personId: string): Observable<Notfallkontakt[]> {
-    return this.firestoreService['collection'](
-      `persons/${personId}/notfallkontakte`
-    ).valueChanges({ idField: 'id' }) as Observable<Notfallkontakt[]>;
+  getNotfallkontakteByPersonId(personId: string): Observable<NotfallkontaktDoc[]> {
+    return this.getNotfallkontakte(personId);
   }
 
   // Helper method - würde normalerweise die aktuellen Daten laden

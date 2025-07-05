@@ -74,6 +74,7 @@ export class AuthService implements OnDestroy {
         this.logger.log('AuthService', 'User authenticated:', user.email);
         this.loadUserDoc(user.uid);
         this.updateLastActiveIfNeeded(user.uid);
+        
       } else {
         this.logger.log('AuthService', 'User signed out');
         this.userDoc$.next(null);

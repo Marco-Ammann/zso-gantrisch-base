@@ -1,543 +1,553 @@
 <!-- src/app/features/adsz/adsz-detail/adsz-detail.page.html -->
-<div class="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white min-h-screen">
-  <!-- Header -->
-  <div class="sticky top-0 z-40 backdrop-blur-lg bg-gray-900/80 border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-3 items-center h-16">
-        <!-- Back Button -->
-        <div class="flex justify-start">
-          <button (click)="back()"
-            class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors flex-shrink-0">
-            <span class="material-symbols-outlined text-cp-orange text-base">arrow_back</span>
-            <span class="hidden sm:inline text-xs font-normal text-cp-orange">Zurück zur Übersicht</span>
-          </button>
-        </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
 
-        <!-- Person Name -->
-        <div class="flex justify-center">
-          @if (person && !isNewPerson) {
-          <h1 class="text-lg font-semibold truncate">
-            {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
-          </h1>
-          } @else if (isNewPerson) {
-          <h1 class="text-lg font-semibold">Neue Person erfassen</h1>
-          }
+  <!-- Error Alert -->
+  @if (errorMsg) {
+    <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10" @fadeIn>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-rose-400">error</span>
+          <span class="text-rose-300">{{ errorMsg }}</span>
         </div>
-
-        <!-- Empty for balance -->
-        <div class="flex justify-end"></div>
+        <button (click)="clearMessages()"
+          class="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
     </div>
-  </div>
+  }
 
-  <!-- Avatar Section -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    <div class="glass-card p-6 flex flex-col items-center">
-      @if (person && !isNewPerson) {
-      <div class="flex flex-col items-center">
-        @if (person.photoUrl) {
-        <img [src]="person.photoUrl" alt="Avatar" class="w-32 h-32 rounded-lg object-cover ring-4 ring-cp-orange/50" />
-        } @else {
-        <div
-          class="w-32 h-32 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-4 ring-gray-600">
-          <span class="text-white font-bold text-4xl">
-            {{ getPersonInitials(person) }}
-          </span>
+  <!-- Success Alert -->
+  @if (successMsg) {
+    <div class="glass-card p-4 border-l-4 border-green-500 bg-green-500/10" @fadeIn>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-green-400">check_circle</span>
+          <span class="text-green-300">{{ successMsg }}</span>
         </div>
-        }
+        <button (click)="clearMessages()"
+          class="text-green-400 hover:text-green-300 p-1 rounded-lg hover:bg-green-500/10 transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="glass-card p-8">
+      <div class="flex items-center justify-center">
+        <div class="flex items-center gap-3">
+          <div class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-gray-300">Person wird geladen...</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <!-- Page Header -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4" @fadeIn>
+      <div class="flex items-center gap-4">
+        <!-- Back Button -->
+        <button (click)="goBack()" 
+          class="flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cp-orange/50 transition-all">
+          <span class="material-symbols-outlined text-gray-400">arrow_back</span>
+        </button>
+        
+        <!-- Avatar & Info -->
+        <div class="flex items-center gap-4">
+          <!-- Avatar -->
+          <div class="relative">
+            @if (person && person.photoUrl) {
+              <img [src]="person.photoUrl" alt="Avatar"
+                class="w-16 h-16 rounded-full object-cover ring-4 ring-gray-700 hover:ring-cp-orange/50 transition-all" />
+            } @else {
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
+                        flex items-center justify-center ring-4 ring-gray-700 text-lg font-semibold text-white">
+                {{ getPersonInitials() }}
+              </div>
+            }
+            
+            <!-- Upload Button (nur im Edit-Modus) -->
+            @if (isEditing && person) {
+              <button (click)="triggerFileUpload()"
+                [disabled]="uploading"
+                class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-cp-orange hover:bg-cp-orange/80 
+                     flex items-center justify-center text-white text-xs transition-all
+                     disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (uploading) {
+                  <div class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                } @else {
+                  <span class="material-symbols-outlined text-xs">photo_camera</span>
+                }
+              </button>
+            }
+          </div>
+
+          <!-- Title & Subtitle -->
+          <div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-white">{{ pageTitle }}</h1>
+            <p class="text-sm text-gray-400">{{ pageSubtitle }}</p>
+          </div>
+        </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="mt-4 flex flex-wrap justify-center gap-2 action-buttons">
-        <!-- PDF Button -->
-        <button (click)="generatePDF()" class="glass-btn-neutral p-2 rounded-lg flex items-center justify-center"
-          title="PDF generieren">
-          <span class="material-symbols-outlined text-base">picture_as_pdf</span>
-        </button>
-
-        <!-- Edit Button - nur zeigen wenn nicht im Edit-Modus und nicht neue Person -->
-        @if (showEditButton) {
-        <button (click)="toggleEdit()" class="glass-btn-primary p-2 rounded-lg flex items-center justify-center"
-          title="Bearbeiten">
-          <span class="material-symbols-outlined text-base">edit</span>
-        </button>
+      <div class="flex items-center gap-2">
+        @if (!isNewPerson && !isEditing) {
+          <button (click)="toggleEdit()"
+            class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">edit</span>
+            <span class="text-sm font-medium">Bearbeiten</span>
+          </button>
         }
 
-        <!-- Delete Button - nur für Admins, nicht im Edit-Modus und nicht bei neuen Personen -->
-        @if (canEdit && !isEditing && !isNewPerson) {
-        <button (click)="openDeleteDialog()" [disabled]="isDeleting"
-          class="glass-btn-danger p-2 rounded-lg flex items-center justify-center"
-          title="Person löschen (unwiderruflich)">
-          @if (isDeleting) {
-          <div class="w-4 h-4 border-2 border-rose-300 border-t-transparent rounded-full animate-spin"></div>
-          } @else {
-          <span class="material-symbols-outlined text-base">delete</span>
+        @if (isEditing) {
+          <button (click)="toggleEdit()"
+            [disabled]="isSaving"
+            class="glass-btn-neutral px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
+            <span class="material-symbols-outlined text-base">close</span>
+            <span class="text-sm font-medium">Abbrechen</span>
+          </button>
+
+          <button (click)="save()"
+            [disabled]="isSaving || mainForm.invalid"
+            class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50">
+            @if (isSaving) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            } @else {
+              <span class="material-symbols-outlined text-base">save</span>
+            }
+            <span class="text-sm font-medium">{{ isNewPerson ? 'Erstellen' : 'Speichern' }}</span>
+          </button>
+        }
+
+        @if (!isNewPerson && isAdmin && !isEditing) {
+          <button (click)="deletePerson()"
+            class="glass-btn-danger px-4 py-2 rounded-lg flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">delete</span>
+            <span class="text-sm font-medium">Löschen</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="glass-card" @fadeIn>
+      <div class="border-b border-white/10">
+        <nav class="flex overflow-x-auto">
+          <button (click)="setActiveTab('grunddaten')"
+            [class]="activeTab === 'grunddaten' ? 'tab-active' : 'tab-inactive'"
+            class="tab-button">
+            <span class="material-symbols-outlined text-base">person</span>
+            <span class="hidden sm:inline">Grunddaten</span>
+          </button>
+
+          <button (click)="setActiveTab('kontakt')"
+            [class]="activeTab === 'kontakt' ? 'tab-active' : 'tab-inactive'"
+            class="tab-button">
+            <span class="material-symbols-outlined text-base">contact_mail</span>
+            <span class="hidden sm:inline">Kontakt</span>
+          </button>
+
+          <button (click)="setActiveTab('beruflich')"
+            [class]="activeTab === 'beruflich' ? 'tab-active' : 'tab-inactive'"
+            class="tab-button">
+            <span class="material-symbols-outlined text-base">work</span>
+            <span class="hidden sm:inline">Beruflich</span>
+          </button>
+
+          <button (click)="setActiveTab('zivilschutz')"
+            [class]="activeTab === 'zivilschutz' ? 'tab-active' : 'tab-inactive'"
+            class="tab-button">
+            <span class="material-symbols-outlined text-base">security</span>
+            <span class="hidden sm:inline">Zivilschutz</span>
+          </button>
+
+          <button (click)="setActiveTab('persoenlich')"
+            [class]="activeTab === 'persoenlich' ? 'tab-active' : 'tab-inactive'"
+            class="tab-button">
+            <span class="material-symbols-outlined text-base">favorite</span>
+            <span class="hidden sm:inline">Persönlich</span>
+          </button>
+
+          @if (!isNewPerson) {
+            <button (click)="setActiveTab('notfall')"
+              [class]="activeTab === 'notfall' ? 'tab-active' : 'tab-inactive'"
+              class="tab-button">
+              <span class="material-symbols-outlined text-base">emergency</span>
+              <span class="hidden sm:inline">Notfall</span>
+              @if (notfallkontakte.length > 0) {
+                <span class="ml-1 px-1.5 py-0.5 text-xs bg-cp-orange text-white rounded-full">
+                  {{ notfallkontakte.length }}
+                </span>
+              }
+            </button>
           }
-        </button>
-        }
+        </nav>
+      </div>
 
-        <!-- Cancel Button - nur im Edit-Modus -->
-        @if (showCancelButton) {
-        <button (click)="cancel()" class="glass-btn-neutral p-2 rounded-lg flex items-center justify-center"
-          title="Abbrechen">
-          <span class="material-symbols-outlined text-base">close</span>
-        </button>
-        }
+      <!-- Tab Content -->
+      <div class="p-6">
+        <form [formGroup]="mainForm" (ngSubmit)="save()">
+          
+          <!-- Grunddaten Tab -->
+          @if (activeTab === 'grunddaten') {
+            <div class="space-y-6" @slideIn>
+              <h3 class="text-lg font-semibold text-white">Grunddaten</h3>
+              
+              <div formGroupName="grunddaten" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <zso-input-field
+                  label="Vorname *"
+                  formControlName="vorname">
+                </zso-input-field>
 
+                <zso-input-field
+                  label="Nachname *"
+                  formControlName="nachname">
+                </zso-input-field>
 
-        <!-- Save Button - nur im Edit-Modus -->
-        @if (showSaveButton) {
-        <button (click)="save()" [disabled]="isSaving"
-          class="glass-btn-primary p-2 rounded-lg flex items-center justify-center" title="Speichern">
-          @if (isSaving) {
-          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          } @else {
-          <span class="material-symbols-outlined text-base">save</span>
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Geburtsdatum *</label>
+                  <input type="date"
+                    formControlName="geburtsdatum"
+                    [disabled]="!isEditing"
+                    class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                         focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all
+                         disabled:bg-gray-900 disabled:cursor-not-allowed disabled:text-gray-400" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Grad *</label>
+                  @if (isEditing) {
+                    <select formControlName="grad"
+                      class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                           focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                      @for (grad of gradOptions; track grad) {
+                        <option [value]="grad">{{ grad }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                      {{ mainForm.get('grunddaten.grad')?.value || '—' }}
+                    </div>
+                  }
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Funktion *</label>
+                  @if (isEditing) {
+                    <select formControlName="funktion"
+                      class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                           focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                      @for (funktion of funktionOptions; track funktion) {
+                        <option [value]="funktion">{{ funktion }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                      {{ mainForm.get('grunddaten.funktion')?.value || '—' }}
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
           }
-        </button>
-        }
-      </div>
 
-      <!-- File Upload (nur im Edit-Modus) -->
-      @if (isEditing) {
-      <div class="mt-4 text-center">
-        <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" class="hidden" />
-        <button (click)="fileInput.click()" [disabled]="uploading"
-          class="text-sm text-cp-orange hover:text-cp-orange/80 flex items-center gap-1">
-          @if (uploading) {
-          <div class="w-3 h-3 border border-cp-orange border-t-transparent rounded-full animate-spin"></div>
-          } @else {
-          <span class="material-symbols-outlined text-xs">upload</span>
+          <!-- Kontaktdaten Tab -->
+          @if (activeTab === 'kontakt') {
+            <div class="space-y-6" @slideIn>
+              <h3 class="text-lg font-semibold text-white">Kontaktdaten</h3>
+              
+              <div formGroupName="kontaktdaten" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                  <zso-input-field
+                    label="Straße & Hausnummer *"
+                    formControlName="strasse">
+                  </zso-input-field>
+                </div>
+
+                <zso-input-field
+                  label="PLZ *"
+                  formControlName="plz">
+                </zso-input-field>
+
+                <zso-input-field
+                  label="Ort *"
+                  formControlName="ort">
+                </zso-input-field>
+
+                <zso-input-field
+                  label="E-Mail *"
+                  type="email"
+                  formControlName="email">
+                </zso-input-field>
+
+                <zso-input-field
+                  label="Telefon Mobil *"
+                  formControlName="telefonMobil">
+                </zso-input-field>
+
+                <zso-input-field
+                  label="Telefon Festnetz"
+                  formControlName="telefonFestnetz">
+                </zso-input-field>
+
+                <zso-input-field
+                  label="Telefon Geschäftlich"
+                  formControlName="telefonGeschaeftlich">
+                </zso-input-field>
+              </div>
+
+              <!-- Kontaktpräferenzen -->
+              <div formGroupName="preferences" class="space-y-4">
+                <h4 class="text-md font-medium text-gray-200">Kontaktpräferenzen</h4>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Bevorzugte Kontaktmethode</label>
+                  @if (isEditing) {
+                    <select formControlName="contactMethod"
+                      class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                           focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                      @for (option of contactMethodOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                      {{ selectedContactMethodLabel }}
+                    </div>
+                  }
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" 
+                    formControlName="emailNotifications"
+                    [disabled]="!isEditing"
+                    class="text-cp-orange">
+                  <label class="text-sm text-gray-300">E-Mail-Benachrichtigungen erhalten</label>
+                </div>
+              </div>
+            </div>
           }
-          <span>Bild {{ person.photoUrl ? 'ändern' : 'hochladen' }}</span>
-        </button>
-      </div>
-      }
-      }
-    </div>
-  </div>
 
-  <!-- Messages -->
-  @if (errorMsg || successMsg) {
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-    @if (errorMsg) {
-    <div class="glass-card border-rose-500/20 bg-rose-500/10 p-4 mb-4">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-rose-400">error</span>
-        <p class="text-rose-300">{{ errorMsg }}</p>
-      </div>
-    </div>
-    }
+          <!-- Berufliches Tab -->
+          @if (activeTab === 'beruflich') {
+            <div class="space-y-6" @slideIn>
+              <h3 class="text-lg font-semibold text-white">Berufliches</h3>
+              
+              <div formGroupName="berufliches" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <zso-input-field
+                  label="Erlernter Beruf"
+                  formControlName="erlernterBeruf">
+                </zso-input-field>
 
-    @if (successMsg) {
-    <div class="glass-card border-green-500/20 bg-green-500/10 p-4 mb-4">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-green-400">check_circle</span>
-        <p class="text-green-300">{{ successMsg }}</p>
-      </div>
-    </div>
-    }
-  </div>
-  }
+                <zso-input-field
+                  label="Ausgeübter Beruf"
+                  formControlName="ausgeubterBeruf">
+                </zso-input-field>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-    <!-- Content Grid - Responsive: 1 Spalte auf Mobile, 2 auf Desktop -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                  <zso-input-field
+                    label="Arbeitgeber"
+                    formControlName="arbeitgeber">
+                  </zso-input-field>
+                </div>
 
-      <!-- ===== LINKE SPALTE ===== -->
-      <div class="space-y-6">
-
-        <!-- Grunddaten -->
-        <div class="glass-card p-6">
-          <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-base">person</span>
-            Grunddaten
-          </h2>
-
-          <form [formGroup]="grunddatenForm" class="space-y-4">
-            <!-- Vorname & Nachname -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Vorname" formControlName="vorname" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
-
-              <zso-input-field label="Nachname" formControlName="nachname" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
-            </div>
-
-            <!-- Geburtsdatum & Grad -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Geburtsdatum <span class="text-rose-400">*</span>
-                </label>
-                <input type="date" formControlName="geburtsdatum" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed" />
+                <div class="md:col-span-2">
+                  <zso-input-field
+                    label="Zivile Spezialausbildung"
+                    formControlName="zivileSpezialausbildung">
+                  </zso-input-field>
+                </div>
               </div>
+            </div>
+          }
 
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Grad <span class="text-rose-400">*</span>
-                </label>
-                <select formControlName="grad" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  <option value="">Grad auswählen</option>
-                  @for (grad of gradOptions; track grad) {
-                  <option [value]="grad" class="bg-gray-800 text-white">{{ grad }}</option>
+          <!-- Zivilschutz Tab -->
+          @if (activeTab === 'zivilschutz') {
+            <div class="space-y-6" @slideIn>
+              <h3 class="text-lg font-semibold text-white">Zivilschutz</h3>
+              
+              <div formGroupName="zivilschutz" class="space-y-6">
+                <zso-input-field
+                  label="Grundausbildung"
+                  formControlName="grundausbildung">
+                </zso-input-field>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Status *</label>
+                    @if (isEditing) {
+                      <select formControlName="status"
+                        class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                             focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                        @for (status of statusOptions; track status) {
+                          <option [value]="status">{{ status | titlecase }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                        {{ (mainForm.get('zivilschutz.status')?.value | titlecase) || '—' }}
+                      </div>
+                    }
+                  </div>
+
+                  <div formGroupName="einteilung">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Zug *</label>
+                    @if (isEditing) {
+                      <select formControlName="zug"
+                        class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                             focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                        @for (zug of zugOptions; track zug) {
+                          <option [value]="zug">{{ zug }}. Zug</option>
+                        }
+                      </select>
+                    } @else {
+                      <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                        {{ mainForm.get('zivilschutz.einteilung.zug')?.value || '—' }}. Zug
+                      </div>
+                    }
+                  </div>
+
+                  <div formGroupName="einteilung">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Gruppe *</label>
+                    @if (isEditing) {
+                      <select formControlName="gruppe"
+                        class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                             focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all">
+                        @for (gruppe of gruppeOptions; track gruppe) {
+                          <option [value]="gruppe">Gruppe {{ gruppe }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300">
+                        Gruppe {{ mainForm.get('zivilschutz.einteilung.gruppe')?.value || '—' }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Persönliches Tab -->
+          @if (activeTab === 'persoenlich') {
+            <div class="space-y-6" @slideIn>
+              <h3 class="text-lg font-semibold text-white">Persönliches</h3>
+              
+              <div formGroupName="persoenliches" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <zso-input-field
+                  label="Blutgruppe"
+                  formControlName="blutgruppe">
+                </zso-input-field>
+
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Hinweise & Besonderheiten</label>
+                  @if (isEditing) {
+                    <textarea
+                      rows="4"
+                      placeholder="Allergien, Essgewohnheiten, Sprachkenntnisse, etc."
+                      class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white
+                           focus:ring-2 focus:ring-cp-orange/20 focus:border-cp-orange transition-all
+                           placeholder-gray-500">
+                    </textarea>
+                  } @else {
+                    <div class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-300 min-h-[100px]">
+                      <!-- Hier könnten wir dynamisch Allergien, etc. anzeigen -->
+                      <p class="text-gray-500 italic">Keine besonderen Hinweise erfasst</p>
+                    </div>
                   }
-                </select>
+                </div>
               </div>
             </div>
+          }
 
-            <!-- Funktion -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Funktion <span class="text-rose-400">*</span>
-              </label>
-              <select formControlName="funktion" [disabled]="!isEditing"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <option value="">Funktion auswählen</option>
-                @for (funktion of funktionOptions; track funktion) {
-                <option [value]="funktion" class="bg-gray-800 text-white">{{ funktion }}</option>
-                }
-              </select>
-            </div>
-          </form>
-        </div>
+          <!-- Notfallkontakte Tab -->
+          @if (activeTab === 'notfall' && !isNewPerson) {
+            <div class="space-y-6" @slideIn>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white">Notfallkontakte</h3>
+                <button type="button" (click)="addNotfallkontakt()"
+                  class="glass-btn-primary px-3 py-2 rounded-lg flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">add</span>
+                  <span class="text-sm font-medium">Hinzufügen</span>
+                </button>
+              </div>
 
-        <!-- Kontaktdaten -->
-        <div class="glass-card p-6">
-          <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-base">contact_mail</span>
-            Kontaktdaten
-          </h2>
-
-          <form [formGroup]="kontaktdatenForm" class="space-y-4">
-            <!-- Strasse -->
-            <zso-input-field label="Strasse" formControlName="strasse" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
-
-            <!-- PLZ & Ort -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="PLZ" formControlName="plz" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
-
-              <zso-input-field label="Ort" formControlName="ort" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
-            </div>
-
-            <!-- E-Mail -->
-            <zso-input-field label="E-Mail" type="email" formControlName="email" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
-
-            <!-- Telefon Mobil -->
-            <zso-input-field label="Telefon Mobil" type="tel" formControlName="telefonMobil" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
-
-            <!-- Telefon Festnetz -->
-            <zso-input-field label="Telefon Festnetz" type="tel" formControlName="telefonFestnetz"
-              [disabled]="!isEditing"></zso-input-field>
-
-            <!-- Telefon Geschäftlich -->
-            <zso-input-field label="Telefon Geschäftlich" type="tel" formControlName="telefonGeschaeftlich"
-              [disabled]="!isEditing"></zso-input-field>
-          </form>
-        </div>
-
-      </div>
-
-      <!-- ===== RECHTE SPALTE ===== -->
-      <div class="space-y-6">
-
-        <!-- Zivilschutz -->
-        <div class="glass-card p-6">
-          <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-base">shield</span>
-            Zivilschutz
-          </h2>
-
-          <form [formGroup]="zivilschutzForm" class="space-y-4">
-            <!-- Grundausbildung & Status -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Grundausbildung (Jahr)" formControlName="grundausbildung" [disabled]="!isEditing"
-                [required]="true"></zso-input-field>
-
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Status <span class="text-rose-400">*</span>
-                </label>
-                <select formControlName="status" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  <option value="">Status auswählen</option>
-                  @for (status of statusOptions; track status) {
-                  <option [value]="status" class="bg-gray-800 text-white">{{ status }}</option>
+              <!-- Notfallkontakte Liste -->
+              @if (notfallkontakte.length > 0) {
+                <div class="space-y-3">
+                  @for (kontakt of notfallkontakte; track kontakt.id) {
+                    <div class="glass-card p-4 hover:bg-white/10 transition-all">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-cp-orange/20 text-cp-orange">
+                              <span class="text-xs font-bold">{{ kontakt.prioritaet }}</span>
+                            </div>
+                            <div>
+                              <h4 class="font-medium text-white">{{ kontakt.name }}</h4>
+                              <p class="text-sm text-gray-400">{{ kontakt.beziehung }}</p>
+                            </div>
+                          </div>
+                          <p class="text-sm text-gray-300 mt-2">{{ kontakt.telefonnummer }}</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                          <button type="button" (click)="editNotfallkontakt(kontakt)"
+                            class="text-gray-400 hover:text-cp-orange p-2 rounded-lg hover:bg-white/5 transition-all">
+                            <span class="material-symbols-outlined text-sm">edit</span>
+                          </button>
+                          <button type="button" (click)="deleteNotfallkontakt(kontakt)"
+                            class="text-gray-400 hover:text-rose-400 p-2 rounded-lg hover:bg-rose-500/10 transition-all">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   }
-                </select>
-              </div>
-            </div>
-
-            <!-- Zug & Gruppe -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Zug <span class="text-rose-400">*</span>
-                </label>
-                <select formControlName="zug" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  <option value="">Zug auswählen</option>
-                  @for (zug of zugOptions; track zug) {
-                  <option [value]="zug" class="bg-gray-800 text-white">Zug {{ zug }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="form-field">
-                <label class="block text-sm font-medium text-gray-300 mb-1">
-                  Gruppe
-                </label>
-                <select formControlName="gruppe" [disabled]="!isEditing"
-                  class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  <option value="">Keine Gruppe</option>
-                  @for (gruppe of gruppeOptions; track gruppe) {
-                  <option [value]="gruppe" class="bg-gray-800 text-white">{{ gruppe }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            <!-- Zusatzausbildungen -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Zusatzausbildungen (kommagetrennt)
-              </label>
-              <textarea formControlName="zusatzausbildungen" [disabled]="!isEditing" rows="3"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Sanitäter, Kraftfahrer, ..."></textarea>
-            </div>
-          </form>
-        </div>
-
-        <!-- Persönliches -->
-        <div class="glass-card p-6">
-          <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-base">person_outline</span>
-            Persönliches
-          </h2>
-
-          <form [formGroup]="persoenlichesForm" class="space-y-4">
-            <!-- Blutgruppe -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Blutgruppe" formControlName="blutgruppe" [disabled]="!isEditing"
-                placeholder="B+"></zso-input-field>
-            </div>
-
-            <!-- Allergien -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Allergien (kommagetrennt)
-              </label>
-              <textarea formControlName="allergien" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Nüsse, Pollen, ..."></textarea>
-            </div>
-
-            <!-- Essgewohnheiten -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Essgewohnheiten (kommagetrennt)
-              </label>
-              <textarea formControlName="essgewohnheiten" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Vegetarisch, Glutenfrei, ..."></textarea>
-            </div>
-
-            <!-- Sprachkenntnisse -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Sprachkenntnisse (kommagetrennt)
-              </label>
-              <textarea formControlName="sprachkenntnisse" [disabled]="!isEditing" rows="2"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Deutsch, Englisch, Französisch, ..."></textarea>
-            </div>
-
-            <!-- Besonderheiten -->
-            <div class="form-field">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                Besonderheiten (kommagetrennt)
-              </label>
-              <textarea formControlName="besonderheiten" [disabled]="!isEditing" rows="3"
-                class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                placeholder="Brille, Hörhilfe, ..."></textarea>
-            </div>
-          </form>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Full-width Sections -->
-    <div class="mt-6 space-y-6">
-
-      <!-- Berufliches -->
-      <div class="glass-card p-6">
-        <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange text-base">work</span>
-          Berufliches
-        </h2>
-
-        <form [formGroup]="beruflichesForm" class="space-y-4">
-          <!-- Erlernter & ausgeübter Beruf -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <zso-input-field label="Erlernter Beruf" formControlName="erlernterBeruf" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
-
-            <zso-input-field label="Ausgeübter Beruf" formControlName="ausgeubterBeruf" [disabled]="!isEditing"
-              [required]="true"></zso-input-field>
-          </div>
-
-          <!-- Arbeitgeber -->
-          <zso-input-field label="Arbeitgeber" formControlName="arbeitgeber" [disabled]="!isEditing"
-            [required]="true"></zso-input-field>
-
-          <!-- Zivile Spezialausbildung -->
-          <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"
-            [disabled]="!isEditing"></zso-input-field>
-
-          <!-- Führerausweis -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-gray-300 mb-1">
-              Führerausweis Kategorien (kommagetrennt)
-            </label>
-            <textarea formControlName="fuehrerausweisKategorie" [disabled]="!isEditing" rows="2"
-              class="w-full rounded-lg bg-white/10 text-white p-3 border border-white/20 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-              placeholder="B, C, D, BE, ..."></textarea>
-          </div>
-        </form>
-      </div>
-
-      <!-- Präferenzen -->
-      <div class="glass-card p-6">
-        <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange text-base">settings</span>
-          Präferenzen
-        </h2>
-
-        <form [formGroup]="preferencesForm" class="space-y-4">
-          <!-- Kontaktmethode -->
-          <div class="form-field">
-            <label class="block text-sm font-medium text-gray-300 mb-3">
-              Bevorzugte Kontaktmethode
-            </label>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              @for (option of contactMethodOptions; track option.value) {
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" formControlName="contactMethod" [value]="option.value" [disabled]="!isEditing"
-                  class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 focus:ring-2 focus:ring-cp-orange/20" />
-                <span class="text-sm text-gray-300">{{ option.label }}</span>
-              </label>
+                </div>
+              } @else {
+                <div class="text-center py-12 text-gray-500">
+                  <span class="material-symbols-outlined text-6xl mb-4 block">contact_emergency</span>
+                  <h4 class="text-lg font-medium text-gray-400 mb-2">Keine Notfallkontakte</h4>
+                  <p class="text-sm mb-4">Fügen Sie wichtige Kontakte für Notfälle hinzu</p>
+                  <button type="button" (click)="addNotfallkontakt()"
+                    class="glass-btn-primary px-4 py-2 rounded-lg">
+                    Ersten Kontakt hinzufügen
+                  </button>
+                </div>
               }
             </div>
-          </div>
+          }
 
-          <!-- E-Mail Benachrichtigungen -->
-          <div class="form-field">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" formControlName="emailNotifications" [disabled]="!isEditing"
-                class="w-4 h-4 text-cp-orange border-gray-600 bg-gray-800 rounded focus:ring-2 focus:ring-cp-orange/20" />
-              <span class="text-sm text-gray-300">E-Mail Benachrichtigungen erhalten</span>
-            </label>
-          </div>
         </form>
       </div>
-
-      <!-- Notfallkontakte -->
-      @if (!isNewPerson) {
-      <div class="glass-card p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-base">contact_emergency</span>
-            Notfallkontakte
-          </h2>
-          @if (canEdit) {
-          <button (click)="openNotfallkontaktDialog()"
-            class="glass-btn-primary px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">add</span>
-            Hinzufügen
-          </button>
-          }
-        </div>
-
-        @if (notfallkontakte.length > 0) {
-        <div class="space-y-3">
-          @for (kontakt of notfallkontakte; track kontakt.id) {
-          <div class="emergency-contact-card p-4 rounded-lg border border-rose-500/20 bg-rose-500/5">
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <p class="font-medium text-white">{{ kontakt.name }}</p>
-                <p class="text-sm text-gray-400">{{ kontakt.beziehung }}</p>
-                <a [href]="'tel:' + kontakt.telefonnummer" class="text-sm text-cp-orange hover:text-cp-orange/80">
-                  {{ kontakt.telefonnummer }}
-                </a>
-              </div>
-              <div class="flex items-center gap-2">
-                <!-- Priorität -->
-                <span class="text-xs text-gray-200 bg-gray-700 px-2 py-1 rounded">
-                  Priorität {{ kontakt.prioritaet }}
-                </span>
-                @if (canEdit) {
-                <button (click)="editNotfallkontakt(kontakt)"
-                  class="p-1 rounded text-gray-400 hover:text-cp-orange transition-colors" title="Bearbeiten">
-                  <span class="material-symbols-outlined text-sm">edit</span>
-                </button>
-                <button (click)="deleteNotfallkontakt(kontakt.id)"
-                  class="p-1 rounded text-gray-400 hover:text-rose-400 transition-colors" title="Löschen">
-                  <span class="material-symbols-outlined text-sm">delete</span>
-                </button>
-                }
-              </div>
-            </div>
-          </div>
-          }
-        </div>
-        } @else {
-        <div class="text-center py-8">
-          <span class="material-symbols-outlined text-gray-500 text-4xl mb-2 block">contact_emergency</span>
-          <p class="text-gray-400 text-sm mb-4">Keine Notfallkontakte erfasst</p>
-          @if (canEdit) {
-          <button (click)="openNotfallkontaktDialog()" class="glass-btn-primary px-4 py-2 rounded-lg">
-            Ersten Kontakt hinzufügen
-          </button>
-          }
-        </div>
-        }
-      </div>
-      }
     </div>
-  </div>
+  }
+
+  <!-- Hidden File Input -->
+  <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden" />
+
+  <!-- Notfallkontakt Dialog -->
+  <zso-notfallkontakt-dialog
+    [visible]="notfallkontaktDialogVisible"
+    [kontakt]="editingKontakt"
+    [personId]="person?.id || ''"
+    (saved)="onNotfallkontaktSaved($event)"
+    (closed)="onNotfallkontaktDialogClosed()">
+  </zso-notfallkontakt-dialog>
+
+  <!-- Delete Confirmation Dialog -->
+  <zso-confirmation-dialog
+    [visible]="deleteDialogVisible"
+    title="Person löschen"
+    message="Sind Sie sicher, dass Sie diese Person unwiderruflich löschen möchten? Alle zugehörigen Daten gehen verloren."
+    confirmText="Ja, löschen"
+    confirmType="danger"
+    (confirmed)="onDeleteConfirmed($event)">
+  </zso-confirmation-dialog>
+
 </div>
-
-<!-- Notfallkontakt Dialog -->
-<zso-notfallkontakt-dialog [visible]="notfallkontaktDialogVisible" [kontakt]="editingKontakt"
-  [personId]="person?.id || ''" (saved)="onNotfallkontaktSaved($event)" (closed)="onNotfallkontaktDialogClosed()">
-</zso-notfallkontakt-dialog>
-
-<!-- Delete Confirmation Dialog -->
-<zso-confirmation-dialog [visible]="deleteDialogVisible" [title]="deleteDialogTitle" [message]="deleteDialogMessage"
-  confirmText="Löschen" confirmType="danger" (confirmed)="onDeleteConfirmed($event)">
-</zso-confirmation-dialog>
-
-<!-- Upload Toast -->
-@if (uploadMsg) {
-<div class="fixed bottom-4 right-4 glass-card p-4 border-l-4 z-50 max-w-sm" [class.border-green-500]="!uploadError"
-  [class.border-rose-500]="uploadError">
-  <div class="flex items-center gap-3">
-    @if (uploadError) {
-    <span class="material-symbols-outlined text-rose-400">error</span>
-    } @else {
-    <span class="material-symbols-outlined text-green-400">check_circle</span>
-    }
-    <span class="text-white text-sm">{{ uploadMsg }}</span>
-  </div>
-</div>
-}

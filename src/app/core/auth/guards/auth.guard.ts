@@ -32,7 +32,11 @@ export class AuthGuard implements CanActivate {
         this.logger.log('AuthGuard', 'Checking access', { 
           uid: user?.auth.uid, 
           approved: user?.doc.approved, 
-          blocked: user?.doc.blocked 
+          blocked: user?.doc.blocked,
+          roles: user?.doc.roles,
+          isAdmin: user?.doc.roles.includes('admin'),
+          isUser: user?.doc.roles.includes('user'),
+          isSessionExpired: user?.doc.lastLogoutAt ? user?.doc.lastLogoutAt < Date.now() - 1000 * 60 * 60 * 24 : false
         });
 
         // Not logged in
