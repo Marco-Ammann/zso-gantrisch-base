@@ -136,32 +136,35 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   // In der ngOnInit() Methode das isAdmin$ Observable subscriben
   ngOnInit(): void {
     this.initializeForms();
-  
+
     // Admin-Status subscriben
-    this.isAdmin$.pipe(takeUntil(this.destroy$)).subscribe(isAdmin => {
+    this.isAdmin$.pipe(takeUntil(this.destroy$)).subscribe((isAdmin) => {
       this.isAdmin = isAdmin;
       this.cdr.markForCheck();
     });
-  
+
     this.route.paramMap
       .pipe(
         switchMap((params) => {
           const id = params.get('id');
           this.logger.log('AdzsDetailPage', 'Route params - ID:', id);
-  
+
           if (id === 'new') {
             this.isNewPerson = true;
-            this.isEditing = true;
+            this.isEditing = true; // Neue Person: direkt im Edit-Modus
             this.cdr.markForCheck();
             return of(null);
           } else if (id) {
             this.isNewPerson = false;
-            this.isEditing = false;
+            this.isEditing = false; // Bestehende Person: zunächst im Anzeige-Modus
             this.logger.log('AdzsDetailPage', 'Loading person with ID:', id);
             return this.personService.getById(id);
           }
-  
-          this.logger.warn('AdzsDetailPage', 'No valid ID found in route params');
+
+          this.logger.warn(
+            'AdzsDetailPage',
+            'No valid ID found in route params'
+          );
           return of(null);
         }),
         takeUntil(this.destroy$)
@@ -169,18 +172,16 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       .subscribe({
         next: (person) => {
           this.logger.log('AdzsDetailPage', 'Person loaded:', person);
-          
+
           if (person) {
             this.person = person;
             this.populateForms(person);
             this.loadNotfallkontakte(person.id);
           } else if (this.isNewPerson) {
+            // Neue Person: Formulare mit Standardwerten initialisieren
             this.initializeNewPersonForms();
           }
-          
-          // Forms nach dem Laden richtig enablen/disablen
-          this.updateFormStates();
-          
+
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -424,19 +425,18 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   // Actions
   toggleEdit(): void {
     if (this.isNewPerson) {
+      // Bei neuen Personen immer im Edit-Modus bleiben
       return;
     }
-  
+
     this.isEditing = !this.isEditing;
     this.clearMessages();
-    
+
     if (!this.isEditing && this.person) {
+      // Beim Verlassen des Edit-Modus: Formulare zurücksetzen
       this.populateForms(this.person);
     }
-    
-    // Forms enablen/disablen
-    this.updateFormStates();
-    
+
     this.logger.log('AdzsDetailPage', 'Edit mode toggled:', this.isEditing);
     this.cdr.markForCheck();
   }
@@ -447,15 +447,15 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       this.scrollToTop();
       return;
     }
-  
+
     this.isSaving = true;
     this.clearMessages();
-  
+
     const personData = this.buildPersonData();
-  
+
     if (this.isNewPerson) {
       this.logger.log('AdzsDetailPage', 'Creating new person:', personData);
-  
+
       this.personService
         .create(personData)
         .pipe(takeUntil(this.destroy$))
@@ -463,13 +463,11 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           next: (newId: string) => {
             this.logger.log('AdzsDetailPage', 'Person created with ID:', newId);
             this.successMsg = 'Person erfolgreich erstellt';
-            this.isEditing = false;
+            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
             this.isNewPerson = false;
             this.isSaving = false;
-            
-            // Forms disablen nach dem Speichern
-            this.updateFormStates();
-            
+
+            // Zur Detail-Ansicht der neuen Person navigieren
             this.router.navigate(['/adsz', newId], { replaceUrl: true });
             this.cdr.markForCheck();
           },
@@ -482,8 +480,13 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           },
         });
     } else if (this.person?.id) {
-      this.logger.log('AdzsDetailPage', 'Updating person with ID:', this.person.id, personData);
-  
+      this.logger.log(
+        'AdzsDetailPage',
+        'Updating person with ID:',
+        this.person.id,
+        personData
+      );
+
       this.personService
         .update(this.person.id, personData)
         .pipe(takeUntil(this.destroy$))
@@ -491,12 +494,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           next: () => {
             this.logger.log('AdzsDetailPage', 'Person updated successfully');
             this.successMsg = 'Änderungen erfolgreich gespeichert';
-            this.isEditing = false;
+            this.isEditing = false; // Edit-Modus verlassen nach dem Speichern
             this.isSaving = false;
-            
-            // Forms disablen nach dem Speichern
-            this.updateFormStates();
-            
+
+            // Lokale Person-Daten aktualisieren
             this.person = { ...this.person!, ...personData } as PersonDoc;
             this.scrollToTop();
             this.cdr.markForCheck();
@@ -510,27 +511,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
           },
         });
     }
-  }
-
-  private updateFormStates(): void {
-    const forms = [
-      this.grunddatenForm,
-      this.kontaktdatenForm,
-      this.beruflichesForm,
-      this.zivilschutzForm,
-      this.persoenlichesForm,
-      this.preferencesForm
-    ];
-  
-    forms.forEach(form => {
-      if (form) {
-        if (this.isEditing) {
-          form.enable();
-        } else {
-          form.disable();
-        }
-      }
-    });
   }
 
   // Cancel Methode korrigieren
