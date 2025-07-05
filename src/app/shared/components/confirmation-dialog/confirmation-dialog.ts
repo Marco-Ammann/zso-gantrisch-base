@@ -88,7 +88,7 @@ export class ConfirmationDialogComponent {
     'Sind Sie sicher, dass Sie diese Aktion durchführen möchten?';
   @Input() confirmText = 'Bestätigen';
   @Input() confirmType: 'primary' | 'danger' | 'neutral' = 'primary';
-
+  @Input() loading = false;
   @Output() confirmed = new EventEmitter<boolean>();
 
   // Handle click outside to close

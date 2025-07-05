@@ -110,9 +110,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   readonly gradOptions = [
     'Soldat',
     'Korporal',
-    'Wachtmeister',
-    'Oberwachtmeister',
-    'Adjutant',
     'Leutnant',
     'Oberleutnant',
     'Hauptmann',
@@ -121,7 +118,6 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     'Betreuer',
     'C-Betreuer',
     'Betreuer Uof',
-    'Gruppenführer',
     'Zugführer',
   ];
   readonly statusOptions = ['aktiv', 'neu', 'inaktiv'];
@@ -131,6 +127,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     { value: 'digital', label: 'Digital (E-Mail)' },
     { value: 'paper', label: 'Papier (Post)' },
     { value: 'both', label: 'Digital & Papier' },
+  ];
+  readonly blutgruppenOptions = ['A', 'A+', 'A-', 'B', 'B+', 'B-', 'AB', 'AB+', 'AB-', 'O', 'O+', 'O-'];
+  readonly fuehrerausweisKategorien = [
+    'A', 'A1', 'B', 'BE', 'C', 'CE', 'D', 'DE', 'F', 'G', 'M'
   ];
 
   // In der ngOnInit() Methode das isAdmin$ Observable subscriben
@@ -439,6 +439,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     
     this.logger.log('AdzsDetailPage', 'Edit mode toggled:', this.isEditing);
     this.cdr.markForCheck();
+  }
+
+  edit(): void {
+    this.toggleEdit();
   }
 
   save(): void {
@@ -903,6 +907,8 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     setTimeout(() => {
       this.uploadMsg = null;
       this.uploadError = false;
+      this.uploading = false;
+      this.clearMessages();
       this.cdr.markForCheck();
     }, 3000);
   }
@@ -988,6 +994,82 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       default:
         return 'Nicht festgelegt';
     }
+  }
+
+  // Handle Führerschein category changes
+  onFuehrerausweisChange(event: any, category: string): void {
+    const currentCategories = this.beruflichesForm.get('fuehrerausweisKategorie')?.value || [];
+    let updatedCategories: string[];
+
+    if (event.target.checked) {
+      updatedCategories = [...currentCategories, category];
+    } else {
+      updatedCategories = currentCategories.filter((c: string) => c !== category);
+    }
+
+    this.beruflichesForm.patchValue({
+      fuehrerausweisKategorie: updatedCategories
+    });
+  }
+
+  // Handle removing additional training
+  removeZusatzausbildung(index: number): void {
+    const currentTrainings = this.parseCommaSeparated(this.zivilschutzForm.get('zusatzausbildungen')?.value);
+    currentTrainings.splice(index, 1);
+    this.zivilschutzForm.patchValue({
+      zusatzausbildungen: currentTrainings.join(', ')
+    });
+  }
+
+  // Handle adding new additional training
+  addZusatzausbildung(): void {
+    const newTraining = prompt('Bitte geben Sie die Zusatzausbildung ein:');
+    if (newTraining && newTraining.trim()) {
+      const currentTrainings = this.parseCommaSeparated(this.zivilschutzForm.get('zusatzausbildungen')?.value);
+      currentTrainings.push(newTraining.trim());
+      this.zivilschutzForm.patchValue({
+        zusatzausbildungen: currentTrainings.join(', ')
+      });
+    }
+  }
+
+  // Generic method to remove item from array fields
+  removeFromArray(fieldName: string, index: number): void {
+    const currentValues = this.parseCommaSeparated(this.persoenlichesForm.get(fieldName)?.value);
+    currentValues.splice(index, 1);
+    this.persoenlichesForm.patchValue({
+      [fieldName]: currentValues.join(', ')
+    });
+  }
+
+  // Generic method to add item to array fields
+  addToArray(fieldName: string): void {
+    const labelMap: {[key: string]: string} = {
+      'allergien': 'Allergie',
+      'essgewohnheiten': 'Essgewohnheit',
+      'sprachkenntnisse': 'Sprachkenntnis',
+      'besonderheiten': 'Besonderheit'
+    };
+
+    const label = labelMap[fieldName] || 'Eintrag';
+    const newValue = prompt(`Bitte geben Sie eine ${label} ein:`);
+    
+    if (newValue && newValue.trim()) {
+      const currentValues = this.parseCommaSeparated(this.persoenlichesForm.get(fieldName)?.value);
+      currentValues.push(newValue.trim());
+      this.persoenlichesForm.patchValue({
+        [fieldName]: currentValues.join(', ')
+      });
+    }
+  }
+
+  // Convert Firestore timestamp to Date
+  getDateFromTimestamp(timestamp: any): Date {
+    if (!timestamp) return new Date();
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000);
+    }
+    return new Date(timestamp);
   }
 
   private debugRoute(): void {
