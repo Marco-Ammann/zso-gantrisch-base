@@ -1,320 +1,745 @@
-<!-- Backdrop -->
-<div
-  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 opacity-0 pointer-events-none transition-opacity duration-200"
-  [class.opacity-100]="visible"
-  [class.pointer-events-auto]="visible"
-  (click)="onBackdrop($event)"
->
-  <!-- Dialog / Page wrapper -->
-  <div
-    class="glass-card w-full h-full sm:h-auto mx-auto overflow-hidden transform transition-all scale-95 
-           sm:max-w-3xl md:max-w-4xl lg:max-w-5xl sm:rounded-lg"
-    [class.scale-100]="visible"
-    (click)="$event.stopPropagation()"
-  >
-    <!-- HEADER (phones: sticky top bar) -->
-    <div class="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-black/30 sm:bg-transparent sticky top-0 sm:static backdrop-blur-md z-10">
-      <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-        <span class="material-symbols-outlined text-cp-orange">person_add</span>
-        Neue Person erfassen
-      </h2>
-      <button
-        (click)="cancel()"
-        [disabled]="isSaving"
-        class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all disabled:opacity-50"
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 opacity-0 pointer-events-none transition-opacity duration-200"
+        [class.opacity-100]="visible"
+        [class.pointer-events-auto]="visible"
+        (click)="onBackdrop($event)"
       >
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-
-    <!-- CONTENT AREA -->
-    <div class="flex flex-col md:flex-row h-full">
-      <!-- FORM COLUMN -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-        <form [formGroup]="mainForm" class="space-y-4">
-
-          <!-- ACCORDION SECTION -->
-          <details [open]="openSection==='grunddaten'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('grunddaten', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">person</span>
-                Grunddaten
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Vorname -->
-              <zso-input-field label="Vorname" formControlName="vorname" required></zso-input-field>
-              <!-- Nachname -->
-              <zso-input-field label="Nachname" formControlName="nachname" required></zso-input-field>
-              <!-- Geburtsdatum -->
-              <zso-input-field type="date" label="Geburtsdatum" formControlName="geburtsdatum" required></zso-input-field>
-              <!-- Grad -->
-              <zso-input-field [select]="true" label="Grad" formControlName="grad" [options]="gradOptions" required></zso-input-field>
-              <!-- Funktion -->
-              <zso-input-field [select]="true" label="Funktion" formControlName="funktion" [options]="funktionOptions" required></zso-input-field>
+        <!-- Modal Dialog - Responsive -->
+        <div
+          class="glass-card w-full mx-auto max-h-[95vh] overflow-hidden transform transition-all scale-95 
+                 max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl"
+          [class.scale-100]="visible"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Header -->
+          <div class="p-4 sm:p-6 border-b border-white/10">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-3">
+                <span class="material-symbols-outlined text-cp-orange">person_add</span>
+                Neue Person erfassen
+              </h2>
+              <button
+                (click)="cancel()"
+                [disabled]="isSaving"
+                class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all disabled:opacity-50"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
             </div>
-          </details>
+  
+            <!-- Stepper Progress -->
+            <div class="mt-4 sm:mt-6">
+              <div class="flex items-center justify-between overflow-x-auto">
+                @for (step of steps; track step.id; let i = $index) {
+                  <div class="flex items-center" [class]="i < steps.length - 1 ? 'flex-1 min-w-0' : ''">
+                    <!-- Step Circle -->
+                    <div class="flex items-center flex-shrink-0">
+                      <div
+                        class="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-200"
+                        [class]="{
+                          'bg-white/5 border-white/5 text-white': i < currentStep,
+                          'bg-cp-orange/20 border-cp-orange text-cp-orange': i === currentStep,
+                          'border-gray-600 text-gray-500': i > currentStep
+                        }"
+                      >
 
-          <!-- KONTAKT -->
-          <details [open]="openSection==='kontakt'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('kontakt', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">contact_mail</span>
-                Kontakt
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field label="Strasse" formControlName="strasse" required></zso-input-field>
-              <zso-input-field label="PLZ" formControlName="plz" required></zso-input-field>
-              <zso-input-field label="Ort" formControlName="ort" required></zso-input-field>
-              <zso-input-field label="E-Mail" type="email" formControlName="email"></zso-input-field>
-              <zso-input-field label="Telefon (Mobil)" formControlName="telefonMobil"></zso-input-field>
-              <zso-input-field label="Telefon (Festnetz)" formControlName="telefonFestnetz"></zso-input-field>
-              <zso-input-field label="Telefon (Geschäftlich)" formControlName="telefonGeschaeftlich"></zso-input-field>
-            </div>
-          </details>
-
-          <!-- ZIVILSCHUTZ -->
-          <details [open]="openSection==='zivilschutz'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('zivilschutz', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">shield</span>
-                Zivilschutz
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field [select]="true" label="Status" formControlName="status" [options]="statusOptions" required></zso-input-field>
-              <zso-input-field label="Grundausbildung (Jahr)" formControlName="grundausbildung"></zso-input-field>
-              <zso-input-field [select]="true" label="Zug" formControlName="zug" [options]="zugOptions" required></zso-input-field>
-              <zso-input-field [select]="true" label="Gruppe" formControlName="gruppe" [options]="gruppeOptions" required></zso-input-field>
-
-              <!-- Zusatzausbildungen Chip List -->
-              <div class="sm:col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Zusatzausbildungen</label>
-                <div class="space-y-2">
-                  @for (ausbildung of selectedZusatzausbildungen; track ausbildung; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ ausbildung }}</span>
-                      <button type="button" (click)="removeZusatzausbildung(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
+                      <!-- Icon -->
+                        @if (i < currentStep) { <!-- Check -->
+                          <span class="material-symbols-outlined text-xs sm:text-sm"
+                          [class]="{
+                            'text-white': i < currentStep,
+                            'text-cp-orange': i === currentStep,
+                            'text-gray-500': i > currentStep
+                          }"
+                          >check</span>
+                        } @else { <!-- Number -->
+                          {{ i + 1 }}
+                        }
+                      </div>
+                      <span
+                        class="ml-2 text-xs sm:text-sm font-medium hidden lg:block transition-colors truncate"
+                        [class]="{
+                            'display-none': i != currentStep,
+                        }"
+                      >
+                        {{ step.title }}
+                      </span>
                     </div>
-                  }
-                  <div class="flex gap-2">
-                    <input #ausbildungInput type="text" placeholder="Zusatzausbildung hinzufügen..." class="form-input flex-1" (keyup.enter)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''" />
-                    <button type="button" (click)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
-                      <span class="material-symbols-outlined text-sm">add</span>
-                    </button>
+  
+                    <!-- Connector Line -->
+                    @if (i < steps.length - 1) {
+                      <div
+                        class="flex-1 h-0.5 mx-2 sm:mx-4 transition-colors duration-200 min-w-[20px]"
+                        [class]="{
+                          'bg-cp-orange': i < currentStep,
+                          'bg-gray-600': i >= currentStep
+                        }"
+                      ></div>
+                    }
                   </div>
-                </div>
+                }
               </div>
-            </div>
-          </details>
-
-          <!-- BERUFLICH -->
-          <details [open]="openSection==='beruflich'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('beruflich', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">work</span>
-                Berufliches
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <zso-input-field label="Erlernter Beruf" formControlName="erlernterBeruf"></zso-input-field>
-                <zso-input-field label="Ausgeübter Beruf" formControlName="ausgeubterBeruf"></zso-input-field>
-              </div>
-              <zso-input-field label="Arbeitgeber" formControlName="arbeitgeber"></zso-input-field>
-              <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"></zso-input-field>
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Führerausweis-Kategorien</label>
-                <select multiple formControlName="fuehrerausweis" class="form-input w-full h-32" (change)="onFuehrerausweisChange($event)">
-                  @for (kategorie of fuehrerausweisKategorien; track kategorie) {
-                    <option [value]="kategorie">Kategorie {{ kategorie }}</option>
-                  }
-                </select>
-                <p class="text-xs text-gray-500 mt-1">Mehrfachauswahl mit Ctrl/Cmd + Klick</p>
-              </div>
-            </div>
-          </details>
-
-          <!-- PERSÖNLICHES -->
-          <details [open]="openSection==='persoenlich'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('persoenlich', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-          
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">favorite</span>
-                Persönliches
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 space-y-6">
-              <zso-input-field label="Blutgruppe" formControlName="blutgruppe"></zso-input-field>
-
-              <!-- Allergien -->
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Allergien</label>
-                <div class="space-y-2">
-                  @for (allergie of selectedAllergien; track allergie; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ allergie }}</span>
-                      <button type="button" (click)="removeAllergie(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  }
-                  <div class="flex gap-2">
-                    <input #allergieInput type="text" placeholder="Allergie hinzufügen..." class="form-input flex-1" (keyup.enter)="addAllergie(allergieInput.value); allergieInput.value = ''" />
-                    <button type="button" (click)="addAllergie(allergieInput.value); allergieInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
-                      <span class="material-symbols-outlined text-sm">add</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Essgewohnheiten -->
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Essgewohnheiten</label>
-                <div class="space-y-2">
-                  @for (ess of selectedEssgewohnheiten; track ess; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ ess }}</span>
-                      <button type="button" (click)="removeEssgewohnheit(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  }
-                  <div class="flex gap-2">
-                    <input #essInput type="text" placeholder="Essgewohnheit hinzufügen..." class="form-input flex-1" (keyup.enter)="addEssgewohnheit(essInput.value); essInput.value = ''" />
-                    <button type="button" (click)="addEssgewohnheit(essInput.value); essInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
-                      <span class="material-symbols-outlined text-sm">add</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sprachen -->
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Sprachkenntnisse</label>
-                <div class="space-y-2">
-                  @for (sprache of selectedSprachen; track sprache; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ sprache }}</span>
-                      <button type="button" (click)="removeSprache(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  }
-                  <div class="flex gap-2">
-                    <input #spracheInput type="text" placeholder="Sprache hinzufügen..." class="form-input flex-1" (keyup.enter)="addSprache(spracheInput.value); spracheInput.value = ''" />
-                    <button type="button" (click)="addSprache(spracheInput.value); spracheInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
-                      <span class="material-symbols-outlined text-sm">add</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Besonderheiten -->
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Besonderheiten</label>
-                <div class="space-y-2">
-                  @for (bes of selectedBesonderheiten; track bes; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ bes }}</span>
-                      <button type="button" (click)="removeBesonderheit(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  }
-                  <div class="flex gap-2">
-                    <input #besInput type="text" placeholder="Besonderheit hinzufügen..." class="form-input flex-1" (keyup.enter)="addBesonderheit(besInput.value); besInput.value = ''" />
-                    <button type="button" (click)="addBesonderheit(besInput.value); besInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
-                      <span class="material-symbols-outlined text-sm">add</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <!-- PRÄFERENZEN -->
-          <details [open]="openSection==='praferenzen'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('praferenzen', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
-              <span class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-cp-orange text-sm">settings</span>
-                Präferenzen
-              </span>
-              <span class="material-symbols-outlined text-gray-400">expand_more</span>
-            </summary>
-            
-            <div class="p-4 space-y-4">
-              <zso-input-field [select]="true" label="Kontakt-Methode" formControlName="contactMethod" [options]="contactMethodOptions"></zso-input-field>
-              <label class="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                <input type="checkbox" formControlName="emailNotifications" class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-cp-orange focus:ring-2 focus:ring-cp-orange/20" />
-                <div>
-                  <span class="text-sm font-medium text-gray-300">E-Mail-Benachrichtigungen</span>
-                  <p class="text-xs text-gray-500">Informationen über Termine und Aufgebote per E-Mail erhalten</p>
-                </div>
-              </label>
-            </div>
-          </details>
-
-          <!-- ERROR MSG -->
-          <div *ngIf="errorMsg" class="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-400">error</span>
-              <p class="text-sm text-rose-300">{{ errorMsg }}</p>
             </div>
           </div>
-        </form>
-        <!-- bottom padding so content not hidden behind footer on phones -->
-        <div class="h-24 sm:hidden"></div>
-      </div>
-
-      <!-- SUMMARY COLUMN (hidden on < md) -->
-      <div class="hidden md:block w-80 border-l border-white/10 p-4 overflow-y-auto bg-white/5">
-        <h3 class="font-medium text-white mb-3 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange text-sm">preview</span>
-          Übersicht
-        </h3>
-        <!-- live preview using helper methods -->
-        <div class="space-y-2 text-sm">
-          <p><span class="text-gray-400">Name:</span> <span class="text-white ml-1">{{ mainForm.value.vorname }} {{ mainForm.value.nachname }}</span></p>
-          <p><span class="text-gray-400">Geburtsdatum:</span> <span class="text-white ml-1">{{ mainForm.value.geburtsdatum | date:'dd.MM.yyyy' }}</span></p>
-          <p><span class="text-gray-400">Kontakt:</span> <span class="text-white ml-1">{{ mainForm.value.email || '-' }}</span></p>
-          <!-- Add more preview fields as desired -->
+  
+          <!-- Content -->
+          <div class="flex-1 overflow-y-auto">
+            <form [formGroup]="mainForm" class="p-4 sm:p-6">
+              <!-- Step Content -->
+              @switch (steps[currentStep].id) {
+                
+                <!-- Grunddaten Step -->
+                @case ('grunddaten') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">person</span>
+                      <h3 class="text-lg font-medium text-white">Grunddaten</h3>
+                      <p class="text-sm text-gray-400">Persönliche Basis-Informationen</p>
+                    </div>
+  
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <zso-input-field
+                        formControlName="vorname"
+                        label="Vorname"
+                        placeholder="Max"
+                        [required]="true"
+                      ></zso-input-field>
+  
+                      <zso-input-field
+                        formControlName="nachname"
+                        label="Nachname"
+                        placeholder="Mustermann"
+                        [required]="true"
+                      ></zso-input-field>
+  
+                      <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Geburtsdatum *
+                        </label>
+                        <input
+                          type="date"
+                          formControlName="geburtsdatum"
+                          class="form-input w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Kontaktdaten Step -->
+                @case ('kontakt') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">contact_mail</span>
+                      <h3 class="text-lg font-medium text-white">Kontaktdaten</h3>
+                      <p class="text-sm text-gray-400">Adresse und Kommunikation</p>
+                    </div>
+  
+                    <div class="space-y-6">
+                      <zso-input-field
+                        formControlName="strasse"
+                        label="Strasse & Hausnummer"
+                        placeholder="Musterstrasse 123"
+                        [required]="true"
+                      ></zso-input-field>
+  
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <zso-input-field
+                          formControlName="plz"
+                          label="PLZ"
+                          placeholder="3000"
+                          [required]="true"
+                        ></zso-input-field>
+  
+                        <div class="md:col-span-2">
+                          <zso-input-field
+                            formControlName="ort"
+                            label="Ort"
+                            placeholder="Bern"
+                            [required]="true"
+                          ></zso-input-field>
+                        </div>
+                      </div>
+  
+                      <zso-input-field
+                        formControlName="email"
+                        label="E-Mail"
+                        type="email"
+                        placeholder="max.mustermann@example.com"
+                        [required]="true"
+                      ></zso-input-field>
+  
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <zso-input-field
+                          formControlName="telefonMobil"
+                          label="Mobil"
+                          type="tel"
+                          placeholder="079 123 45 67"
+                          [required]="true"
+                        ></zso-input-field>
+  
+                        <zso-input-field
+                          formControlName="telefonFestnetz"
+                          label="Festnetz"
+                          type="tel"
+                          placeholder="031 123 45 67"
+                        ></zso-input-field>
+  
+                        <zso-input-field
+                          formControlName="telefonGeschaeftlich"
+                          label="Geschäftlich"
+                          type="tel"
+                          placeholder="031 987 65 43"
+                        ></zso-input-field>
+                      </div>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Zivilschutz Step -->
+                @case ('zivilschutz') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">shield</span>
+                      <h3 class="text-lg font-medium text-white">Zivilschutz</h3>
+                      <p class="text-sm text-gray-400">Rang, Funktion und Einteilung</p>
+                    </div>
+  
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Grad *
+                        </label>
+                        <select formControlName="grad" class="form-input w-full">
+                          <option value="">Grad wählen</option>
+                          @for (grad of gradOptions; track grad) {
+                            <option [value]="grad">{{ grad }}</option>
+                          }
+                        </select>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Funktion *
+                        </label>
+                        <select formControlName="funktion" class="form-input w-full">
+                          <option value="">Funktion wählen</option>
+                          @for (funktion of funktionOptions; track funktion) {
+                            <option [value]="funktion">{{ funktion }}</option>
+                          }
+                        </select>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Status *
+                        </label>
+                        <select formControlName="status" class="form-input w-full">
+                          @for (status of statusOptions; track status) {
+                            <option [value]="status">{{ status | titlecase }}</option>
+                          }
+                        </select>
+                      </div>
+  
+                      <zso-input-field
+                        formControlName="grundausbildung"
+                        label="Grundausbildung"
+                        placeholder="Jahr der Grundausbildung"
+                      ></zso-input-field>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Zug *
+                        </label>
+                        <select formControlName="zug" class="form-input w-full">
+                          @for (zug of zugOptions; track zug) {
+                            <option [value]="zug">Zug {{ zug }}</option>
+                          }
+                        </select>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
+                          Gruppe *
+                        </label>
+                        <select formControlName="gruppe" class="form-input w-full">
+                          @for (gruppe of gruppeOptions; track gruppe) {
+                            <option [value]="gruppe">Gruppe {{ gruppe }}</option>
+                          }
+                        </select>
+                      </div>
+  
+                      <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Zusatzausbildungen
+                        </label>
+                        <div class="space-y-2">
+                          @for (ausbildung of selectedZusatzausbildungen; track ausbildung; let i = $index) {
+                            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <span class="flex-1 text-sm text-gray-300">{{ ausbildung }}</span>
+                              <button
+                                type="button"
+                                (click)="removeZusatzausbildung(i)"
+                                class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors"
+                              >
+                                <span class="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            </div>
+                          }
+                          <div class="flex gap-2">
+                            <input
+                              #ausbildungInput
+                              type="text"
+                              placeholder="Zusatzausbildung hinzufügen..."
+                              class="form-input flex-1"
+                              (keyup.enter)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''"
+                            />
+                            <button
+                              type="button"
+                              (click)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''"
+                              class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors"
+                            >
+                              <span class="material-symbols-outlined text-sm">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Beruflich Step -->
+                @case ('beruflich') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">work</span>
+                      <h3 class="text-lg font-medium text-white">Berufliches</h3>
+                      <p class="text-sm text-gray-400">Ausbildung und Arbeitgeber</p>
+                    </div>
+  
+                    <div class="space-y-6">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <zso-input-field
+                          formControlName="erlernterBeruf"
+                          label="Erlernter Beruf"
+                          placeholder="Informatiker"
+                        ></zso-input-field>
+  
+                        <zso-input-field
+                          formControlName="ausgeubterBeruf"
+                          label="Ausgeübter Beruf"
+                          placeholder="Software-Entwickler"
+                        ></zso-input-field>
+                      </div>
+  
+                      <zso-input-field
+                        formControlName="arbeitgeber"
+                        label="Arbeitgeber"
+                        placeholder="Firma AG"
+                      ></zso-input-field>
+  
+                      <zso-input-field
+                        formControlName="zivileSpezialausbildung"
+                        label="Zivile Spezialausbildung"
+                        placeholder="z.B. Erste Hilfe, Rettungssanitäter"
+                      ></zso-input-field>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Führerausweis-Kategorien
+                        </label>
+                        <select
+                          multiple
+                          formControlName="fuehrerausweis"
+                          class="form-input w-full h-32"
+                          (change)="onFuehrerausweisChange($event)"
+                        >
+                          @for (kategorie of fuehrerausweisKategorien; track kategorie) {
+                            <option [value]="kategorie">Kategorie {{ kategorie }}</option>
+                          }
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Mehrfachauswahl mit Ctrl/Cmd + Klick</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Persönlich Step -->
+                @case ('persoenlich') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">favorite</span>
+                      <h3 class="text-lg font-medium text-white">Persönliches</h3>
+                      <p class="text-sm text-gray-400">Gesundheit und Besonderheiten</p>
+                    </div>
+  
+                    <div class="space-y-6">
+                      <zso-input-field
+                        formControlName="blutgruppe"
+                        label="Blutgruppe"
+                        placeholder="A+"
+                      ></zso-input-field>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Allergien
+                        </label>
+                        <div class="space-y-2">
+                          @for (allergie of selectedAllergien; track allergie; let i = $index) {
+                            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <span class="flex-1 text-sm text-gray-300">{{ allergie }}</span>
+                              <button
+                                type="button"
+                                (click)="removeAllergie(i)"
+                                class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors"
+                              >
+                                <span class="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            </div>
+                          }
+                          <div class="flex gap-2">
+                            <input
+                              #allergieInput
+                              type="text"
+                              placeholder="Allergie hinzufügen..."
+                              class="form-input flex-1"
+                              (keyup.enter)="addAllergie(allergieInput.value); allergieInput.value = ''"
+                            />
+                            <button
+                              type="button"
+                              (click)="addAllergie(allergieInput.value); allergieInput.value = ''"
+                              class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors"
+                            >
+                              <span class="material-symbols-outlined text-sm">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Essgewohnheiten
+                        </label>
+                        <div class="space-y-2">
+                          @for (essgewohnheit of selectedEssgewohnheiten; track essgewohnheit; let i = $index) {
+                            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <span class="flex-1 text-sm text-gray-300">{{ essgewohnheit }}</span>
+                              <button
+                                type="button"
+                                (click)="removeEssgewohnheit(i)"
+                                class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors"
+                              >
+                                <span class="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            </div>
+                          }
+                          <div class="flex gap-2">
+                            <input
+                              #essgewohnheitInput
+                              type="text"
+                              placeholder="z.B. Vegetarisch, Vegan, Laktosefrei..."
+                              class="form-input flex-1"
+                              (keyup.enter)="addEssgewohnheit(essgewohnheitInput.value); essgewohnheitInput.value = ''"
+                            />
+                            <button
+                              type="button"
+                              (click)="addEssgewohnheit(essgewohnheitInput.value); essgewohnheitInput.value = ''"
+                              class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors"
+                            >
+                              <span class="material-symbols-outlined text-sm">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Sprachkenntnisse
+                        </label>
+                        <div class="space-y-2">
+                          @for (sprache of selectedSprachen; track sprache; let i = $index) {
+                            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <span class="flex-1 text-sm text-gray-300">{{ sprache }}</span>
+                              <button
+                                type="button"
+                                (click)="removeSprache(i)"
+                                class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors"
+                              >
+                                <span class="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            </div>
+                          }
+                          <div class="flex gap-2">
+                            <input
+                              #spracheInput
+                              type="text"
+                              placeholder="z.B. Französisch B1, Englisch C2..."
+                              class="form-input flex-1"
+                              (keyup.enter)="addSprache(spracheInput.value); spracheInput.value = ''"
+                            />
+                            <button
+                              type="button"
+                              (click)="addSprache(spracheInput.value); spracheInput.value = ''"
+                              class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors"
+                            >
+                              <span class="material-symbols-outlined text-sm">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+  
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Besonderheiten
+                        </label>
+                        <div class="space-y-2">
+                          @for (besonderheit of selectedBesonderheiten; track besonderheit; let i = $index) {
+                            <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <span class="flex-1 text-sm text-gray-300">{{ besonderheit }}</span>
+                              <button
+                                type="button"
+                                (click)="removeBesonderheit(i)"
+                                class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors"
+                              >
+                                <span class="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            </div>
+                          }
+                          <div class="flex gap-2">
+                            <input
+                              #besonderheitInput
+                              type="text"
+                              placeholder="z.B. Rollstuhlfahrer, Hörgerät..."
+                              class="form-input flex-1"
+                              (keyup.enter)="addBesonderheit(besonderheitInput.value); besonderheitInput.value = ''"
+                            />
+                            <button
+                              type="button"
+                              (click)="addBesonderheit(besonderheitInput.value); besonderheitInput.value = ''"
+                              class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors"
+                            >
+                              <span class="material-symbols-outlined text-sm">add</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Präferenzen Step -->
+                @case ('preferences') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">settings</span>
+                      <h3 class="text-lg font-medium text-white">Präferenzen</h3>
+                      <p class="text-sm text-gray-400">Kommunikations-Einstellungen</p>
+                    </div>
+  
+                    <div class="space-y-6">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                          Bevorzugte Kontakt-Methode
+                        </label>
+                        <select formControlName="contactMethod" class="form-input w-full">
+                          <option value="digital">Digital (E-Mail)</option>
+                          <option value="paper">Papier (Post)</option>
+                          <option value="both">Digital & Papier</option>
+                        </select>
+                      </div>
+  
+                      <label class="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                        <input
+                          type="checkbox"
+                          formControlName="emailNotifications"
+                          class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-cp-orange focus:ring-2 focus:ring-cp-orange/20"
+                        />
+                        <div>
+                          <span class="text-sm font-medium text-gray-300">E-Mail-Benachrichtigungen</span>
+                          <p class="text-xs text-gray-500">Informationen über Termine und Aufgebote per E-Mail erhalten</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                }
+  
+                <!-- Zusammenfassung Step -->
+                @case ('zusammenfassung') {
+                  <div class="space-y-6">
+                    <div class="text-center mb-6">
+                      <span class="material-symbols-outlined text-4xl text-cp-orange mb-2 block">preview</span>
+                      <h3 class="text-lg font-medium text-white">Zusammenfassung</h3>
+                      <p class="text-sm text-gray-400">Bitte überprüfen Sie alle Angaben</p>
+                    </div>
+  
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <!-- Grunddaten & Kontakt -->
+                      <div class="glass-card p-4">
+                        <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+                          <span class="material-symbols-outlined text-cp-orange text-sm">person</span>
+                          Person & Kontakt
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div><span class="text-gray-400">Name:</span> <span class="text-white ml-2">{{ getFormValue('vorname') }} {{ getFormValue('nachname') }}</span></div>
+                          <div><span class="text-gray-400">Geboren:</span> <span class="text-white ml-2">{{ getFormValue('geburtsdatum') }}</span></div>
+                          <div><span class="text-gray-400">E-Mail:</span> <span class="text-white ml-2">{{ getFormValue('email') }}</span></div>
+                          <div><span class="text-gray-400">Mobil:</span> <span class="text-white ml-2">{{ getFormValue('telefonMobil') }}</span></div>
+                          <div><span class="text-gray-400">Adresse:</span> <span class="text-white ml-2">{{ getFormValue('strasse') }}, {{ getFormValue('plz') }} {{ getFormValue('ort') }}</span></div>
+                        </div>
+                      </div>
+  
+                      <!-- Zivilschutz -->
+                      <div class="glass-card p-4">
+                        <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+                          <span class="material-symbols-outlined text-cp-orange text-sm">shield</span>
+                          Zivilschutz
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div><span class="text-gray-400">Grad:</span> <span class="text-white ml-2">{{ getFormValue('grad') }}</span></div>
+                          <div><span class="text-gray-400">Funktion:</span> <span class="text-white ml-2">{{ getFormValue('funktion') }}</span></div>
+                          <div><span class="text-gray-400">Status:</span> <span class="text-white ml-2">{{ getFormValue('status') | titlecase }}</span></div>
+                          <div><span class="text-gray-400">Einteilung:</span> <span class="text-white ml-2">Zug {{ getFormValue('zug') }}, Gruppe {{ getFormValue('gruppe') }}</span></div>
+                          @if (selectedZusatzausbildungen.length > 0) {
+                            <div><span class="text-gray-400">Zusatzausbildungen:</span> 
+                              <div class="ml-2 flex flex-wrap gap-1 mt-1">
+                                @for (ausbildung of selectedZusatzausbildungen; track ausbildung) {
+                                  <span class="text-xs px-2 py-1 rounded bg-cp-orange/20 text-cp-orange">{{ ausbildung }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+  
+                      <!-- Berufliches -->
+                      <div class="glass-card p-4">
+                        <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+                          <span class="material-symbols-outlined text-cp-orange text-sm">work</span>
+                          Berufliches
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div><span class="text-gray-400">Beruf:</span> <span class="text-white ml-2">{{ getFormValue('ausgeubterBeruf') || getFormValue('erlernterBeruf') || 'Nicht angegeben' }}</span></div>
+                          <div><span class="text-gray-400">Arbeitgeber:</span> <span class="text-white ml-2">{{ getFormValue('arbeitgeber') || 'Nicht angegeben' }}</span></div>
+                          @if (selectedFuehrerausweis.length > 0) {
+                            <div><span class="text-gray-400">Führerausweis:</span> 
+                              <div class="ml-2 flex flex-wrap gap-1 mt-1">
+                                @for (kategorie of selectedFuehrerausweis; track kategorie) {
+                                  <span class="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300">{{ kategorie }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+  
+                      <!-- Persönlich -->
+                      <div class="glass-card p-4">
+                        <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+                          <span class="material-symbols-outlined text-cp-orange text-sm">favorite</span>
+                          Persönliches
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div><span class="text-gray-400">Blutgruppe:</span> <span class="text-white ml-2">{{ getFormValue('blutgruppe') || 'Nicht angegeben' }}</span></div>
+                          @if (selectedAllergien.length > 0) {
+                            <div><span class="text-gray-400">Allergien:</span> 
+                              <div class="ml-2 flex flex-wrap gap-1 mt-1">
+                                @for (allergie of selectedAllergien; track allergie) {
+                                  <span class="text-xs px-2 py-1 rounded bg-rose-500/20 text-rose-300">{{ allergie }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (selectedEssgewohnheiten.length > 0) {
+                            <div><span class="text-gray-400">Essgewohnheiten:</span> 
+                              <div class="ml-2 flex flex-wrap gap-1 mt-1">
+                                @for (essgewohnheit of selectedEssgewohnheiten; track essgewohnheit) {
+                                  <span class="text-xs px-2 py-1 rounded bg-green-500/20 text-green-300">{{ essgewohnheit }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                          @if (selectedSprachen.length > 0) {
+                            <div><span class="text-gray-400">Sprachen:</span> 
+                              <div class="ml-2 flex flex-wrap gap-1 mt-1">
+                                @for (sprache of selectedSprachen; track sprache) {
+                                  <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300">{{ sprache }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+  
+                      <!-- Präferenzen -->
+                      <div class="glass-card p-4 lg:col-span-2">
+                        <h4 class="font-medium text-white mb-3 flex items-center gap-2">
+                          <span class="material-symbols-outlined text-cp-orange text-sm">settings</span>
+                          Präferenzen
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div><span class="text-gray-400">Kontakt-Methode:</span> <span class="text-white ml-2">{{ getContactMethodLabel(getFormValue('contactMethod')) }}</span></div>
+                          <div><span class="text-gray-400">E-Mail-Benachrichtigungen:</span> <span class="text-white ml-2">{{ getFormValue('emailNotifications') ? 'Aktiviert' : 'Deaktiviert' }}</span></div>
+                        </div>
+                      </div>
+                    </div>
+  
+                    <!-- Error Display -->
+                    @if (errorMsg) {
+                      <div class="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                        <div class="flex items-center gap-2">
+                          <span class="material-symbols-outlined text-rose-400">error</span>
+                          <p class="text-sm text-rose-300">{{ errorMsg }}</p>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </form>
+          </div>
+  
+          <!-- Footer Actions -->
+          <div class="p-4 sm:p-6 border-t border-white/10 flex justify-between items-center">
+            <div class="text-sm text-gray-400">
+              Schritt {{ currentStep + 1 }} von {{ steps.length }}
+            </div>
+  
+            <div class="flex gap-3">
+              @if (currentStep > 0) {
+                <zso-button
+                  type="neutral"
+                  size="sm"
+                  (click)="previousStep()"
+                  [disabled]="isSaving"
+                >
+                  <span class="material-symbols-outlined text-sm mr-1">arrow_back</span>
+                  Zurück
+                </zso-button>
+              }
+  
+              @if (currentStep < steps.length - 1) {
+                <zso-button
+                  type="primary"
+                  size="sm"
+                  (click)="nextStep()"
+                  [disabled]="!isCurrentStepValid() || isSaving"
+                >
+                  Weiter
+                  <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span>
+                </zso-button>
+              } @else {
+                <zso-button
+                  type="primary"
+                  size="sm"
+                  (click)="handleSave()"
+                  [disabled]="!mainForm.valid || isSaving || isSubmitting"
+                  [loading]="isSaving || isSubmitting"
+                >
+                  {{ isSaving || isSubmitting ? 'Erstelle Person...' : 'Person erstellen' }}
+                </zso-button>
+              }
+            </div>
+          </div>
         </div>
-
-        <div class="mt-6 flex flex-col gap-3 sticky bottom-0 bg-black/30 backdrop-blur-md p-4 -mx-4">
-          <zso-button type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-          <zso-button type="primary" (click)="handleSave()" [disabled]="!mainForm.valid || isSaving" [loading]="isSaving">
-            {{ isSaving ? 'Erstelle Person...' : 'Person erstellen' }}
-          </zso-button>
-        </div>
       </div>
-    </div>
-
-    <!-- MOBILE FOOTER -->
-    <div class="sm:hidden fixed bottom-0 inset-x-0 p-4 backdrop-blur-md bg-black/50 flex justify-between gap-3 z-50">
-      <zso-button class="flex-1" type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-      <zso-button class="flex-1" type="primary" (click)="handleSave()" [disabled]="!mainForm.valid || isSaving" [loading]="isSaving">
-        {{ isSaving ? 'Erstelle...' : 'Erstellen' }}
-      </zso-button>
-    </div>
-  </div>
-</div>

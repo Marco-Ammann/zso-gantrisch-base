@@ -3,20 +3,9 @@
   <label [for]="id" class="input-label">{{ label }}</label>
 
   <div class="relative">
-    <!-- Input or Select based on 'select' flag (Angular 17 control-flow) -->
-    @if (!select) {
-      <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10 w-full" [formControl]="control"
-        (blur)="onTouched()" [attr.aria-label]="label"
-        [attr.aria-invalid]="control.touched ? control.invalid : 'unset'" />
-    } @else {
-      <select [id]="id" class="w-full rounded-md border border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cp-orange/40 focus:border-cp-orange py-2 pl-3 pr-8 transition-colors hover:bg-gray-700 appearance-none" [formControl]="control" (blur)="onTouched()"
-        [attr.aria-label]="label" [attr.aria-invalid]="control.touched ? control.invalid : 'unset'">
-        <option value="" disabled hidden selected>Bitte wählen</option>
-        <option *ngFor="let opt of options" [ngValue]="getOptionValue(opt)">
-          {{ getOptionLabel(opt) }}
-        </option>
-      </select>
-    }
+    <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10" [formControl]="control"
+      (blur)="onTouched()" [attr.aria-label]="label"
+      [attr.aria-invalid]="control.touched ? control.invalid : 'unset'" />
 
     @if (toggleVisibility && type === 'password') {
     <button type="button" (click)="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center h-full cursor-pointer 
