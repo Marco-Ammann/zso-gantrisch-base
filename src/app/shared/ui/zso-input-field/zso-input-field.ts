@@ -1,5 +1,6 @@
 // src/app/shared/ui/zso-input-field/zso-input-field.ts
 import { Component, Input, forwardRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormControl,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'zso-input-field',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -24,6 +25,10 @@ import {
 export class ZsoInputField implements ControlValueAccessor {
   @Input() label = '';
   @Input() type: 'text' | 'email' | 'password' | 'date' | 'tel' = 'text';
+  /** Render a <select> dropdown instead of <input> */
+  @Input() select = false;
+  /** Options for the select dropdown. Can be primitive array or array of {label,value} objects */
+  @Input() options: any[] = [];
   @Input() placeholder = '';
   @Input() toggleVisibility = false;
 
@@ -67,7 +72,15 @@ export class ZsoInputField implements ControlValueAccessor {
     this.onTouched = fn;
   }
   onTouched = () => {};
-  setDisabledState(d: boolean) {
-    d ? this.control.disable() : this.control.enable();
+  setDisabledState(isDisabled: boolean) {
+    isDisabled ? this.control.disable() : this.control.enable();
+  }
+
+  // Helpers for select options
+  getOptionLabel(opt: any): string {
+    return typeof opt === 'object' && opt !== null ? (opt.label ?? opt.value ?? '') : String(opt);
+  }
+  getOptionValue(opt: any): any {
+    return typeof opt === 'object' && opt !== null ? (opt.value ?? opt.label) : opt;
   }
 }

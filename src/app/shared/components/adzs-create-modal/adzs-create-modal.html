@@ -15,7 +15,7 @@
     <div class="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-black/30 sm:bg-transparent sticky top-0 sm:static backdrop-blur-md z-10">
       <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
         <span class="material-symbols-outlined text-cp-orange">person_add</span>
-        Neue Person erfassen
+        {{ person ? 'Person bearbeiten' : 'Neue Person erfassen' }}
       </h2>
       <button
         (click)="cancel()"
@@ -301,8 +301,16 @@
         <div class="space-y-2 text-sm">
           <p><span class="text-gray-400">Name:</span> <span class="text-white ml-1">{{ mainForm.value.vorname }} {{ mainForm.value.nachname }}</span></p>
           <p><span class="text-gray-400">Geburtsdatum:</span> <span class="text-white ml-1">{{ mainForm.value.geburtsdatum | date:'dd.MM.yyyy' }}</span></p>
-          <p><span class="text-gray-400">Kontakt:</span> <span class="text-white ml-1">{{ mainForm.value.email || '-' }}</span></p>
-          <!-- Add more preview fields as desired -->
+          <p><span class="text-gray-400">Grad / Funktion:</span> <span class="text-white ml-1">{{ mainForm.value.grad }} / {{ mainForm.value.funktion }}</span></p>
+          <p><span class="text-gray-400">Status:</span> <span class="text-white ml-1">{{ mainForm.value.status }}</span></p>
+          <p><span class="text-gray-400">Zug / Gruppe:</span> <span class="text-white ml-1">{{ mainForm.value.zug }} / {{ mainForm.value.gruppe }}</span></p>
+          <p><span class="text-gray-400">Erlernter Beruf:</span> <span class="text-white ml-1">{{ mainForm.value.erlernterBeruf }}</span></p>
+          <p><span class="text-gray-400">Ausgeübter Beruf:</span> <span class="text-white ml-1">{{ mainForm.value.ausgeubterBeruf }}</span></p>
+          <p><span class="text-gray-400">Führerausweis:</span> <span class="text-white ml-1">{{ selectedFuehrerausweis.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Allergien:</span> <span class="text-white ml-1">{{ selectedAllergien.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Sprachen:</span> <span class="text-white ml-1">{{ selectedSprachen.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Essgewohnheiten:</span> <span class="text-white ml-1">{{ selectedEssgewohnheiten.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Besonderheiten:</span> <span class="text-white ml-1">{{ selectedBesonderheiten.join(', ') }}</span></p>
         </div>
 
         <div class="mt-6 flex flex-col gap-3 sticky bottom-0 bg-black/30 backdrop-blur-md p-4 -mx-4">

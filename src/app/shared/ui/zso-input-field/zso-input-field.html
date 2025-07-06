@@ -3,30 +3,30 @@
   <label [for]="id" class="input-label">{{ label }}</label>
 
   <div class="relative">
-    <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10" [formControl]="control"
-      (blur)="onTouched()" [attr.aria-label]="label"
-      [attr.aria-invalid]="control.touched ? control.invalid : 'unset'" />
+    <!-- Select dropdown variant -->
+    <select *ngIf="select; else inputTpl" [id]="id" class="form-input pr-10" [formControl]="control" (blur)="onTouched()"
+            [attr.aria-label]="label" [attr.aria-invalid]="control.touched ? control.invalid : 'unset'">
+      <option value="" disabled selected hidden>{{ placeholder || 'Bitte wählen' }}</option>
+      <ng-container *ngFor="let opt of options">
+        <option [ngValue]="getOptionValue(opt)">{{ getOptionLabel(opt) }}</option>
+      </ng-container>
+    </select>
+    <ng-template #inputTpl>
+      <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10" [formControl]="control"
+        (blur)="onTouched()" [attr.aria-label]="label"
+        [attr.aria-invalid]="control.touched ? control.invalid : 'unset'" />
 
-    @if (toggleVisibility && type === 'password') {
-    <button type="button" (click)="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center h-full cursor-pointer 
-               text-gray-400 hover:text-white transition-colors" [attr.aria-pressed]="show"
-      aria-label="Passwort anzeigen/verbergen">
-
-      @if (!show) {
-      <!-- Eye closed -->
-      <span class="material-symbols-outlined text-lg">visibility_off</span>
-      } @else {
-      <!-- Eye open -->
-      <span class="material-symbols-outlined text-lg">visibility</span>
-      }
-    </button>
-    }
+      <button *ngIf="toggleVisibility && type === 'password'" type="button" (click)="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center h-full cursor-pointer 
+                 text-gray-400 hover:text-white transition-colors" [attr.aria-pressed]="show"
+        aria-label="Passwort anzeigen/verbergen">
+        <span class="material-symbols-outlined text-lg" *ngIf="!show">visibility_off</span>
+        <span class="material-symbols-outlined text-lg" *ngIf="show">visibility</span>
+      </button>
+    </ng-template>
   </div>
 
-  @if (control.touched && control.invalid) {
-  <div class="mt-2 flex items-center gap-1.5">
+  <div class="mt-2 flex items-center gap-1.5" *ngIf="control.touched && control.invalid">
     <span class="material-symbols-outlined text-rose-400 text-sm">error</span>
     <p class="text-sm text-rose-400">{{ getError() }}</p>
   </div>
-  }
 </div>

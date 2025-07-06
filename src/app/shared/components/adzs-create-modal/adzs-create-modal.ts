@@ -41,7 +41,14 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
   })
   export class AdzsCreateModal implements OnInit, OnDestroy {
+  /** which accordion section is currently open; empty string = none */
+  openSection: string = 'grunddaten';
     @Input() visible = false;
+  /** Optional person for edit mode */
+  @Input() person?: PersonDoc;
+
+  /** Convenience flag */
+  get isEditMode(): boolean { return !!this.person; }
     @Output() created = new EventEmitter<PersonDoc>();
     @Output() closed = new EventEmitter<void>();
   
@@ -100,6 +107,13 @@ import {
     readonly zugOptions = [1, 2];
     readonly gruppeOptions = ['A', 'B', 'C', 'D'];
     readonly fuehrerausweisKategorien = ['A', 'A1', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'BE', 'C1E', 'CE', 'D1E', 'DE'];
+
+  // Contact method dropdown options
+  readonly contactMethodOptions = [
+    { label: 'Digital (E-Mail)', value: 'digital' },
+    { label: 'Papier (Post)', value: 'paper' },
+    { label: 'Digital & Papier', value: 'both' },
+  ];
   
     ngOnInit(): void {
       this.initForm();
@@ -261,13 +275,33 @@ import {
       this.cdr.markForCheck();
     }
   
-    onFuehrerausweisChange(event: any): void {
+    // Checkbox toggle handler for Führerausweiskategorien
+  onFuehrerausweisToggle(kategorie: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked && !this.selectedFuehrerausweis.includes(kategorie)) {
+      this.selectedFuehrerausweis.push(kategorie);
+    } else if (!checked) {
+      this.selectedFuehrerausweis = this.selectedFuehrerausweis.filter(k => k !== kategorie);
+    }
+    this.mainForm.get('fuehrerausweis')?.setValue(this.selectedFuehrerausweis);
+    this.cdr.markForCheck();
+  }
+
+  // kept for backwards compatibility with multi-select <select> variant
+  onFuehrerausweisChange(event: any): void {
       const selectedOptions = Array.from(event.target.selectedOptions, (option: any) => option.value);
       this.selectedFuehrerausweis = selectedOptions;
       this.cdr.markForCheck();
     }
   
-    // Utility
+    // Accordion toggle
+  toggleSection(section: string, event: Event): void {
+    event?.preventDefault();
+    this.openSection = this.openSection === section ? '' : section;
+    this.cdr.markForCheck();
+  }
+
+  // Utility
     getFormValue(field: string): any {
       return this.mainForm.get(field)?.value || '';
     }
@@ -399,6 +433,7 @@ import {
       this.selectedAllergien = [];
       this.selectedSprachen = [];
       this.selectedFuehrerausweis = [];
+
       this.selectedZusatzausbildungen = [];
       this.selectedEssgewohnheiten = [];
       this.selectedBesonderheiten = [];
