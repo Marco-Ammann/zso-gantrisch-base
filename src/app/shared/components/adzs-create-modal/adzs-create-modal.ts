@@ -100,37 +100,11 @@ import {
     ];
   
     readonly statusOptions = ['aktiv', 'neu', 'inaktiv'];
-    readonly zugOptions: Array<{ value: number; label: string }> = [
-    { value: 1, label: 'Zug 1' },
-    { value: 2, label: 'Zug 2' },
-  ];
+    readonly zugOptions = [1, 2];
     readonly gruppeOptions = ['A', 'B', 'C', 'D'];
     readonly fuehrerausweisKategorien = ['A', 'A1', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'BE', 'C1E', 'CE', 'D1E', 'DE'];
-
-  /**
-   * Options for the Kontakt-Methode dropdown in the Präferenzen section.
-   * Using objects allows user-friendly labels while persisting concise values.
-   */
-  readonly contactMethodOptions: Array<{ value: 'digital' | 'paper' | 'both'; label: string }> = [
-    { value: 'digital', label: 'Digital (E-Mail)' },
-    { value: 'paper', label: 'Papier (Post)' },
-    { value: 'both', label: 'Digital & Papier' },
-  ];
   
-    /**
-   * Currently opened accordion section key.
-   */
-  openSection: string = 'grunddaten';
-
-  /**
-   * Toggle accordion section. Prevents the native <details> toggle so we can control state manually.
-   */
-  toggleSection(section: string, ev?: Event) {
-    ev?.preventDefault();
-    this.openSection = this.openSection === section ? '' : section;
-  }
-
-  ngOnInit(): void {
+    ngOnInit(): void {
       this.initForm();
       this.logger.log('AdzsCreateModal', 'Component initialized');
     }

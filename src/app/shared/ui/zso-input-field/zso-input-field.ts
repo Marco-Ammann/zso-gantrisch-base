@@ -1,6 +1,5 @@
 // src/app/shared/ui/zso-input-field/zso-input-field.ts
 import { Component, Input, forwardRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormControl,
@@ -12,7 +11,7 @@ import {
 @Component({
   selector: 'zso-input-field',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -28,18 +27,6 @@ export class ZsoInputField implements ControlValueAccessor {
   @Input() placeholder = '';
   @Input() toggleVisibility = false;
 
-  /**
-   * When true, renders a native <select> element instead of an <input>.
-   * Existing usages without this input remain unaffected.
-   */
-  @Input() select = false;
-
-  /**
-   * Options for the select dropdown. Accepts simple string array or
-   * array of objects with value / label.
-   */
-  @Input() options: Array<string | { value: any; label: string }> = [];
-
   control = new FormControl(
     '',
     this.type === 'email'
@@ -49,14 +36,6 @@ export class ZsoInputField implements ControlValueAccessor {
 
   id = crypto.randomUUID();
   show = false;
-
-  /* Helper to normalise option */
-  getOptionValue(opt: any) {
-    return opt && typeof opt === 'object' && 'label' in opt ? opt.value : opt;
-  }
-  getOptionLabel(opt: any) {
-    return opt && typeof opt === 'object' && 'label' in opt ? opt.label : String(opt);
-  }
 
   get resolvedType() {
     return this.toggleVisibility && this.type === 'password'

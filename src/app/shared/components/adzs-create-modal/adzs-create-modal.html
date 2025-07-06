@@ -1,14 +1,15 @@
 <!-- Backdrop -->
 <div
-  class="fixed inset-0 bg-black/50 z-50 flex justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-200"
+  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 opacity-0 pointer-events-none transition-opacity duration-200"
   [class.opacity-100]="visible"
   [class.pointer-events-auto]="visible"
   (click)="onBackdrop($event)"
 >
   <!-- Dialog / Page wrapper -->
   <div
-    class="glass-card w-full flex flex-col mx-auto overflow-hidden transform transition-transform duration-200 translate-y-full md:translate-y-0 sm:max-w-3xl md:max-w-4xl lg:max-w-5xl sm:rounded-lg max-h-[calc(100vh-5.5rem)]"
-    [class.translate-y-0]="visible"
+    class="glass-card w-full h-full sm:h-auto mx-auto overflow-hidden transform transition-all scale-95 
+           sm:max-w-3xl md:max-w-4xl lg:max-w-5xl sm:rounded-lg"
+    [class.scale-100]="visible"
     (click)="$event.stopPropagation()"
   >
     <!-- HEADER (phones: sticky top bar) -->
@@ -27,7 +28,7 @@
     </div>
 
     <!-- CONTENT AREA -->
-    <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+    <div class="flex flex-col md:flex-row h-full">
       <!-- FORM COLUMN -->
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
         <form [formGroup]="mainForm" class="space-y-4">
@@ -139,18 +140,12 @@
               <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"></zso-input-field>
               <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Führerausweis-Kategorien</label>
-                <div class="flex flex-wrap gap-3">
+                <select multiple formControlName="fuehrerausweis" class="form-input w-full h-32" (change)="onFuehrerausweisChange($event)">
                   @for (kategorie of fuehrerausweisKategorien; track kategorie) {
-                    <label class="inline-flex items-center gap-1 text-sm text-gray-200">
-                      <input type="checkbox"
-                             class="form-checkbox text-cp-orange"
-                             [checked]="selectedFuehrerausweis.includes(kategorie)"
-                             (change)="onFuehrerausweisToggle(kategorie, $event)" />
-                      <span>Kat. {{ kategorie }}</span>
-                    </label>
+                    <option [value]="kategorie">Kategorie {{ kategorie }}</option>
                   }
-                </div>
-                <p class="text-xs text-gray-500 mt-1">Mehrfachauswahl möglich</p>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Mehrfachauswahl mit Ctrl/Cmd + Klick</p>
               </div>
             </div>
           </details>
