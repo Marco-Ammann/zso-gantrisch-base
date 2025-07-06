@@ -10,7 +10,7 @@ import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
   } from '@angular/core';
-  import { CommonModule } from '@angular/common';
+  import { CommonModule, DOCUMENT } from '@angular/common';
   import {
     ReactiveFormsModule,
     FormBuilder,
@@ -41,7 +41,13 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
   })
   export class AdzsCreateModal implements OnInit, OnDestroy {
-    @Input() visible = false;
+    private _visible = false;
+  @Input()
+  set visible(val: boolean) {
+    this._visible = val;
+    this.toggleBodyScroll(val);
+  }
+  get visible() { return this._visible; }
     @Output() created = new EventEmitter<PersonDoc>();
     @Output() closed = new EventEmitter<void>();
   
@@ -49,6 +55,7 @@ import {
     private readonly logger = inject(LoggerService);
     private readonly fb = inject(FormBuilder);
     private readonly cdr = inject(ChangeDetectorRef);
+  private readonly doc = inject(DOCUMENT) as Document;
     private readonly destroy$ = new Subject<void>();
   
     // State
@@ -80,9 +87,6 @@ import {
     readonly gradOptions = [
       'Soldat',
       'Korporal',
-      'Wachtmeister',
-      'Oberwachtmeister',
-      'Adjutant',
       'Leutnant',
       'Oberleutnant',
       'Hauptmann',
@@ -92,8 +96,7 @@ import {
       'Betreuer',
       'C-Betreuer',
       'Betreuer Uof',
-      'Gruppenführer',
-      'Zugführer',
+      'Betreuer OF',
     ];
   
     readonly statusOptions = ['aktiv', 'neu', 'inaktiv'];
@@ -287,13 +290,51 @@ import {
       this.cdr.markForCheck();
     }
   
+    /**
+     * Legacy handler for the old <select multiple>. Kept for backward compatibility but no longer used.
+     */
     onFuehrerausweisChange(event: any): void {
       const selectedOptions = Array.from(event.target.selectedOptions, (option: any) => option.value);
       this.selectedFuehrerausweis = selectedOptions;
+      // Sync form control in case the old handler is still triggered somewhere
+      this.mainForm.get('fuehrerausweis')?.setValue(this.selectedFuehrerausweis);
+      this.cdr.markForCheck();
+    }
+
+    /**
+     * Toggle handler for checkbox list representation of Führerausweis-Kategorien.
+     * Adds or removes the given Kategorie from the selectedFuehrerausweis array and
+     * keeps the reactive form control in sync.
+     */
+    onFuehrerausweisToggle(kategorie: string, event: Event): void {
+      const checked = (event.target as HTMLInputElement).checked;
+
+      if (checked) {
+        if (!this.selectedFuehrerausweis.includes(kategorie)) {
+          this.selectedFuehrerausweis.push(kategorie);
+        }
+      } else {
+        this.selectedFuehrerausweis = this.selectedFuehrerausweis.filter(k => k !== kategorie);
+      }
+
+      // Update form control so validators and valueChanges observers stay correct
+      this.mainForm.get('fuehrerausweis')?.setValue(this.selectedFuehrerausweis);
       this.cdr.markForCheck();
     }
   
-    // Utility
+      /**
+   * Lock page scroll when modal is open to prevent background scroll.
+   */
+  private toggleBodyScroll(lock: boolean) {
+    if (!this.doc || !this.doc.body) return;
+    if (lock) {
+      this.doc.body.classList.add('overflow-hidden');
+    } else {
+      this.doc.body.classList.remove('overflow-hidden');
+    }
+  }
+
+  // Utility
     getFormValue(field: string): any {
       return this.mainForm.get(field)?.value || '';
     }
