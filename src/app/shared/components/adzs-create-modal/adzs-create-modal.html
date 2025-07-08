@@ -315,8 +315,8 @@
 
         <div class="mt-6 flex flex-col gap-3 sticky bottom-0 bg-black/30 backdrop-blur-md p-4 -mx-4">
           <zso-button type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-          <zso-button type="primary" (click)="handleSave()" [disabled]="!mainForm.valid || isSaving" [loading]="isSaving">
-            {{ isSaving ? 'Erstelle Person...' : 'Person erstellen' }}
+          <zso-button type="primary" (click)="handleSave()" [disabled]="(!mainForm.valid && !isEditMode) || isSaving" [loading]="isSaving">
+            {{ isEditMode ? (isSaving ? 'Speichere...' : 'Speichern') : (isSaving ? 'Erstelle Person...' : 'Person erstellen') }}
           </zso-button>
         </div>
       </div>
@@ -325,8 +325,8 @@
     <!-- MOBILE FOOTER -->
     <div class="sm:hidden fixed bottom-0 inset-x-0 p-4 backdrop-blur-md bg-black/50 flex justify-between gap-3 z-50">
       <zso-button class="flex-1" type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-      <zso-button class="flex-1" type="primary" (click)="handleSave()" [disabled]="!mainForm.valid || isSaving" [loading]="isSaving">
-        {{ isSaving ? 'Erstelle...' : 'Erstellen' }}
+      <zso-button class="flex-1" type="primary" (click)="handleSave()" [disabled]="(!mainForm.valid && !isEditMode) || isSaving" [loading]="isSaving">
+        {{ isEditMode ? (isSaving ? 'Speichern...' : 'Speichern') : (isSaving ? 'Erstelle...' : 'Erstellen') }}
       </zso-button>
     </div>
   </div>

@@ -53,6 +53,9 @@ export interface PersonDoc {
     besonderheiten: string[];
   };
 
+  // Notfallkontakte
+  notfallkontakte?: NotfallkontaktDoc[];
+
   // Präferenzen (neu)
   preferences?: {
     contactMethod: 'digital' | 'paper' | 'both';

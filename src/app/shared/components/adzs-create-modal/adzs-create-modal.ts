@@ -1,6 +1,8 @@
 // src/app/shared/components/adzs-create-modal/adzs-create-modal.ts - Überarbeitet
 import {
     Component,
+    SimpleChanges,
+    OnChanges,
     EventEmitter,
     Input,
     Output,
@@ -40,7 +42,7 @@ import {
     styleUrls: ['./adzs-create-modal.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
   })
-  export class AdzsCreateModal implements OnInit, OnDestroy {
+  export class AdzsCreateModal implements OnInit, OnChanges, OnDestroy {
   /** which accordion section is currently open; empty string = none */
   openSection: string = 'grunddaten';
     @Input() visible = false;
@@ -117,16 +119,44 @@ import {
   
     ngOnInit(): void {
       this.initForm();
+      if (this.person) {
+        this.patchFormFromPerson(this.person);
+      }
       this.logger.log('AdzsCreateModal', 'Component initialized');
     }
   
-    ngOnDestroy(): void {
+    ngOnChanges(changes: SimpleChanges): void {
+    // Detect if the dialog just became visible (opening)
+    const becameVisible = changes['visible']?.currentValue === true && !changes['visible']?.previousValue;
+
+    // 1. When the @Input person reference itself changes -> straightforward patch
+    if (changes['person']?.currentValue) {
+      if (!this.mainForm) {
+        this.initForm();
+      }
+      this.patchFormFromPerson(changes['person'].currentValue as PersonDoc);
+      return;
+    }
+
+    // 2. When the modal becomes visible (first open) but the person reference didn't change.
+    //    In that case we rely on the already-set this.person instance.
+    if (becameVisible && this.person) {
+      if (!this.mainForm) {
+        this.initForm();
+      }
+      this.patchFormFromPerson(this.person);
+    }
+  }
+
+  ngOnDestroy(): void {
       this.destroy$.next();
       this.destroy$.complete();
       this.logger.log('AdzsCreateModal', 'Component destroyed');
     }
   
     private initForm(): void {
+      // Build form
+
       this.mainForm = this.fb.group({
         // Grunddaten
         vorname: ['', Validators.required],
@@ -137,8 +167,8 @@ import {
         strasse: ['', Validators.required],
         plz: ['', Validators.required],
         ort: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        telefonMobil: ['', Validators.required],
+        email: ['', [Validators.email]], // optional but must be valid if provided
+        telefonMobil: [''], // optional
         telefonFestnetz: [''],
         telefonGeschaeftlich: [''],
   
@@ -164,6 +194,11 @@ import {
         contactMethod: ['digital'],
         emailNotifications: [true],
       });
+
+      // Trigger CD when form validity changes (important with OnPush)
+      this.mainForm.statusChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.cdr.markForCheck());
     }
   
     // Step Navigation
@@ -327,7 +362,8 @@ import {
     }
   
     save(): void {
-      if (this.mainForm.invalid) {
+  // In edit mode we allow saving regardless of form validity
+  if (!this.isEditMode && this.mainForm.invalid) {
         this.mainForm.markAllAsTouched();
         this.errorMsg = 'Bitte füllen Sie alle Pflichtfelder aus.';
         return;
@@ -389,6 +425,28 @@ import {
         aktualisiertAm: Date.now(),
       };
   
+      if (this.isEditMode) {
+        // Update existing
+        const id = this.person!.id;
+        this.logger.log('AdzsCreateModal', 'Updating person', id, personData);
+        this.personService.update(id, { ...personData, aktualisiertAm: Date.now() }).pipe(takeUntil(this.destroy$)).subscribe({
+          next: () => {
+            this.logger.log('AdzsCreateModal', 'Person updated successfully', id);
+            this.created.emit({ ...personData, id } as PersonDoc);
+            this.reset();
+            this.closed.emit();
+          },
+          error: (error: any) => {
+            this.logger.error('AdzsCreateModal', 'Error updating person:', error);
+            this.errorMsg = 'Fehler beim Speichern der Person. Bitte versuchen Sie es erneut.';
+            this.isSaving = false;
+            this.isSubmitting = false;
+            this.cdr.markForCheck();
+          }
+        });
+        return;
+      }
+
       this.logger.log('AdzsCreateModal', 'Creating person with data:', personData);
   
       this.personService.create(personData).pipe(
@@ -425,6 +483,57 @@ import {
       }
     }
   
+    private patchFormFromPerson(person: PersonDoc): void {
+      // Grunddaten
+      this.mainForm.patchValue({
+        vorname: person.grunddaten.vorname,
+        nachname: person.grunddaten.nachname,
+        geburtsdatum: (() => {
+          const v = person.grunddaten.geburtsdatum as any;
+          const date = typeof v === 'number' ? new Date(v) : new Date(v.seconds * 1000);
+          return date.toISOString().substring(0,10);
+        })(),
+        grad: person.grunddaten.grad,
+        funktion: person.grunddaten.funktion,
+
+        // Kontakt
+        strasse: person.kontaktdaten.strasse,
+        plz: person.kontaktdaten.plz,
+        ort: person.kontaktdaten.ort,
+        email: person.kontaktdaten.email,
+        telefonMobil: person.kontaktdaten.telefonMobil,
+        telefonFestnetz: person.kontaktdaten.telefonFestnetz,
+        telefonGeschaeftlich: person.kontaktdaten.telefonGeschaeftlich,
+
+        // Zivilschutz
+        grundausbildung: person.zivilschutz.grundausbildung,
+        status: person.zivilschutz.status,
+        zug: person.zivilschutz.einteilung.zug,
+        gruppe: person.zivilschutz.einteilung.gruppe,
+
+        // Beruflich
+        erlernterBeruf: person.berufliches.erlernterBeruf,
+        ausgeubterBeruf: person.berufliches.ausgeubterBeruf,
+        arbeitgeber: person.berufliches.arbeitgeber,
+        zivileSpezialausbildung: person.berufliches.zivileSpezialausbildung,
+
+        // Persönlich
+        blutgruppe: person.persoenliches.blutgruppe,
+        contactMethod: person.preferences?.contactMethod || 'digital',
+        emailNotifications: person.preferences?.emailNotifications ?? true,
+      });
+
+      // Arrays
+      this.selectedFuehrerausweis = (person.berufliches as any)['fuehrerausweisKategorie'] ?? [];
+      this.selectedAllergien = person.persoenliches.allergien ?? [];
+      this.selectedSprachen = person.persoenliches.sprachkenntnisse ?? [];
+      this.selectedZusatzausbildungen = person.zivilschutz.zusatzausbildungen ?? [];
+      this.selectedEssgewohnheiten = person.persoenliches.essgewohnheiten ?? [];
+      this.selectedBesonderheiten = person.persoenliches.besonderheiten ?? [];
+
+      this.cdr.markForCheck();
+    }
+
     private reset(): void {
       this.currentStep = 0;
       this.isSaving = false;
