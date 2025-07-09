@@ -374,11 +374,40 @@ export class PersonService implements OnDestroy {
 
       return from(
         updateDoc(personDoc, {
-          userId: null,
+          userId: undefined,
           aktualisiertAm: Date.now(),
         })
       ).pipe(takeUntil(this.destroy$));
     });
+  }
+
+  /**
+   * Unlink a person by their linked userId (used when deleting user accounts)
+   */
+  unlinkByUserId(userId: string): Observable<void> {
+    if (!userId) return of(void 0);
+    return this.getByUserId(userId).pipe(
+      take(1),
+      switchMap(persons => {
+        if (persons.length === 0) return of(void 0);
+        const person = persons[0];
+        return this.update(person.id, { userId: undefined });
+      })
+    );
+  }
+
+  /**
+   * Internal helper – load persons linked to a userId
+   */
+  private getByUserId(userId: string): Observable<PersonDoc[]> {
+    try {
+      const personsCollection = collection(this.firestoreService.db, 'persons');
+      const q = query(personsCollection, where('userId', '==', userId));
+      return collectionData(q, { idField: 'id' }) as Observable<PersonDoc[]>;
+    } catch (err) {
+      this.logger.error('PersonService', 'getByUserId failed', err);
+      return of([]);
+    }
   }
 
   /**

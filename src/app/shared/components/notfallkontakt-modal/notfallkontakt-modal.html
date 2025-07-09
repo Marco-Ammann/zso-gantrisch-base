@@ -1,0 +1,40 @@
+<!-- Backdrop -->
+<div
+  class="fixed inset-0 bg-black/50 z-50 flex justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-200"
+  [class.opacity-100]="visible"
+  [class.pointer-events-auto]="visible"
+  (click)="cancel()"
+>
+  <!-- Dialog -->
+  <div
+    class="glass-card w-full mx-auto overflow-hidden transform transition-transform duration-200 translate-y-full md:translate-y-0 sm:max-w-md sm:rounded-lg"
+    [class.translate-y-0]="visible"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-white/10 bg-black/30 backdrop-blur-md">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <span class="material-symbols-outlined text-cp-orange text-base">emergency</span>
+        {{ isEditMode ? 'Notfallkontakt bearbeiten' : 'Notfallkontakt hinzufügen' }}
+      </h3>
+      <button (click)="cancel()" class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <form [formGroup]="form" class="p-4 space-y-4" (submit)="$event.preventDefault()">
+      <zso-input-field label="Name" formControlName="name" required></zso-input-field>
+      <zso-input-field label="Beziehung" formControlName="beziehung" required></zso-input-field>
+      <zso-input-field label="Telefonnummer" formControlName="telefonnummer" required></zso-input-field>
+      <zso-input-field label="Priorität" type="number" formControlName="prioritaet" required></zso-input-field>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <zso-button type="neutral" (click)="cancel()">Abbrechen</zso-button>
+        <zso-button type="primary" [loading]="isSaving" [disabled]="isSaving || !form.valid" (click)="save()" [htmlType]="'button'">
+          {{ isEditMode ? 'Speichern' : 'Hinzufügen' }}
+        </zso-button>
+      </div>
+    </form>
+  </div>
+</div>

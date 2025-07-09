@@ -107,28 +107,28 @@ export class DashboardPage implements OnInit, OnDestroy {
       label: 'AdZS Verwaltung',
       description: 'Angehörige des Zivilschutzes verwalten',
       route: '/adsz',
-      color: 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400'
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-blue-400'
     },
     {
       icon: 'school',
       label: 'Ausbildungen',
       description: 'Kurse und Trainings planen',
       route: '/training',
-      color: 'bg-green-500/20 hover:bg-green-500/30 text-green-400'
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-green-400'
     },
     {
       icon: 'emergency',
       label: 'Notfallkontakte',
       description: 'Wichtige Kontakte verwalten',
       route: '/emergency',
-      color: 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400'
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-amber-400'
     },
     {
       icon: 'admin_panel_settings',
       label: 'Benutzer verwalten',
       description: 'Systembenutzer administrieren',
       route: '/admin/users',
-      color: 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-400',
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-purple-400',
       requiresAdmin: true
     }
   ];

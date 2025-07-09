@@ -17,6 +17,8 @@ import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
 import { LoggerService } from '@core/services/logger.service';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-create-modal';
+import { NotfallkontaktModal } from '@shared/components/notfallkontakt-modal/notfallkontakt-modal';
+import { AdzsSummaryCard } from '@shared/components/adzs-summary-card/adzs-summary-card';
 
 @Component({
   selector: 'zso-adsz-detail',
@@ -26,6 +28,8 @@ import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-creat
     RouterModule,
     ZsoButton,
     AdzsCreateModal,
+    NotfallkontaktModal,
+    AdzsSummaryCard,
   ],
   templateUrl: './adsz-detail.page.html',
   styleUrls: ['./adsz-detail.page.scss'],
@@ -55,8 +59,10 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   isLoading = true;
   errorMsg: string | null = null;
 
-  // modal
+  // modals
   modalVisible = false;
+  nkModalVisible = false;
+  selectedKontakt: NotfallkontaktDoc | null = null;
 
   ngOnInit(): void {
     this.route.paramMap
@@ -133,8 +139,43 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
     ).toUpperCase();
   }
 
-  openEdit(): void {
+  back(): void {
+  this.router.navigate(['/adsz']);
+}
+
+openEdit(): void {
     this.modalVisible = true;
+  }
+
+  /* Emergency contacts CRUD */
+  openAddNk(): void {
+    this.selectedKontakt = null;
+    this.nkModalVisible = true;
+  }
+
+  openEditNk(k: NotfallkontaktDoc): void {
+    this.selectedKontakt = k;
+    this.nkModalVisible = true;
+  }
+
+  onNkSaved(k: NotfallkontaktDoc): void {
+    // Update local list (add or replace)
+    // Firestore snapshot listener will refresh list; avoid local duplicates
+    this.nkModalVisible = false;
+    this.cdr.markForCheck();
+  }
+
+  onNkClosed(): void {
+    this.nkModalVisible = false;
+    this.selectedKontakt = null;
+  }
+
+  deleteNk(id: string): void {
+    if (!confirm('Notfallkontakt löschen?')) return;
+    this.personService.deleteNotfallkontakt(id).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.notfallkontakte = this.notfallkontakte.filter(n => n.id !== id);
+      this.cdr.markForCheck();
+    });
   }
 
   onModalClosed(): void {

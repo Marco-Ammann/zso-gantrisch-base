@@ -22,6 +22,7 @@ import {
 } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideFunctions, getFunctions } from '@angular/fire/functions';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 // Environment
@@ -45,6 +46,9 @@ export function provideFirebase() {
 
     // Provide Firestore service
     provideFirestore(() => getFirestore()),
+
+    // Provide Cloud Functions service
+    provideFunctions(() => getFunctions()),
 
     // Cleanup on app destroy
     {

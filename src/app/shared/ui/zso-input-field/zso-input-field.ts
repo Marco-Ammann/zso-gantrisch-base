@@ -24,7 +24,7 @@ import {
 })
 export class ZsoInputField implements ControlValueAccessor {
   @Input() label = '';
-  @Input() type: 'text' | 'email' | 'password' | 'date' | 'tel' = 'text';
+  @Input() type: 'text' | 'email' | 'password' | 'date' | 'tel' | 'number' = 'text';
   /** Render a <select> dropdown instead of <input> */
   @Input() select = false;
   /** Options for the select dropdown. Can be primitive array or array of {label,value} objects */

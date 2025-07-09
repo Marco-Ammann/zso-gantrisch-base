@@ -15,11 +15,13 @@ import {
   query,
   orderBy,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Observable, from, of, throwError, Subject } from 'rxjs';
 import { switchMap, catchError, map, takeUntil } from 'rxjs/operators';
 
 import { UserDoc } from '@core/models/user-doc';
 import { FirestoreService } from './firestore.service';
+import { PersonService } from './person.service';
 import { LoggerService } from '@core/services/logger.service';
 
 interface Stats {
@@ -34,6 +36,8 @@ export class UserService implements OnDestroy {
   private readonly auth = inject(Auth);
   private readonly injector = inject(Injector);
   private readonly logger = inject(LoggerService);
+  private readonly functions = inject(Functions);
+  private readonly personService = inject(PersonService);
   private readonly destroy$ = new Subject<void>();
   private readonly fs = inject(FirestoreService);
 
@@ -328,6 +332,28 @@ export class UserService implements OnDestroy {
         return throwError(() => error);
       }),
       takeUntil(this.destroy$)
+    );
+  }
+
+  /**
+   * Delete an account as admin: unlink person, delete user doc, invoke Cloud Function to delete auth user.
+   */
+  deleteAccountByAdmin(uid: string): Observable<void> {
+    this.logger.warn('UserService', 'Admin deleting account', uid);
+
+    const deleteAuthFn = httpsCallable<{ uid: string }, void>(
+      this.functions,
+      'adminDeleteUser'
+    );
+
+    return this.personService.unlinkByUserId(uid).pipe(
+      switchMap(() => this.fs.deleteDoc(`users/${uid}`).pipe(catchError(() => of(void 0)))),
+      switchMap(() => from(deleteAuthFn({ uid })).pipe(
+        map(() => void 0),
+        catchError((err: any) => {
+        this.logger.error('UserService', 'Cloud function delete failed', err);
+        return of(void 0);
+      })))
     );
   }
 

@@ -9,7 +9,8 @@ import {
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { LoggerService } from '@core/services/logger.service';
-import { map, take } from 'rxjs/operators';
+import { map, take, filter } from 'rxjs/operators';
+import { AppUserCombined } from '../services/auth.service';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
@@ -20,13 +21,19 @@ export class AuthGuard implements CanActivate {
     private auth: AuthService,
     private router: Router,
     private logger: LoggerService
-  ) {}
+  ) {
+    this.logger.log('AuthGuard', 'constructor');
+    this.auth.appUser$.subscribe(user => {
+      this.logger.log('AuthGuard', 'appUser$', user);
+    });
+  }
 
   canActivate(
     _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
     return this.auth.appUser$.pipe(
+      filter((u): u is AppUserCombined => u !== null),
       take(1),
       map(user => {
         this.logger.log('AuthGuard', 'Checking access', { 

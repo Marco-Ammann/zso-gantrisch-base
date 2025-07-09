@@ -26,9 +26,9 @@
               <span class="font-medium">{{ currentDate | date:'EEEE, dd. MMMM yyyy':'de-CH' }}</span>
             </p>
           </div>
-          <div class="flex items-center gap-2 text-sm text-gray-400">
-            <span class="material-symbols-outlined">schedule</span>
-            <span>{{ currentDate | date:'HH:mm' }} Uhr</span>
+          <div class="flex items-center gap-2 text-sm text-gray-400 ">
+            <span class="material-symbols-outlined text-center text-4xl text-gray-400 transition-all duration-1000">schedule</span>
+            <span class="font-medium text-center text-3xl text-gray-400 transition-all duration-1000" style="line-height: 100%!important;">{{ currentDate | date:'HH:mm' }}</span> <!--this should refresh every time the time changes, please implement it-->
           </div>
         </div>
       </div>

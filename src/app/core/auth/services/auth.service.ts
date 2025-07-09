@@ -11,6 +11,7 @@ import {
   updateProfile, 
   onAuthStateChanged,
   UserCredential,
+  deleteUser,
   browserLocalPersistence,
   browserSessionPersistence,
   setPersistence
@@ -74,9 +75,8 @@ export class AuthService implements OnDestroy {
         this.logger.log('AuthService', 'User authenticated:', user.email);
         this.loadUserDoc(user.uid);
         this.updateLastActiveIfNeeded(user.uid);
-        
       } else {
-        this.logger.log('AuthService', 'User signed out');
+        this.logger.log('AuthService', 'User is signed out');
         this.userDoc$.next(null);
       }
     }, error => {
@@ -84,6 +84,14 @@ export class AuthService implements OnDestroy {
       this.authState$.next(null);
       this.userDoc$.next(null);
     });
+  }
+
+  public provideUserAuth(): Observable<User | null> {
+    return this.authState$;
+  }
+
+  public provideUserDoc(): Observable<UserDoc | null> {
+    return this.userDoc$;
   }
 
   private createAppUserObservable(): Observable<AppUserCombined | null> {
@@ -147,11 +155,12 @@ login(email: string, password: string): Observable<void> {
       const user = credential.user;
       this.logger.log('AuthService', 'Login successful', user.uid);
       
-      // Update last active time
-      return from(this.userService.updateLastActiveAt(user.uid)).pipe(
-        catchError(error => {
-          this.logger.error('AuthService', 'Error updating last active:', error);
-          return of(void 0); // Continue even if this fails
+      // Ensure person linkage (in case it was missing before) then update last active time
+      return this.linkPersonToUser(user.uid, email).pipe(
+        catchError(err => {
+          // ignore linking errors
+          this.logger.warn('AuthService', 'Link person linkage failed:', err);
+          return of(void 0);
         })
       );
     }),
@@ -236,6 +245,10 @@ login(email: string, password: string): Observable<void> {
       switchMap(persons => {
         if (persons.length > 0) {
           const person = persons[0];
+          if (person.userId === uid) {
+            // already linked
+            return of(void 0);
+          }
           return from(this.personService.update(person.id, { userId: uid }));
         } else {
           return of(void 0);
@@ -268,13 +281,18 @@ login(email: string, password: string): Observable<void> {
     return from(user.reload()).pipe(
       map(() => user.emailVerified),
       tap(verified => {
-        if (verified && this.userDoc$.value) {
-          this.userDoc$.next({
-            ...this.userDoc$.value,
-            emailVerified: true
-          });
+      if (verified && this.userDoc$.value) {
+        const currentDoc = this.userDoc$.value;
+        if (!currentDoc.emailVerified) {
+          // persist change to Firestore once
+          this.fs.updateDoc(`users/${currentDoc.uid}`, {
+            emailVerified: true,
+            updatedAt: Date.now()
+          }).pipe(catchError(() => of(void 0))).subscribe();
         }
-      }),
+        this.userDoc$.next({ ...currentDoc, emailVerified: true });
+      }
+    }),
       catchError(() => of(false))
     );
   }
@@ -289,6 +307,29 @@ login(email: string, password: string): Observable<void> {
       this.logger.error('AuthService', 'Error getting token:', error);
       return null;
     }
+  }
+
+  /**
+   * Delete own authenticator account and unlink person.
+   * Steps: unlink person -> delete user doc -> delete Firebase auth user -> sign out
+   */
+  deleteOwnAccount(): Observable<void> {
+    const current = this.auth.currentUser;
+    if (!current) {
+      return throwError(() => new Error('No user signed in'));
+    }
+    const uid = current.uid;
+    return this.personService.unlinkByUserId(uid).pipe(
+      switchMap(() => this.fs.deleteDoc(`users/${uid}`).pipe(catchError(() => of(void 0)))),
+      switchMap(() => from(deleteUser(current)).pipe(catchError(err => {
+        this.logger.error('AuthService', 'Error deleting auth user:', err);
+        return of(void 0);
+      }))),
+      tap(() => {
+        this.authState$.next(null);
+        this.userDoc$.next(null);
+      })
+    );
   }
 
   ngOnDestroy(): void {
