@@ -2,7 +2,7 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Subject, takeUntil, combineLatest, startWith, catchError, of } from 'rxjs';
+import { Subject, interval, takeUntil, combineLatest, startWith, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
 
@@ -136,6 +136,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.logger.log('Dashboard', 'Component initialized');
     
+    // Start live clock
+    interval(1000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.currentDate = new Date();
+    });
+
     // Simulate loading
     setTimeout(() => {
       this.loading = false;

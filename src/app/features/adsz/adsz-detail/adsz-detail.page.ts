@@ -15,7 +15,6 @@ import { Subject, of, takeUntil, switchMap } from 'rxjs';
 import { PersonService } from '@core/services/person.service';
 import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
 import { LoggerService } from '@core/services/logger.service';
-import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-create-modal';
 import { NotfallkontaktModal } from '@shared/components/notfallkontakt-modal/notfallkontakt-modal';
 import { AdzsSummaryCard } from '@shared/components/adzs-summary-card/adzs-summary-card';
@@ -26,7 +25,6 @@ import { AdzsSummaryCard } from '@shared/components/adzs-summary-card/adzs-summa
   imports: [
     CommonModule,
     RouterModule,
-    ZsoButton,
     AdzsCreateModal,
     NotfallkontaktModal,
     AdzsSummaryCard,

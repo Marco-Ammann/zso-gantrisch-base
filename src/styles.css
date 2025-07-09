@@ -348,6 +348,13 @@
     border: 1px solid var(--badge-border-info);
   }
 
+  /* Active status */
+  .badge--active {
+    background-color: var(--badge-bg-success);
+    color: var(--badge-text-success);
+    border: 1px solid var(--badge-border-success);
+  }
+
   .badge--unverified {
     background-color: var(--badge-bg-neutral);
     color: var(--badge-text-neutral);
@@ -360,6 +367,12 @@
 
   .value {
     @apply text-gray-200;
+  }
+
+  /* Chip utility */
+  .chip {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700/50 text-gray-200 border;
+    border-color: var(--border-dark);
   }
 
   /* Emergency Contact Cards */
