@@ -1,5 +1,6 @@
 <!-- src/app/core/auth/pages/login/login.html -->
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-full max-w-md mx-auto" zsoGlowSeq zsoSweepSeq>
+<zso-card padding="lg" class="max-w-md mx-auto">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-full" zsoGlowSeq zsoSweepSeq>
 
   <!-- Header Section -->
   <div class="text-center mb-8 animate-fadeUp">
@@ -27,10 +28,10 @@
     </div>
 
     <!-- Remember Me -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between align-center text-center">
       <zso-checkbox formControlName="rememberMe" label="Angemeldet bleiben"/>
       <a routerLink="/auth/forgot-password" 
-         class="text-sm text-cp-orange hover:text-cp-orange/80 transition-colors">
+         class="text-xs text-gray-400 hover:text-cp-orange/80 transition-colors ml-3 cursor-pointer ">
         Passwort vergessen?
       </a>
     </div>
@@ -57,7 +58,7 @@
   }
 
   <!-- Divider -->
-  <div class="divider-labeled mb-6">oder</div>
+  <div class="divider-labeled mb-3 mt-3">oder</div>
 
   <!-- Register Link -->
   <div class="text-center">
@@ -70,3 +71,4 @@
     </p>
   </div>
 </form>
+</zso-card>

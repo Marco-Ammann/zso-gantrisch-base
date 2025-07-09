@@ -6,6 +6,7 @@ import { RouterModule, Router } from '@angular/router';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoCheckbox   } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoButton     } from '@shared/ui/zso-button/zso-button';
+import { ZsoCard } from '@shared/ui/zso-card/zso-card';
 import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
 
 import { AuthService, RegisterData } from '../../services/auth.service';
@@ -21,6 +22,7 @@ import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
     ZsoInputField,
     ZsoCheckbox,
     ZsoButton,
+    ZsoCard,
     GlowSeqDirective,
     SweepSeqDirective
   ],

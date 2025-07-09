@@ -7,6 +7,7 @@ import { RouterModule, Router, ActivatedRoute, RouterLink } from '@angular/route
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoCheckbox } from '@shared/ui/zso-checkbox/zso-checkbox';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { ZsoCard } from '@shared/ui/zso-card/zso-card';
 import { SweepSeqDirective } from '@shared/directives/sweep-seq.directive';
 import { GlowSeqDirective } from '@shared/directives/glow-seq.directive';
 
@@ -28,6 +29,7 @@ import { finalize, take, takeUntil, filter, switchMap, tap, catchError } from 'r
     ZsoInputField,
     ZsoCheckbox,
     ZsoButton,
+    ZsoCard,
     GlowSeqDirective,
     SweepSeqDirective
   ],

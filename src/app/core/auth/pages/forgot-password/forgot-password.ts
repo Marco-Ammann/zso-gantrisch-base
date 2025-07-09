@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { ZsoButton     } from '@shared/ui/zso-button/zso-button';
+import { ZsoCard       } from '@shared/ui/zso-card/zso-card';
 
 import { AuthService } from '../../services/auth.service';
 
@@ -16,7 +17,8 @@ import { AuthService } from '../../services/auth.service';
     ReactiveFormsModule,
     RouterModule,
     ZsoInputField,
-    ZsoButton
+    ZsoButton,
+    ZsoCard
   ],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.scss'],

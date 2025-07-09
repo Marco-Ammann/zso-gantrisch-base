@@ -1,5 +1,6 @@
 <!-- src/app/core/auth/pages/register/register.html -->
-<form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-md mx-auto" zsoGlowSeq zsoSweepSeq>
+<zso-card padding="lg" class="max-w-md mx-auto">
+<form [formGroup]="form" (ngSubmit)="submit()" class="w-full" zsoGlowSeq zsoSweepSeq>
 
   <!-- Header Section -->
   <div class="text-center mb-8 animate-fadeUp">
@@ -95,3 +96,4 @@
     </p>
   </div>
 </form>
+</zso-card>

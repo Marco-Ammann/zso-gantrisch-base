@@ -41,6 +41,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       <span class="checkbox-label">{{ label }}</span>
     </label>
   `,
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+    `,
+  ],
 })
 export class ZsoCheckbox implements ControlValueAccessor {
   @Input() label = '';
