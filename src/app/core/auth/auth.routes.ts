@@ -1,15 +1,18 @@
 import { Routes } from '@angular/router';
+import { AuthRedirectGuard } from './guards/auth-redirect.guard';
 
 export const authRoutes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
       import('./pages/login/login').then((m) => m.ZsoLogin),
+    canActivate: [AuthRedirectGuard],
   },
   {
     path: 'register',
     loadComponent: () =>
       import('./pages/register/register').then((m) => m.ZsoRegister),
+    canActivate: [AuthRedirectGuard],
   },
   {
     path: 'forgot-password',
@@ -17,6 +20,7 @@ export const authRoutes: Routes = [
       import('./pages/forgot-password/forgot-password').then(
         (m) => m.ForgotPassword
       ),
+    canActivate: [AuthRedirectGuard],
   },
   {
     path: 'pending-approval',

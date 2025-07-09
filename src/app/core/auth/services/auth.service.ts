@@ -43,10 +43,14 @@ export class AuthService implements OnDestroy {
   private readonly authState$ = new BehaviorSubject<User | null>(null);
   private readonly userDoc$ = new BehaviorSubject<UserDoc | null>(null);
   private readonly destroy$ = new Subject<void>();
+
+  // Emits true once the first auth state is received (user or null)
+  private readonly initialized$ = new BehaviorSubject<boolean>(false);
   
   // Public observables
   readonly user$: Observable<User | null>;
   readonly appUser$: Observable<AppUserCombined | null>;
+  readonly authInitialized$: Observable<boolean> = this.initialized$.asObservable();
   
   // Cache für Performance
   private lastActiveUpdate = 0;
@@ -70,6 +74,10 @@ export class AuthService implements OnDestroy {
     
     onAuthStateChanged(this.auth, user => {
       this.authState$.next(user);
+      // first emission marks initialization complete (after authState$.next)
+      if (!this.initialized$.value) {
+        this.initialized$.next(true);
+      }
       
       if (user) {
         this.logger.log('AuthService', 'User authenticated:', user.email);
@@ -79,10 +87,16 @@ export class AuthService implements OnDestroy {
         this.logger.log('AuthService', 'User is signed out');
         this.userDoc$.next(null);
       }
+      if (!this.initialized$.value) {
+        this.initialized$.next(true);
+      }
     }, error => {
       this.logger.error('AuthService', 'Auth state error:', error);
       this.authState$.next(null);
       this.userDoc$.next(null);
+      if (!this.initialized$.value) {
+        this.initialized$.next(true);
+      }
     });
   }
 
@@ -328,15 +342,16 @@ login(email: string, password: string): Observable<void> {
       tap(() => {
         this.authState$.next(null);
         this.userDoc$.next(null);
-      })
-    );
-  }
+       })
+     );
+   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     this.authState$.complete();
     this.userDoc$.complete();
+    this.initialized$.complete();
     this.logger.log('AuthService', 'Service destroyed and cleaned up');
   }
 }

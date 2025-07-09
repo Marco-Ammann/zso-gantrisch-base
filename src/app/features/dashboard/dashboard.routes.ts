@@ -1,13 +1,15 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from '@core/auth/guards/auth.guard';
-import { EmailVerifiedGuard } from '@core/auth/guards/email-verified.guard';
+import { SessionGuard } from '@core/auth/guards/session.guard';
+import { UserDocGuard } from '@core/auth/guards/user-doc.guard';
+import { VerifiedGuard } from '@core/auth/guards/verified.guard';
+import { ApprovedGuard } from '@core/auth/guards/approved.guard';
 
 export const dashboardRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
       import('./dashboard.page').then((m) => m.DashboardPage),
-    canActivate: [AuthGuard, EmailVerifiedGuard],
-    canLoad: [AuthGuard, EmailVerifiedGuard],
+    canActivate: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
+    canLoad: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
   },
 ];

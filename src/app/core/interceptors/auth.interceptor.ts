@@ -6,7 +6,7 @@ import {
   HttpHandler,
   HttpEvent
 } from '@angular/common/http';
-import { from, Observable, Subject, EMPTY } from 'rxjs';
+import { from, Observable, Subject, EMPTY, throwError } from 'rxjs';
 import { switchMap, takeUntil, first, catchError } from 'rxjs/operators';
 import { AuthService } from '../auth/services/auth.service';
 import { LoggerService } from '../services/logger.service';
@@ -24,6 +24,8 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
     req: HttpRequest<unknown>,
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
+    // Prevent endless retry loops
+    const alreadyRetried = req.headers.has('x-auth-retried');
     // Skip auth for legal pages and non-API requests
     if (this.shouldSkipAuth(req.url)) {
       return next.handle(req);
@@ -44,9 +46,35 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
 
         return next.handle(authReq);
       }),
-      catchError(error => {
+      catchError((error) => {
+        // Attempt one retry on 401/403 if we haven't retried yet
+        if (
+          !alreadyRetried &&
+          error.status &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          this.logger.warn(
+            'AuthInterceptor',
+            'Received',
+            error.status,
+            '– attempting token refresh'
+          );
+          return from(this.authService.getToken(true)).pipe(
+            switchMap((newToken) => {
+              if (!newToken) {
+                return throwError(() => error);
+              }
+              const retryReq = req.clone({
+                setHeaders: { Authorization: `Bearer ${newToken}` },
+                headers: req.headers.set('x-auth-retried', 'true'),
+              });
+              return next.handle(retryReq);
+            })
+          );
+        }
+
         this.logger.error('AuthInterceptor', 'Request failed:', error);
-        return next.handle(req); // Fallback to original request
+        return throwError(() => error);
       }),
       takeUntil(this.destroy$)
     );

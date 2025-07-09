@@ -1,9 +1,11 @@
 // src/app/app.routes.ts - Updated with AdZS routes
 
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/auth/guards/auth.guard';
-import { EmailVerifiedGuard } from './core/auth/guards/email-verified.guard';
-import { AdminGuard } from './core/auth/guards/admin.guard';
+import { SessionGuard } from './core/auth/guards/session.guard';
+import { UserDocGuard } from './core/auth/guards/user-doc.guard';
+import { VerifiedGuard } from './core/auth/guards/verified.guard';
+import { ApprovedGuard } from './core/auth/guards/approved.guard';
+import { RoleGuard } from './core/auth/guards/role.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { adminRoutes } from './features/admin/admin.routes';
@@ -41,12 +43,11 @@ export const appRoutes: Routes = [
       import('./core/layout/shell/main-shell/main-shell').then(
         (m) => m.MainShell
       ),
-    canActivate: [AuthGuard, EmailVerifiedGuard],
+    canActivate: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
     children: [
       { path: 'dashboard', children: dashboardRoutes },
       { path: 'adsz', children: adzsRoutes }, // AdZS routes für alle User
-      { path: 'users', children: adminRoutes },
-      { path: 'admin', canActivate: [AdminGuard], children: adminRoutes },
+      { path: 'admin', canActivate: [RoleGuard], data: { roles: ['admin'] }, children: adminRoutes },
     ],
   },
 
