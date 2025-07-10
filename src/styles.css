@@ -638,6 +638,47 @@
     animation: pop-in 0.2s ease-out;
   }
 
+  /* Scrollbar Styling */
+  .scrollbar {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--glass-border) transparent;
+  }
+  .scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--glass-border);
+    border-radius: 4px;
+  }
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--orange-30);
+  }
+
+  /* Global scrollbars for page */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background-color: var(--glass-border);
+    border-radius: 4px;
+  }
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--orange-30);
+  }
+
   /* Emergency Contact Cards */
   .emergency-contact-card {
     transition: all 0.2s ease;

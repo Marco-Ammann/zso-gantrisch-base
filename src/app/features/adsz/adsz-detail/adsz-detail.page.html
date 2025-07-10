@@ -247,30 +247,35 @@
         <!-- Notfallkontakte -->
     <section class="glass-card emergency-contact-card p-6 space-y-2">
       <div class="flex items-center justify-between gap-2">
-        <h2>Notfallkontakte ({{ notfallkontakte.length || 0 }})</h2>
+        <h3 class="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-cp-orange">emergency</span>
+          Notfallkontakte
+          <span class="text-gray-400">({{ notfallkontakte.length || 0 }})</span>
+        </h3>
         <button zso-button type="icon" (click)="openAddNk()" title="Notfallkontakt hinzufügen" title="Hinzufügen">
           <span class="material-symbols-outlined">add</span>
         </button>
       </div>
-      <ng-container *ngIf="notfallkontakte?.length; else noneNk">
-        <div class="nk-list divide-y divide-white/10">
-          <div class="nk-item flex items-center justify-between gap-3 py-2" *ngFor="let nk of notfallkontakte">
-            <div>
-              <h4>{{ nk.name }}</h4>
-              <p class="sub">{{ nk.beziehung }}</p>
-            </div>
-            <div class="nummer text-sm">{{ nk.telefonnummer }}</div>
-            <div class="actions flex items-center gap-1">
-              <button zso-button type="icon" (click)="openEditNk(nk)" title="Bearbeiten" title="Bearbeiten">
-                <span class="material-symbols-outlined text-sm">edit</span>
-              </button>
-              <button zso-button type="icon" (click)="deleteNk(nk.id)" title="Löschen" title="Löschen">
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </ng-container>
+      <ng-container class="space-y-2 w-full" *ngIf="notfallkontakte?.length; else noneNk">
+  <div
+    class="nk-row flex items-center gap-4 py-2 border-b border-white/10 last:border-b-0"
+    *ngFor="let nk of notfallkontakte"
+  >
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-white truncate">{{ nk.name }}</p>
+      <p class="text-xs text-gray-400 truncate">{{ nk.beziehung }}</p>
+    </div>
+    <div class="w-32 text-sm text-gray-200 whitespace-nowrap">{{ nk.telefonnummer }}</div>
+    <div class="flex items-center gap-1 shrink-0">
+      <button zso-button type="icon" (click)="openEditNk(nk)" title="Bearbeiten">
+        <span class="material-symbols-outlined text-sm">edit</span>
+      </button>
+      <button zso-button type="icon" (click)="deleteNk(nk.id)" title="Löschen">
+        <span class="material-symbols-outlined text-sm">delete</span>
+      </button>
+    </div>
+  </div>
+</ng-container>
       <ng-template #noneNk><p class="text-gray-400 italic">Keine Notfallkontakte</p></ng-template>
     </section>
         </aside>
