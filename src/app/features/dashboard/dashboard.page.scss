@@ -1,96 +1,145 @@
-// src/app/features/dashboard/dashboard.page.scss
-:host {
-  display: block;
-}
+// Füge diese Regeln zu deiner dashboard.page.scss hinzu:
 
-// Loading spinner specific to dashboard
-.spinner-lg {
-  @apply inline-block w-12 h-12 border-4 border-gray-700 border-t-cp-orange rounded-full animate-spin;
-}
+// Mobile-optimierte Scrollbar
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 
-// Stats grid & card
-.stats-grid {
-  @apply grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-}
-
-.stats-card {
-  @apply glass-card p-4 sm:p-5 hover:scale-105 transition-transform;
-}
-
-// Stats card hover effects
-.stats-card {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
+  &::-webkit-scrollbar {
+    height: 4px;
   }
 
-  &:hover::before {
-    left: 100%;
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3);
+    border-radius: 2px;
   }
 }
 
-// Activity item animations
-.activity-item {
-  animation: slideIn 0.3s ease-out;
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
+// Responsive stat-hint badges - macht sie kleiner auf Mobile
+:host ::ng-deep zso-stat-hint {
+  @media (max-width: 640px) {
+    // Kleinere Badges auf Mobile
+    .glass-card, .badge, [class*="badge"], [class*="hint"] {
+      @apply px-2 py-1 text-xs;
+      min-width: auto;
+      white-space: nowrap;
+      
+      // Kleinere Icons
+      .material-symbols-outlined {
+        @apply text-sm;
+      }
+      
+      // Kleinere Zahlen
+      .value, [class*="value"] {
+        @apply text-sm font-medium;
+      }
+      
+      // Kompakterer Text
+      .title, [class*="title"], span:not(.material-symbols-outlined) {
+        @apply text-xs;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   }
-}
-
-// Quick link card effects
-.quick-link-card {
-  position: relative;
-  overflow: hidden;
-
-  .icon-bg {
-    position: absolute;
-    top: -20px;
-    right: -20px;
-    width: 80px;
-    height: 80px;
-    opacity: 0.1;
-    transform: rotate(15deg);
-    transition: all 0.3s ease;
-  }
-
-  &:hover .icon-bg {
-    transform: rotate(25deg) scale(1.1);
-    opacity: 0.2;
+  
+  @media (max-width: 375px) {
+    // Noch kleinere Badges auf sehr kleinen Screens
+    .glass-card, .badge, [class*="badge"], [class*="hint"] {
+      @apply px-1.5 py-0.5 text-[10px];
+      
+      .material-symbols-outlined {
+        @apply text-xs;
+      }
+      
+      .value, [class*="value"] {
+        @apply text-xs;
+      }
+      
+      .title, [class*="title"], span:not(.material-symbols-outlined) {
+        @apply text-[10px];
+        max-width: 45px;
+      }
+    }
   }
 }
 
-// Quick Links responsive grid
-.quick-links-grid {
-  @apply grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-}
-
-// Responsive adjustments
-@media (max-width: 640px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+// Touch-friendly interactions on mobile
+@media (max-width: 1024px) {
+  .glass-card {
+    @apply touch-manipulation;
+    
+    // Leicht größere Touch-Targets
+    &:hover {
+      transform: none; // Disable hover effects on mobile
+    }
+    
+    &:active {
+      transform: scale(0.98);
+      transition: transform 0.1s ease;
+    }
   }
 
+  // Quick links mobile optimization
   .quick-links-grid {
-    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    a {
+      @apply min-h-[70px] active:scale-95;
+      transition: all 0.15s ease;
+      
+      .material-symbols-outlined {
+        @apply text-xl;
+      }
+      
+      span:last-child {
+        @apply text-xs leading-tight;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  // Activity items mobile spacing
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+}
+
+// Extra small screens (< 375px)
+@media (max-width: 375px) {
+  .glass-card {
+    @apply p-3;
+  }
+  
+  .quick-links-grid {
+    grid-template-columns: repeat(2, 1fr);
+    
+    a {
+      @apply min-h-[60px] p-2;
+      
+      .material-symbols-outlined {
+        @apply text-lg;
+      }
+      
+      span:last-child {
+        @apply text-[10px];
+      }
+    }
+  }
+  
+  // Kompakte Header auf sehr kleinen Screens
+  h1 {
+    @apply text-xl leading-tight;
+  }
+  
+  h2 {
+    @apply text-lg;
   }
 }
