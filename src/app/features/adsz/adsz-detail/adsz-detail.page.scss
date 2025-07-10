@@ -16,7 +16,7 @@ zso-adzs-summary-card .section {
 
 // Responsive grid adjustments
 @media (min-width: 1024px) {
-  .detail-grid {
+  .main-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 2rem;

@@ -8,6 +8,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { Subject, of, takeUntil, switchMap } from 'rxjs';
@@ -56,6 +57,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   notfallkontakte: NotfallkontaktDoc[] = [];
   isLoading = true;
   errorMsg: string | null = null;
+  uploading = false;
 
   // modals
   modalVisible = false;
@@ -135,6 +137,44 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
       this.person.grunddaten.vorname.charAt(0) +
       this.person.grunddaten.nachname.charAt(0)
     ).toUpperCase();
+  }
+
+  onFileSelected(event: Event, id: string): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
+    if (file.size > MAX_SIZE) {
+      this.logger.warn('AdzsDetailPage', 'Bild zu groß (max. 2 MB)');
+      return;
+    }
+
+    this.uploading = true;
+    const storage = getStorage();
+    const path = `persons/${id}/avatar_${Date.now()}`;
+    const storageRef = ref(storage, path);
+
+    uploadBytes(storageRef, file)
+      .then(() => getDownloadURL(storageRef))
+      .then((url: string) => {
+        this.personService.update(id, { photoUrl: url }).pipe(takeUntil(this.destroy$)).subscribe({
+          next: () => {
+            this.logger.log('AdzsDetailPage', 'Avatar aktualisiert');
+          },
+          error: (err) => {
+            this.logger.error('AdzsDetailPage', 'Foto-URL speichern fehlgeschlagen', err);
+          },
+        });
+      })
+      .catch((err) => {
+        this.logger.error('AdzsDetailPage', 'Upload fehlgeschlagen', err);
+      })
+      .finally(() => {
+        this.uploading = false;
+        this.cdr.markForCheck();
+      });
   }
 
   back(): void {

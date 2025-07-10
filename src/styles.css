@@ -375,17 +375,6 @@
     border-color: var(--border-dark);
   }
 
-  /* Emergency Contact Cards */
-  .emergency-contact-card {
-    transition: all 0.2s ease;
-  }
-
-  .emergency-contact-card:hover {
-    background: var(--orange-30);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
   /* Form improvements */
   .form-section {
     .form-row {
