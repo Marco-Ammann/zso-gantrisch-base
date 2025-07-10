@@ -15,298 +15,302 @@
   <!-- Detail -->
   <ng-container *ngIf="person && !isLoading && !errorMsg">
     <div class="content max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-        <!-- Back Button -->
-        <button (click)="back()"
-                class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-          <span class="material-symbols-outlined text-lg">arrow_back</span>
-          <span class="text-sm font-medium">Zurück zu AdZS-Übersicht</span>
-        </button>
+      <!-- Back Button -->
+      <button (click)="back()"
+        class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        <span class="text-sm font-medium">Zurück zu AdZS-Übersicht</span>
+      </button>
+
+
       <div class="main-grid flex flex-col gap-6 lg:grid">
         <div class="details space-y-8 max-w-3xl">
-    <div class="glass-card p-6">
+          <div class="glass-card h-full p-6">
 
             <div class="flex items-center gap-4 flex-wrap sm:flex-nowrap">
-      <div class="relative group">
-  <ng-container *ngIf="person.photoUrl; else placeholderAvatar">
-    <img [src]="person.photoUrl" alt="Avatar"
-         class="avatar w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200" />
-  </ng-container>
-  <ng-template #placeholderAvatar>
-    <div class="avatar w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200">
-      <span class="text-gray-400 font-medium text-2xl md:text-3xl">
-        {{ getPersonInitials() }}
-      </span>
-    </div>
-  </ng-template>
+              <div class="relative group">
+                <ng-container *ngIf="person.photoUrl; else placeholderAvatar">
+                  <img [src]="person.photoUrl" alt="Avatar"
+                    class="avatar w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200" />
+                </ng-container>
+                <ng-template #placeholderAvatar>
+                  <div
+                    class="avatar w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200">
+                    <span class="text-gray-400 font-medium text-2xl md:text-3xl">
+                      {{ getPersonInitials() }}
+                    </span>
+                  </div>
+                </ng-template>
 
-  <!-- Upload Overlay -->
-  <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer" (click)="fileInput.click()" [class.opacity-100]="uploading">
-    <ng-container *ngIf="uploading; else camIcon">
-      <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-    </ng-container>
-    <ng-template #camIcon>
-      <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
-    </ng-template>
-  </div>
+                <!-- Upload Overlay -->
+                <div
+                  class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                  (click)="fileInput.click()" [class.opacity-100]="uploading">
+                  <ng-container *ngIf="uploading; else camIcon">
+                    <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </ng-container>
+                  <ng-template #camIcon>
+                    <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                  </ng-template>
+                </div>
 
-  <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event, person.id)" class="hidden" />
-</div>
-      <div class="flex-1 space-y-2">
-        <div class="flex items-center flex-wrap gap-3">
-        <h1 class="text-2xl md:text-3xl font-bold text-white">{{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}</h1>
-        <p class="text-gray-300">{{ person.zivilschutz.einteilung.zug }}. Zug • Gruppe {{ person.zivilschutz.einteilung.gruppe || '—' }} • {{ person.grunddaten.grad }}</p>
-        <!-- Status badge -->
-        <span class="badge badge--active" title="Aktiver Angehöriger">
-          <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
-          Aktiv
-        </span>
-        <!-- Account link indicator -->
-        <ng-container *ngIf="person.userId; else noAccount">
-          <span class="material-symbols-outlined text-cp-orange" title="Hat einen Benutzer-Login">person</span>
-        </ng-container>
-        <ng-template #noAccount>
-          <span class="material-symbols-outlined text-gray-500" title="Kein Benutzer-Login">person_off</span>
-        </ng-template>
-      </div>
-      </div>
+                <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event, person.id)"
+                  class="hidden" />
+              </div>
+              <div class="flex-1 space-y-2">
+                <div class="flex items-center flex-wrap gap-3">
+                  <h1 class="text-2xl md:text-3xl font-bold text-white">{{ person.grunddaten.vorname }} {{
+                    person.grunddaten.nachname }}</h1>
+                  <p class="text-gray-300">{{ person.zivilschutz.einteilung.zug }}. Zug • Gruppe {{
+                    person.zivilschutz.einteilung.gruppe || '—' }} • {{ person.grunddaten.grad }}</p>
+                  <!-- Status badge -->
+                  <span class="badge badge--active" title="Aktiver Angehöriger">
+                    <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
+                    Aktiv
+                  </span>
+                  <!-- Account link indicator -->
+                  <ng-container *ngIf="person.userId; else noAccount">
+                    <span class="material-symbols-outlined text-cp-orange"
+                      title="Hat einen Benutzer-Login">person</span>
+                  </ng-container>
+                  <ng-template #noAccount>
+                    <span class="material-symbols-outlined text-gray-500" title="Kein Benutzer-Login">person_off</span>
+                  </ng-template>
+                </div>
+              </div>
 
-      <div class="mt-4 sm:mt-0 flex gap-2">
-              <button (click)="openEdit()" title="Person bearbeiten"
-              class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-        <span class="material-symbols-outlined text-base">edit</span>
-        <span class="text-sm font-medium">Bearbeiten</span>
-      </button>
-              <button (click)="confirmDelete()" title="Löschen"
-                      class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 hover:text-white transition-colors">
-                <span class="material-symbols-outlined text-base">delete</span>
-                <span class="text-sm font-medium">Löschen</span>
-              </button>
+              <div class="mt-4 sm:mt-0 flex gap-2">
+                <button (click)="openEdit()" title="Person bearbeiten"
+                  class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                  <span class="material-symbols-outlined text-base">edit</span>
+                  <span class="text-sm font-medium">Bearbeiten</span>
+                </button>
+                <button (click)="confirmDelete()" title="Löschen"
+                  class="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 hover:text-white transition-colors">
+                  <span class="material-symbols-outlined text-base">delete</span>
+                  <span class="text-sm font-medium">Löschen</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-    <section class="glass-card p-6 space-y-2">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">badge</span>
-          Grunddaten
-        </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <p class="label">Vorname</p>
-            <p class="value">{{ person.grunddaten.vorname }}</p>
+        <section class="glass-card p-6 space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">badge</span>
+            Grunddaten
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="label">Vorname</p>
+              <p class="value">{{ person.grunddaten.vorname }}</p>
+            </div>
+            <div>
+              <p class="label">Nachname</p>
+              <p class="value">{{ person.grunddaten.nachname }}</p>
+            </div>
+            <div>
+              <p class="label">Geburtsdatum</p>
+              <p class="value">{{ geburtsdatumTimestamp | date:'dd.MM.yyyy' }}</p>
+            </div>
+            <div>
+              <p class="label">Grad</p>
+              <p class="value">{{ person.grunddaten.grad }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">Funktion</p>
+              <p class="value">{{ person.grunddaten.funktion }}</p>
+            </div>
           </div>
-        <div>
-            <p class="label">Nachname</p>
-            <p class="value">{{ person.grunddaten.nachname }}</p>
-          </div>
-        <div>
-            <p class="label">Geburtsdatum</p>
-            <p class="value">{{ geburtsdatumTimestamp | date:'dd.MM.yyyy' }}</p>
-          </div>
-        <div>
-            <p class="label">Grad</p>
-            <p class="value">{{ person.grunddaten.grad }}</p>
-          </div>
-        <div class="md:col-span-2">
-            <p class="label">Funktion</p>
-            <p class="value">{{ person.grunddaten.funktion }}</p>
-          </div>
-      </div>
-    </section>
+        </section>
 
-    <section class="glass-card p-6 space-y-2">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">contact_phone</span>
-          Kontaktdaten
-        </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2">
-            <p class="label">Adresse</p>
-            <p class="value">{{ person.kontaktdaten.strasse }}</p>
+        <section class="glass-card p-6 space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">contact_phone</span>
+            Kontaktdaten
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <p class="label">Adresse</p>
+              <p class="value">{{ person.kontaktdaten.strasse }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">PLZ / Ort</p>
+              <p class="value">{{ person.kontaktdaten.plz }} {{ person.kontaktdaten.ort }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">E-Mail</p>
+              <a [href]="'mailto:' + person.kontaktdaten.email" class="text-cp-orange hover:text-cp-orange/80">{{
+                person.kontaktdaten.email }}</a>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">Telefon Mobil</p>
+              <a *ngIf="person.kontaktdaten.telefonMobil" [href]="'tel:' + person.kontaktdaten.telefonMobil"
+                class="text-cp-orange hover:text-cp-orange/80">{{ person.kontaktdaten.telefonMobil }}</a>
+              <span *ngIf="!person.kontaktdaten.telefonMobil" class="text-gray-500">Nicht angegeben</span>
+            </div>
           </div>
-        <div class="md:col-span-2">
-            <p class="label">PLZ / Ort</p>
-            <p class="value">{{ person.kontaktdaten.plz }} {{ person.kontaktdaten.ort }}</p>
-          </div>
-        <div class="md:col-span-2">
-            <p class="label">E-Mail</p>
-            <a [href]="'mailto:' + person.kontaktdaten.email" class="text-cp-orange hover:text-cp-orange/80">{{ person.kontaktdaten.email }}</a>
-          </div>
-        <div class="md:col-span-2">
-            <p class="label">Telefon Mobil</p>
-            <a *ngIf="person.kontaktdaten.telefonMobil" [href]="'tel:' + person.kontaktdaten.telefonMobil" class="text-cp-orange hover:text-cp-orange/80">{{ person.kontaktdaten.telefonMobil }}</a>
-            <span *ngIf="!person.kontaktdaten.telefonMobil" class="text-gray-500">Nicht angegeben</span>
-          </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Berufliches -->
-    <section class="glass-card p-6 space-y-2">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">work</span>
-          Berufliches
-        </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <p class="label">Erlernter Beruf</p>
-            <p class="value">{{ person.berufliches.erlernterBeruf || '—' }}</p>
+        <!-- Berufliches -->
+        <section class="glass-card p-6 space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">work</span>
+            Berufliches
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="label">Erlernter Beruf</p>
+              <p class="value">{{ person.berufliches.erlernterBeruf || '—' }}</p>
+            </div>
+            <div>
+              <p class="label">Ausgeübter Beruf</p>
+              <p class="value">{{ person.berufliches.ausgeubterBeruf || '—' }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">Arbeitgeber</p>
+              <p class="value">{{ person.berufliches.arbeitgeber || '—' }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <p class="label">Zivile Spezialausbildung</p>
+              <p class="value">{{ person.berufliches.zivileSpezialausbildung || '—' }}</p>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Führerausweis Kategorien</p>
+              <ng-container *ngIf="person.berufliches['führerausweisKategorie']?.length; else noneFu">
+                <span class="chip" *ngFor="let kat of person.berufliches['führerausweisKategorie']">{{ kat }}</span>
+              </ng-container>
+              <ng-template #noneFu>—</ng-template>
+            </div>
           </div>
-        <div>
-            <p class="label">Ausgeübter Beruf</p>
-            <p class="value">{{ person.berufliches.ausgeubterBeruf || '—' }}</p>
-          </div>
-        <div class="md:col-span-2">
-            <p class="label">Arbeitgeber</p>
-            <p class="value">{{ person.berufliches.arbeitgeber || '—' }}</p>
-          </div>
-        <div class="md:col-span-2">
-            <p class="label">Zivile Spezialausbildung</p>
-            <p class="value">{{ person.berufliches.zivileSpezialausbildung || '—' }}</p>
-          </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Führerausweis Kategorien</p>
-          <ng-container *ngIf="person.berufliches['führerausweisKategorie']?.length; else noneFu">
-            <span class="chip" *ngFor="let kat of person.berufliches['führerausweisKategorie']">{{ kat }}</span>
-          </ng-container>
-          <ng-template #noneFu>—</ng-template>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Zivilschutz -->
-    <section class="glass-card p-6 space-y-2">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">shield</span>
-          Zivilschutz
-        </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2">
-            <p class="label">Grundausbildung</p>
-            <p class="value">{{ person.zivilschutz.grundausbildung || '—' }}</p>
+        <!-- Zivilschutz -->
+        <section class="glass-card p-6 space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">shield</span>
+            Zivilschutz
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <p class="label">Grundausbildung</p>
+              <p class="value">{{ person.zivilschutz.grundausbildung || '—' }}</p>
+            </div>
+            <div>
+              <p class="label">Status</p>
+              <p class="value">{{ person.zivilschutz.status | titlecase }}</p>
+            </div>
+            <div>
+              <p class="label">Zug</p>
+              <p class="value">{{ person.zivilschutz.einteilung.zug }}</p>
+            </div>
+            <div>
+              <p class="label">Gruppe</p>
+              <p class="value">{{ person.zivilschutz.einteilung.gruppe }}</p>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Zusatzausbildungen</p>
+              <ng-container *ngIf="person.zivilschutz.zusatzausbildungen?.length; else noneZu">
+                <span class="chip" *ngFor="let zu of person.zivilschutz.zusatzausbildungen">{{ zu }}</span>
+              </ng-container>
+              <ng-template #noneZu>—</ng-template>
+            </div>
           </div>
-        <div>
-            <p class="label">Status</p>
-            <p class="value">{{ person.zivilschutz.status | titlecase }}</p>
-          </div>
-        <div>
-            <p class="label">Zug</p>
-            <p class="value">{{ person.zivilschutz.einteilung.zug }}</p>
-          </div>
-        <div>
-            <p class="label">Gruppe</p>
-            <p class="value">{{ person.zivilschutz.einteilung.gruppe }}</p>
-          </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Zusatzausbildungen</p>
-          <ng-container *ngIf="person.zivilschutz.zusatzausbildungen?.length; else noneZu">
-            <span class="chip" *ngFor="let zu of person.zivilschutz.zusatzausbildungen">{{ zu }}</span>
-          </ng-container>
-          <ng-template #noneZu>—</ng-template>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Persönliches -->
-    <section class="glass-card p-6 space-y-2">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">favorite</span>
-          Persönliches
-        </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <p class="label">Blutgruppe</p>
-            <p class="value">{{ person.persoenliches.blutgruppe || '—' }}</p>
+        <!-- Persönliches -->
+        <section class="glass-card p-6 space-y-2">
+          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-cp-orange">favorite</span>
+            Persönliches
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="label">Blutgruppe</p>
+              <p class="value">{{ person.persoenliches.blutgruppe || '—' }}</p>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Allergien</p>
+              <ng-container *ngIf="person.persoenliches.allergien?.length; else noneAll">
+                <span class="chip" *ngFor="let a of person.persoenliches.allergien">{{ a }}</span>
+              </ng-container>
+              <ng-template #noneAll>—</ng-template>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Essgewohnheiten</p>
+              <ng-container *ngIf="person.persoenliches.essgewohnheiten?.length; else noneEss">
+                <span class="chip" *ngFor="let e of person.persoenliches.essgewohnheiten">{{ e }}</span>
+              </ng-container>
+              <ng-template #noneEss>—</ng-template>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Sprachkenntnisse</p>
+              <ng-container *ngIf="person.persoenliches.sprachkenntnisse?.length; else noneSp">
+                <span class="chip" *ngFor="let s of person.persoenliches.sprachkenntnisse">{{ s }}</span>
+              </ng-container>
+              <ng-template #noneSp>—</ng-template>
+            </div>
+            <div class="field md:col-span-2">
+              <p class="label mb-1">Besonderheiten</p>
+              <ng-container *ngIf="person.persoenliches.besonderheiten?.length; else noneBe">
+                <span class="chip" *ngFor="let b of person.persoenliches.besonderheiten">{{ b }}</span>
+              </ng-container>
+              <ng-template #noneBe>—</ng-template>
+            </div>
           </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Allergien</p>
-          <ng-container *ngIf="person.persoenliches.allergien?.length; else noneAll">
-            <span class="chip" *ngFor="let a of person.persoenliches.allergien">{{ a }}</span>
-          </ng-container>
-          <ng-template #noneAll>—</ng-template>
-        </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Essgewohnheiten</p>
-          <ng-container *ngIf="person.persoenliches.essgewohnheiten?.length; else noneEss">
-            <span class="chip" *ngFor="let e of person.persoenliches.essgewohnheiten">{{ e }}</span>
-          </ng-container>
-          <ng-template #noneEss>—</ng-template>
-        </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Sprachkenntnisse</p>
-          <ng-container *ngIf="person.persoenliches.sprachkenntnisse?.length; else noneSp">
-            <span class="chip" *ngFor="let s of person.persoenliches.sprachkenntnisse">{{ s }}</span>
-          </ng-container>
-          <ng-template #noneSp>—</ng-template>
-        </div>
-        <div class="field md:col-span-2">
-          <p class="label mb-1">Besonderheiten</p>
-          <ng-container *ngIf="person.persoenliches.besonderheiten?.length; else noneBe">
-            <span class="chip" *ngFor="let b of person.persoenliches.besonderheiten">{{ b }}</span>
-          </ng-container>
-          <ng-template #noneBe>—</ng-template>
-        </div>
-      </div>
-    </section>
+        </section>
 
         <!-- Aside Column -->
         <aside class="space-y-4">
           <!-- Summary Overview -->
-        <zso-adzs-summary-card [person]="person" [notfallkontakte]="notfallkontakte"></zso-adzs-summary-card>
+          <zso-adzs-summary-card [person]="person" [notfallkontakte]="notfallkontakte"></zso-adzs-summary-card>
 
-        <!-- Notfallkontakte -->
-    <section class="glass-card emergency-contact-card p-6 space-y-2">
-      <div class="flex items-center justify-between gap-2">
-        <h3 class="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-          <span class="material-symbols-outlined text-cp-orange">emergency</span>
-          Notfallkontakte
-          <span class="text-gray-400">({{ notfallkontakte.length || 0 }})</span>
-        </h3>
-        <button zso-button type="icon" (click)="openAddNk()" title="Notfallkontakt hinzufügen">
-          <span class="material-symbols-outlined">add</span>
-        </button>
-      </div>
-      <ng-container class="space-y-2 w-full" *ngIf="notfallkontakte?.length; else noneNk">
-  <div
-    class="nk-row flex items-center gap-4 py-2 border-b border-white/10 last:border-b-0"
-    *ngFor="let nk of notfallkontakte"
-  >
-    <div class="flex-1 min-w-0">
-      <p class="text-sm font-medium text-white truncate">{{ nk.name }}</p>
-      <p class="text-xs text-gray-400 truncate">{{ nk.beziehung }}</p>
-    </div>
-    <div class="w-32 text-sm text-gray-200 whitespace-nowrap hover:text-cp-orange cursor-pointer">{{ nk.telefonnummer }}</div>
-    <div class="flex items-center gap-1 shrink-0">
-      <button zso-button type="icon" (click)="openEditNk(nk)" title="Bearbeiten">
-        <span class="material-symbols-outlined text-sm hover:text-cp-orange">edit</span>
-      </button>
-      <button zso-button type="icon" (click)="deleteNk(nk.id)" title="Löschen">
-        <span class="material-symbols-outlined text-sm hover:text-cp-orange">delete</span>
-      </button>
-    </div>
-  </div>
-</ng-container>
-      <ng-template #noneNk><p class="text-gray-400 italic">Keine Notfallkontakte</p></ng-template>
-    </section>
+          <!-- Notfallkontakte -->
+          <section class="glass-card emergency-contact-card p-6 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-cp-orange">emergency</span>
+                Notfallkontakte
+                <span class="text-gray-400">({{ notfallkontakte.length || 0 }})</span>
+              </h3>
+              <button zso-button type="icon" (click)="openAddNk()" title="Notfallkontakt hinzufügen">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+            <ng-container class="space-y-2 w-full" *ngIf="notfallkontakte?.length; else noneNk">
+              <div class="nk-row flex items-center gap-4 py-2 border-b border-white/10 last:border-b-0"
+                *ngFor="let nk of notfallkontakte">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-white truncate">{{ nk.name }}</p>
+                  <p class="text-xs text-gray-400 truncate">{{ nk.beziehung }}</p>
+                </div>
+                <div class="w-32 text-sm text-gray-200 whitespace-nowrap hover:text-cp-orange cursor-pointer">{{
+                  nk.telefonnummer }}</div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button zso-button type="icon" (click)="openEditNk(nk)" title="Bearbeiten">
+                    <span class="material-symbols-outlined text-sm hover:text-cp-orange">edit</span>
+                  </button>
+                  <button zso-button type="icon" (click)="deleteNk(nk.id)" title="Löschen">
+                    <span class="material-symbols-outlined text-sm hover:text-cp-orange">delete</span>
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #noneNk>
+              <p class="text-gray-400 italic">Keine Notfallkontakte</p>
+            </ng-template>
+          </section>
         </aside>
       </div>
     </div>
   </ng-container>
 
   <!-- Modal -->
-  <zso-adzs-create-modal
-    [visible]="modalVisible"
-    [person]="person ?? undefined"
-    (closed)="onModalClosed()"
+  <zso-adzs-create-modal [visible]="modalVisible" [person]="person ?? undefined" (closed)="onModalClosed()"
     (created)="onPersonUpdated($event)">
   </zso-adzs-create-modal>
 
   <!-- Notfallkontakt Modal -->
-  <zso-notfallkontakt-modal
-    [visible]="nkModalVisible"
-    [personId]="person?.id ?? ''"
-    [kontakt]="selectedKontakt"
-    (saved)="onNkSaved($event)"
-    (closed)="onNkClosed()"
-  ></zso-notfallkontakt-modal>
+  <zso-notfallkontakt-modal [visible]="nkModalVisible" [personId]="person?.id ?? ''" [kontakt]="selectedKontakt"
+    (saved)="onNkSaved($event)" (closed)="onNkClosed()"></zso-notfallkontakt-modal>
 </div>
