@@ -22,7 +22,7 @@
 .stats-card {
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -30,10 +30,10 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     transition: left 0.5s;
   }
-  
+
   &:hover::before {
     left: 100%;
   }
@@ -42,12 +42,13 @@
 // Activity item animations
 .activity-item {
   animation: slideIn 0.3s ease-out;
-  
+
   @keyframes slideIn {
     from {
       opacity: 0;
       transform: translateX(-20px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -59,7 +60,7 @@
 .quick-link-card {
   position: relative;
   overflow: hidden;
-  
+
   .icon-bg {
     position: absolute;
     top: -20px;
@@ -70,11 +71,17 @@
     transform: rotate(15deg);
     transition: all 0.3s ease;
   }
-  
+
   &:hover .icon-bg {
     transform: rotate(25deg) scale(1.1);
     opacity: 0.2;
   }
+}
+
+// Quick Links responsive grid
+.quick-links-grid {
+  @apply grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
 }
 
 // Responsive adjustments
@@ -82,11 +89,8 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
+
   .quick-links-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   }
 }

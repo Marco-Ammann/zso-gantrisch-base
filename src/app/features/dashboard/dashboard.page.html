@@ -33,15 +33,15 @@
         </div>
       </div>
 
-      <!-- Stats Overview -->
-      <section class="stats-grid gap-4" @staggerIn>
+      <!-- Glance Stats (horizontal scrollable chips) -->
+      <section class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin" @staggerIn>
         @let s = stats$ | async;
-        <zso-stat-widget size="sm" icon="group" label="Benutzer" [value]="s?.total ?? 0" (select)="navigate('/admin/users')" title="Alle Benutzer anzeigen"></zso-stat-widget>
-        <zso-stat-widget size="sm" icon="verified" label="Aktive User" color="text-green-400" [value]="s?.active ?? 0" (select)="navigate('/admin/users')" title="Aktive Benutzer"></zso-stat-widget>
-        <zso-stat-widget size="sm" icon="schedule" label="Wartend" color="text-amber-400" [value]="s?.pending ?? 0" (select)="navigate('/admin/users')" title="Benutzer warten auf Freigabe"></zso-stat-widget>
-        <zso-stat-widget size="sm" icon="block" label="Gesperrt" color="text-rose-400" [value]="s?.blocked ?? 0" (select)="navigate('/admin/users')" title="Gesperrte Benutzer"></zso-stat-widget>
-        <zso-stat-widget size="sm" icon="badge" label="AdZS" color="text-blue-400" [value]="s?.persons ?? 0" (select)="navigate('/adsz')" title="Alle AdZS-Angehörigen"></zso-stat-widget>
-        <zso-stat-widget size="sm" icon="military_tech" label="Im Dienst" color="text-purple-400" [value]="s?.activePersons ?? 0" (select)="navigate('/adsz')" title="Angehörige im Dienst"></zso-stat-widget>
+        <zso-stat-hint icon="group" [value]="s?.total ?? 0" (select)="navigate('/admin/users')" color="text-blue-400" title="Alle Benutzer"></zso-stat-hint>
+        <zso-stat-hint icon="verified" [value]="s?.active ?? 0" (select)="navigate('/admin/users')" color="text-green-400" title="Aktive Benutzer"></zso-stat-hint>
+        <zso-stat-hint icon="schedule" [value]="s?.pending ?? 0" (select)="navigate('/admin/users')" color="text-amber-400" title="Wartend"></zso-stat-hint>
+        <zso-stat-hint icon="block" [value]="s?.blocked ?? 0" (select)="navigate('/admin/users')" color="text-rose-400" title="Gesperrt"></zso-stat-hint>
+        <zso-stat-hint icon="badge" [value]="s?.persons ?? 0" (select)="navigate('/adsz')" color="text-purple-400" title="AdZS"></zso-stat-hint>
+        <zso-stat-hint icon="military_tech" [value]="s?.activePersons ?? 0" (select)="navigate('/adsz')" color="text-cyan-400" title="Im Dienst"></zso-stat-hint>
       </section>
 
 
@@ -56,22 +56,12 @@
               Schnellzugriff
             </h2>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="quick-links-grid gap-3">
               @for (link of getFilteredQuickLinks((appUser$ | async)?.doc?.roles?.includes('admin') ?? false); track link.route) {
-                <a [routerLink]="link.route" 
-                   class="group relative overflow-hidden rounded-xl p-4 transition-all duration-300 {{ link.color }}">
-                  <div class="relative z-10">
-                    <div class="flex items-start gap-3">
-                      <span class="material-symbols-outlined text-2xl">{{ link.icon }}</span>
-                      <div class="flex-1">
-                        <h3 class="font-semibold text-white group-hover:text-cp-orange transition-colors">
-                          {{ link.label }}
-                        </h3>
-                        <p class="text-sm text-gray-300 mt-1">{{ link.description }}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="absolute inset-0 bg-gradient-to-r from-transparent to-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                <a [routerLink]="link.route"
+                   class="glass-card flex flex-col items-center justify-center gap-2 p-3 hover:bg-white/5 transition-all {{ link.color }}">
+                  <span class="material-symbols-outlined text-3xl">{{ link.icon }}</span>
+                  <span class="text-sm font-medium text-white text-center">{{ link.label }}</span>
                 </a>
               }
             </div>

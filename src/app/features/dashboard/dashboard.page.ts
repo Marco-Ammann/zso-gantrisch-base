@@ -1,7 +1,7 @@
 // src/app/features/dashboard/dashboard.page.ts
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe, DatePipe } from '@angular/common';
-import { StatWidgetComponent } from './components/stat-widget/stat-widget';
+import { StatHintComponent } from './components/stat-hint/stat-hint';
 import { RouterModule, Router } from '@angular/router';
 import { Subject, interval, takeUntil, combineLatest, startWith, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -31,7 +31,7 @@ interface ExtendedStats extends Stats {
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, RouterModule, DatePipe, StatWidgetComponent],
+  imports: [CommonModule, AsyncPipe, RouterModule, DatePipe, StatHintComponent],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   animations: [
