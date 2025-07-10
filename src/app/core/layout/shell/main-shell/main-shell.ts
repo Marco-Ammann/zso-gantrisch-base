@@ -1,7 +1,8 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { map, take } from 'rxjs/operators';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { map, take, filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
@@ -38,10 +39,11 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
     ])
   ]
 })
-export class MainShell {
+export class MainShell implements OnInit, OnDestroy {
   readonly auth   = inject(AuthService);
   appUser$ = this.auth.appUser$;
   private router = inject(Router);
+  private destroy$ = new Subject<void>();
 
   showLinks = false;
   isAdmin$  = this.auth.appUser$.pipe(map(u => u?.doc.roles?.includes('admin') ?? false));
@@ -65,6 +67,22 @@ export class MainShell {
     });
   }
   toggleMobile () { this.showLinks   = !this.showLinks; }
+
+  /* Auto-close menus on navigation change */
+  ngOnInit() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.showLinks = false;
+      this.overlayOpen = false;
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
   logout() {
     this.auth.logout().subscribe(()=>this.router.navigate(['/auth/login']));
     this.overlayOpen = false;

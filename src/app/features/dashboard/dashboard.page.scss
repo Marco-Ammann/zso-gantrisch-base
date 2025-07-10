@@ -8,6 +8,16 @@
   @apply inline-block w-12 h-12 border-4 border-gray-700 border-t-cp-orange rounded-full animate-spin;
 }
 
+// Stats grid & card
+.stats-grid {
+  @apply grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.stats-card {
+  @apply glass-card p-4 sm:p-5 hover:scale-105 transition-transform;
+}
+
 // Stats card hover effects
 .stats-card {
   position: relative;
@@ -69,6 +79,9 @@
 
 // Responsive adjustments
 @media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
   .stats-grid {
     grid-template-columns: 1fr;
   }

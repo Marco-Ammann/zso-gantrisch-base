@@ -1,7 +1,8 @@
 // src/app/features/dashboard/dashboard.page.ts
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { StatWidgetComponent } from './components/stat-widget/stat-widget';
+import { RouterModule, Router } from '@angular/router';
 import { Subject, interval, takeUntil, combineLatest, startWith, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
@@ -30,7 +31,7 @@ interface ExtendedStats extends Stats {
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, RouterModule, DatePipe],
+  imports: [CommonModule, AsyncPipe, RouterModule, DatePipe, StatWidgetComponent],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   animations: [
@@ -57,6 +58,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly personService = inject(PersonService);
   private readonly logger = inject(LoggerService);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
   // State
@@ -185,6 +187,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (user.blocked) return 'block';
     if (user.updatedAt && user.updatedAt > user.createdAt) return 'edit';
     return 'person_add';
+  }
+
+  navigate(path: string) {
+    this.router.navigate([path]);
   }
 
   getActivityColor(user: UserDoc): string {
