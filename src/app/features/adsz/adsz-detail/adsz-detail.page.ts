@@ -11,7 +11,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { Subject, of, takeUntil, switchMap } from 'rxjs';
+import { Subject, of, takeUntil, switchMap, finalize } from 'rxjs';
 
 import { PersonService } from '@core/services/person.service';
 import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
@@ -51,6 +51,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly destroy$ = new Subject<void>();
+  deleting = false;
 
   // state
   person: PersonDoc | null = null;
@@ -228,6 +229,33 @@ openEdit(): void {
     this.person = updated;
     this.modalVisible = false;
     this.cdr.markForCheck();
+  }
+
+  confirmDelete(): void {
+    if (!this.person?.id) return;
+    if (!confirm('Person endgültig löschen? Alle Notfallkontakte werden ebenfalls entfernt.')) {
+      return;
+    }
+    this.deleting = true;
+    this.personService
+      .deletePersonWithNotfallkontakte(this.person.id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.deleting = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.logger.log('AdzsDetailPage', 'Person gelöscht', this.person?.id);
+          this.router.navigate(['/adsz']);
+        },
+        error: (err) => {
+          this.logger.error('AdzsDetailPage', 'Löschen fehlgeschlagen', err);
+          alert('Löschen fehlgeschlagen');
+        },
+      });
   }
 
   private refreshPerson(id: string): void {

@@ -74,6 +74,15 @@
               <span class="material-symbols-outlined text-lg">edit</span>
               <span class="text-sm font-medium">Bearbeiten</span>
             </button>
+            @if ((user.uid === (currentUserId$ | async)) || (currentUserIsAdmin$ | async)) {
+              <button (click)="confirmDelete(user.uid)"
+                      class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 
+                             hover:bg-rose-500/30 hover:text-white transition-colors"
+                      title="Benutzer löschen">
+                <span class="material-symbols-outlined text-lg">delete</span>
+                <span class="text-sm font-medium">Löschen</span>
+              </button>
+            }
           </div>
           
           <p class="text-gray-300 mb-3">{{ user.email }}</p>

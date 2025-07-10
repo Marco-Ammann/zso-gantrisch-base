@@ -8,7 +8,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 
 import { Router } from '@angular/router';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { map, switchMap, takeUntil } from 'rxjs';
+import { map, switchMap, takeUntil, take } from 'rxjs';
 import { Subject } from 'rxjs';
 
 import { UserService } from '@core/services/user.service';
@@ -69,6 +69,11 @@ export class UserDetailPage implements OnDestroy {
   // Public observable for current user ID
   currentUserId$ = this.authService.user$.pipe(
     map(user => user?.uid || null)
+  );
+
+  // Observable emitting true if the current user has the admin role
+  currentUserIsAdmin$ = this.authService.provideUserDoc().pipe(
+    map(doc => doc?.roles?.includes('admin') ?? false)
   );
 
   positions: ConnectedPosition[] = [
@@ -223,6 +228,35 @@ export class UserDetailPage implements OnDestroy {
 
     this.dialogVisible = false;
     this.editUser = null;
+  }
+
+  // Admin / Destructive actions
+  confirmDelete(uid: string): void {
+    const confirmed = confirm('Bist du sicher, dass du diesen Benutzer löschen möchtest? Die Verknüpfung zu seinen AdZS wird entfernt.');
+    if (!confirmed) return;
+
+    this.isLoading = true;
+
+    this.currentUserId$.pipe(take(1)).subscribe(currentUid => {
+      const isSelf = currentUid === uid;
+      const deletion$ = isSelf
+        ? this.authService.deleteOwnAccount()
+        : this.userService.deleteAccountByAdmin(uid);
+
+      deletion$.pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.logger.log('UserDetailPage', 'User deleted', uid);
+          this.isLoading = false;
+          // Navigate back to users list
+          this.router.navigate(['../'], { relativeTo: this.route });
+        },
+        error: (error) => {
+          this.logger.error('UserDetailPage', 'Delete failed:', error);
+          this.isLoading = false;
+          this.showToast('Fehler beim Löschen des Benutzers', true);
+        }
+      });
+    });
   }
 
   // Admin actions
