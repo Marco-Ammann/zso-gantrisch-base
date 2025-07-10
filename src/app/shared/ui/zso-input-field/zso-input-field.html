@@ -4,13 +4,15 @@
 
   <div class="relative">
     <!-- Select dropdown variant -->
-    <select *ngIf="select; else inputTpl" [id]="id" class="form-input pr-10" [formControl]="control" (blur)="onTouched()"
+    <select *ngIf="select; else inputTpl" [id]="id" class="form-input sort-select pr-8" [formControl]="control" (blur)="onTouched()"
             [attr.aria-label]="label" [attr.aria-invalid]="control.touched ? control.invalid : 'unset'">
       <option value="" disabled selected hidden>{{ placeholder || 'Bitte wählen' }}</option>
       <ng-container *ngFor="let opt of options">
         <option [ngValue]="getOptionValue(opt)">{{ getOptionLabel(opt) }}</option>
       </ng-container>
     </select>
+      <!-- Custom arrow icon -->
+      <span *ngIf="select" class="material-symbols-outlined select-arrow absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 text-base">expand_more</span>
     <ng-template #inputTpl>
       <input [id]="id" [type]="resolvedType" [placeholder]="placeholder" class="form-input pr-10" [formControl]="control"
         (blur)="onTouched()" [attr.aria-label]="label"

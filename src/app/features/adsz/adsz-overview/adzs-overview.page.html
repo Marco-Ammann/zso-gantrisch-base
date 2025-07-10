@@ -296,6 +296,7 @@
   
     <!-- CREATE MODAL - NEU -->
     <zso-adzs-create-modal
+      *ngIf="createModalVisible"
       [visible]="createModalVisible"
       (created)="onPersonCreated($event)"
       (closed)="onCreateModalClosed()"

@@ -87,11 +87,11 @@ import {
     ];
   
     readonly gradOptions = [
+      //add Fourier
       'Soldat',
       'Korporal',
       'Wachtmeister',
       'Oberwachtmeister',
-      'Adjutant',
       'Leutnant',
       'Oberleutnant',
       'Hauptmann',
@@ -107,8 +107,8 @@ import {
   
     readonly statusOptions = ['aktiv', 'neu', 'inaktiv'];
     readonly zugOptions = [1, 2];
-    readonly gruppeOptions = ['A', 'B', 'C', 'D'];
-    readonly fuehrerausweisKategorien = ['A', 'A1', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'BE', 'C1E', 'CE', 'D1E', 'DE'];
+    readonly gruppeOptions = ['A', 'B', 'C', 'D', 'keine Gruppe'];
+    readonly fuehrerausweisKategorien = ['A', 'A1', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'BE', 'C1E', 'CE', 'D1E', 'DE']; // TODO: add Führerausweis Kategorien von schweiz
 
   // Contact method dropdown options
   readonly contactMethodOptions = [

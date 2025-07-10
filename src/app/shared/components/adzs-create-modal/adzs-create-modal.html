@@ -1,27 +1,20 @@
 <!-- Backdrop -->
 <div
-  class="fixed inset-0 bg-black/50 z-50 flex justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-200"
-  [class.opacity-100]="visible"
-  [class.pointer-events-auto]="visible"
-  (click)="onBackdrop($event)"
->
+  class="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-200"
+  [class.opacity-100]="visible" [class.pointer-events-auto]="visible" (click)="onBackdrop($event)">
   <!-- Dialog / Page wrapper -->
   <div
-    class="glass-card w-full flex flex-col mx-auto overflow-hidden transform transition-transform duration-200 translate-y-full md:translate-y-0 sm:max-w-3xl md:max-w-4xl lg:max-w-5xl sm:rounded-lg max-h-[calc(100vh-5.5rem)]"
-    [class.translate-y-0]="visible"
-    (click)="$event.stopPropagation()"
-  >
+    class="glass-card w-full flex flex-col mx-auto overflow-hidden transform transition-transform duration-200 sm:max-w-3xl md:max-w-4xl lg:max-w-5xl sm:rounded-lg max-h-[calc(100vh-5.5rem)]"
+    [class.translate-y-full]="!visible" [class.translate-y-0]="visible" (click)="$event.stopPropagation()">
     <!-- HEADER (phones: sticky top bar) -->
-    <div class="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-black/30 sm:bg-transparent sticky top-0 sm:static backdrop-blur-md z-10">
+    <div
+      class="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-black/30 sm:bg-transparent sticky top-0 sm:static backdrop-blur-md z-10">
       <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
         <span class="material-symbols-outlined text-cp-orange">person_add</span>
         {{ person ? 'Person bearbeiten' : 'Neue Person erfassen' }}
       </h2>
-      <button
-        (click)="cancel()"
-        [disabled]="isSaving"
-        class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all disabled:opacity-50"
-      >
+      <button (click)="cancel()" [disabled]="isSaving"
+        class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all disabled:opacity-50">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
@@ -34,40 +27,45 @@
 
           <!-- ACCORDION SECTION -->
           <details [open]="openSection==='grunddaten'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('grunddaten', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
+            <summary (click)="toggleSection('grunddaten', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">person</span>
                 Grunddaten
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Vorname -->
               <zso-input-field label="Vorname" formControlName="vorname" required></zso-input-field>
               <!-- Nachname -->
               <zso-input-field label="Nachname" formControlName="nachname" required></zso-input-field>
               <!-- Geburtsdatum -->
-              <zso-input-field type="date" label="Geburtsdatum" formControlName="geburtsdatum" required></zso-input-field>
+              <zso-input-field type="date" label="Geburtsdatum" formControlName="geburtsdatum"
+                required></zso-input-field>
               <!-- Grad -->
-              <zso-input-field [select]="true" label="Grad" formControlName="grad" [options]="gradOptions" required></zso-input-field>
+              <zso-input-field [select]="true" label="Grad" formControlName="grad" [options]="gradOptions"
+                required></zso-input-field>
               <!-- Funktion -->
-              <zso-input-field [select]="true" label="Funktion" formControlName="funktion" [options]="funktionOptions" required></zso-input-field>
+              <zso-input-field [select]="true" label="Funktion" formControlName="funktion" [options]="funktionOptions"
+                required></zso-input-field>
             </div>
           </details>
 
           <!-- KONTAKT -->
           <details [open]="openSection==='kontakt'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('kontakt', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
+            <summary (click)="toggleSection('kontakt', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">contact_mail</span>
                 Kontakt
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <zso-input-field label="Strasse" formControlName="strasse" required></zso-input-field>
               <zso-input-field label="PLZ" formControlName="plz" required></zso-input-field>
@@ -81,36 +79,45 @@
 
           <!-- ZIVILSCHUTZ -->
           <details [open]="openSection==='zivilschutz'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('zivilschutz', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
+            <summary (click)="toggleSection('zivilschutz', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">shield</span>
                 Zivilschutz
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <zso-input-field [select]="true" label="Status" formControlName="status" [options]="statusOptions" required></zso-input-field>
+              <zso-input-field [select]="true" label="Status" formControlName="status" [options]="statusOptions"
+                required></zso-input-field>
               <zso-input-field label="Grundausbildung (Jahr)" formControlName="grundausbildung"></zso-input-field>
-              <zso-input-field [select]="true" label="Zug" formControlName="zug" [options]="zugOptions" required></zso-input-field>
-              <zso-input-field [select]="true" label="Gruppe" formControlName="gruppe" [options]="gruppeOptions" required></zso-input-field>
+              <zso-input-field [select]="true" label="Zug" formControlName="zug" [options]="zugOptions"
+                required></zso-input-field>
+              <zso-input-field [select]="true" label="Gruppe" formControlName="gruppe" [options]="gruppeOptions"
+                required></zso-input-field>
 
               <!-- Zusatzausbildungen Chip List -->
               <div class="sm:col-span-2">
                 <label class="block text-sm font-medium text-gray-300 mb-2">Zusatzausbildungen</label>
                 <div class="space-y-2">
                   @for (ausbildung of selectedZusatzausbildungen; track ausbildung; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ ausbildung }}</span>
-                      <button type="button" (click)="removeZusatzausbildung(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
+                  <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="flex-1 text-sm text-gray-300">{{ ausbildung }}</span>
+                    <button type="button" (click)="removeZusatzausbildung(i)"
+                      class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
                   }
                   <div class="flex gap-2">
-                    <input #ausbildungInput type="text" placeholder="Zusatzausbildung hinzufügen..." class="form-input flex-1" (keyup.enter)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''" />
-                    <button type="button" (click)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
+                    <input #ausbildungInput type="text" placeholder="Zusatzausbildung hinzufügen..."
+                      class="form-input flex-1"
+                      (keyup.enter)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''" />
+                    <button type="button"
+                      (click)="addZusatzausbildung(ausbildungInput.value); ausbildungInput.value = ''"
+                      class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                   </div>
@@ -121,33 +128,34 @@
 
           <!-- BERUFLICH -->
           <details [open]="openSection==='beruflich'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('beruflich', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
+            <summary (click)="toggleSection('beruflich', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">work</span>
                 Berufliches
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <zso-input-field label="Erlernter Beruf" formControlName="erlernterBeruf"></zso-input-field>
                 <zso-input-field label="Ausgeübter Beruf" formControlName="ausgeubterBeruf"></zso-input-field>
               </div>
               <zso-input-field label="Arbeitgeber" formControlName="arbeitgeber"></zso-input-field>
-              <zso-input-field label="Zivile Spezialausbildung" formControlName="zivileSpezialausbildung"></zso-input-field>
+              <zso-input-field label="Zivile Spezialausbildung"
+                formControlName="zivileSpezialausbildung"></zso-input-field>
               <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Führerausweis-Kategorien</label>
                 <div class="flex flex-wrap gap-3">
                   @for (kategorie of fuehrerausweisKategorien; track kategorie) {
-                    <label class="inline-flex items-center gap-1 text-sm text-gray-200">
-                      <input type="checkbox"
-                             class="form-checkbox text-cp-orange"
-                             [checked]="selectedFuehrerausweis.includes(kategorie)"
-                             (change)="onFuehrerausweisToggle(kategorie, $event)" />
-                      <span>Kat. {{ kategorie }}</span>
-                    </label>
+                  <label class="inline-flex items-center gap-1 text-sm text-gray-200">
+                    <input type="checkbox" class="form-checkbox text-cp-orange"
+                      [checked]="selectedFuehrerausweis.includes(kategorie)"
+                      (change)="onFuehrerausweisToggle(kategorie, $event)" />
+                    <span>Kat. {{ kategorie }}</span>
+                  </label>
                   }
                 </div>
                 <p class="text-xs text-gray-500 mt-1">Mehrfachauswahl möglich</p>
@@ -157,16 +165,17 @@
 
           <!-- PERSÖNLICHES -->
           <details [open]="openSection==='persoenlich'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('persoenlich', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-          
-            
+            <summary (click)="toggleSection('persoenlich', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">favorite</span>
                 Persönliches
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 space-y-6">
               <zso-input-field label="Blutgruppe" formControlName="blutgruppe"></zso-input-field>
 
@@ -175,16 +184,19 @@
                 <label class="block text-sm font-medium text-gray-300 mb-2">Allergien</label>
                 <div class="space-y-2">
                   @for (allergie of selectedAllergien; track allergie; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ allergie }}</span>
-                      <button type="button" (click)="removeAllergie(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
+                  <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="flex-1 text-sm text-gray-300">{{ allergie }}</span>
+                    <button type="button" (click)="removeAllergie(i)"
+                      class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
                   }
                   <div class="flex gap-2">
-                    <input #allergieInput type="text" placeholder="Allergie hinzufügen..." class="form-input flex-1" (keyup.enter)="addAllergie(allergieInput.value); allergieInput.value = ''" />
-                    <button type="button" (click)="addAllergie(allergieInput.value); allergieInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
+                    <input #allergieInput type="text" placeholder="Allergie hinzufügen..." class="form-input flex-1"
+                      (keyup.enter)="addAllergie(allergieInput.value); allergieInput.value = ''" />
+                    <button type="button" (click)="addAllergie(allergieInput.value); allergieInput.value = ''"
+                      class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                   </div>
@@ -196,16 +208,19 @@
                 <label class="block text-sm font-medium text-gray-300 mb-2">Essgewohnheiten</label>
                 <div class="space-y-2">
                   @for (ess of selectedEssgewohnheiten; track ess; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ ess }}</span>
-                      <button type="button" (click)="removeEssgewohnheit(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
+                  <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="flex-1 text-sm text-gray-300">{{ ess }}</span>
+                    <button type="button" (click)="removeEssgewohnheit(i)"
+                      class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
                   }
                   <div class="flex gap-2">
-                    <input #essInput type="text" placeholder="Essgewohnheit hinzufügen..." class="form-input flex-1" (keyup.enter)="addEssgewohnheit(essInput.value); essInput.value = ''" />
-                    <button type="button" (click)="addEssgewohnheit(essInput.value); essInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
+                    <input #essInput type="text" placeholder="Essgewohnheit hinzufügen..." class="form-input flex-1"
+                      (keyup.enter)="addEssgewohnheit(essInput.value); essInput.value = ''" />
+                    <button type="button" (click)="addEssgewohnheit(essInput.value); essInput.value = ''"
+                      class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                   </div>
@@ -217,16 +232,19 @@
                 <label class="block text-sm font-medium text-gray-300 mb-2">Sprachkenntnisse</label>
                 <div class="space-y-2">
                   @for (sprache of selectedSprachen; track sprache; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ sprache }}</span>
-                      <button type="button" (click)="removeSprache(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
+                  <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="flex-1 text-sm text-gray-300">{{ sprache }}</span>
+                    <button type="button" (click)="removeSprache(i)"
+                      class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
                   }
                   <div class="flex gap-2">
-                    <input #spracheInput type="text" placeholder="Sprache hinzufügen..." class="form-input flex-1" (keyup.enter)="addSprache(spracheInput.value); spracheInput.value = ''" />
-                    <button type="button" (click)="addSprache(spracheInput.value); spracheInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
+                    <input #spracheInput type="text" placeholder="Sprache hinzufügen..." class="form-input flex-1"
+                      (keyup.enter)="addSprache(spracheInput.value); spracheInput.value = ''" />
+                    <button type="button" (click)="addSprache(spracheInput.value); spracheInput.value = ''"
+                      class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                   </div>
@@ -238,16 +256,19 @@
                 <label class="block text-sm font-medium text-gray-300 mb-2">Besonderheiten</label>
                 <div class="space-y-2">
                   @for (bes of selectedBesonderheiten; track bes; let i = $index) {
-                    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <span class="flex-1 text-sm text-gray-300">{{ bes }}</span>
-                      <button type="button" (click)="removeBesonderheit(i)" class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
+                  <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                    <span class="flex-1 text-sm text-gray-300">{{ bes }}</span>
+                    <button type="button" (click)="removeBesonderheit(i)"
+                      class="text-gray-400 hover:text-rose-400 p-1 rounded transition-colors">
+                      <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
                   }
                   <div class="flex gap-2">
-                    <input #besInput type="text" placeholder="Besonderheit hinzufügen..." class="form-input flex-1" (keyup.enter)="addBesonderheit(besInput.value); besInput.value = ''" />
-                    <button type="button" (click)="addBesonderheit(besInput.value); besInput.value = ''" class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
+                    <input #besInput type="text" placeholder="Besonderheit hinzufügen..." class="form-input flex-1"
+                      (keyup.enter)="addBesonderheit(besInput.value); besInput.value = ''" />
+                    <button type="button" (click)="addBesonderheit(besInput.value); besInput.value = ''"
+                      class="px-3 py-2 rounded-lg bg-cp-orange/20 text-cp-orange hover:bg-cp-orange/30 transition-colors">
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                   </div>
@@ -258,19 +279,23 @@
 
           <!-- PRÄFERENZEN -->
           <details [open]="openSection==='praferenzen'" class="border border-white/10 rounded-lg overflow-hidden">
-            <summary (click)="toggleSection('praferenzen', $event)" class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
-            
+            <summary (click)="toggleSection('praferenzen', $event)"
+              class="cursor-pointer select-none px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10">
+
               <span class="flex items-center gap-2 text-white">
                 <span class="material-symbols-outlined text-cp-orange text-sm">settings</span>
                 Präferenzen
               </span>
               <span class="material-symbols-outlined text-gray-400">expand_more</span>
             </summary>
-            
+
             <div class="p-4 space-y-4">
-              <zso-input-field [select]="true" label="Kontakt-Methode" formControlName="contactMethod" [options]="contactMethodOptions"></zso-input-field>
-              <label class="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                <input type="checkbox" formControlName="emailNotifications" class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-cp-orange focus:ring-2 focus:ring-cp-orange/20" />
+              <zso-input-field [select]="true" label="Kontakt-Methode" formControlName="contactMethod"
+                [options]="contactMethodOptions"></zso-input-field>
+              <label
+                class="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                <input type="checkbox" formControlName="emailNotifications"
+                  class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-cp-orange focus:ring-2 focus:ring-cp-orange/20" />
                 <div>
                   <span class="text-sm font-medium text-gray-300">E-Mail-Benachrichtigungen</span>
                   <p class="text-xs text-gray-500">Informationen über Termine und Aufgebote per E-Mail erhalten</p>
@@ -299,33 +324,48 @@
         </h3>
         <!-- live preview using helper methods -->
         <div class="space-y-2 text-sm">
-          <p><span class="text-gray-400">Name:</span> <span class="text-white ml-1">{{ mainForm.value.vorname }} {{ mainForm.value.nachname }}</span></p>
-          <p><span class="text-gray-400">Geburtsdatum:</span> <span class="text-white ml-1">{{ mainForm.value.geburtsdatum | date:'dd.MM.yyyy' }}</span></p>
-          <p><span class="text-gray-400">Grad / Funktion:</span> <span class="text-white ml-1">{{ mainForm.value.grad }} / {{ mainForm.value.funktion }}</span></p>
-          <p><span class="text-gray-400">Status:</span> <span class="text-white ml-1">{{ mainForm.value.status }}</span></p>
-          <p><span class="text-gray-400">Zug / Gruppe:</span> <span class="text-white ml-1">{{ mainForm.value.zug }} / {{ mainForm.value.gruppe }}</span></p>
-          <p><span class="text-gray-400">Erlernter Beruf:</span> <span class="text-white ml-1">{{ mainForm.value.erlernterBeruf }}</span></p>
-          <p><span class="text-gray-400">Ausgeübter Beruf:</span> <span class="text-white ml-1">{{ mainForm.value.ausgeubterBeruf }}</span></p>
-          <p><span class="text-gray-400">Führerausweis:</span> <span class="text-white ml-1">{{ selectedFuehrerausweis.join(', ') }}</span></p>
-          <p><span class="text-gray-400">Allergien:</span> <span class="text-white ml-1">{{ selectedAllergien.join(', ') }}</span></p>
-          <p><span class="text-gray-400">Sprachen:</span> <span class="text-white ml-1">{{ selectedSprachen.join(', ') }}</span></p>
-          <p><span class="text-gray-400">Essgewohnheiten:</span> <span class="text-white ml-1">{{ selectedEssgewohnheiten.join(', ') }}</span></p>
-          <p><span class="text-gray-400">Besonderheiten:</span> <span class="text-white ml-1">{{ selectedBesonderheiten.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Name:</span> <span class="text-white ml-1">{{ mainForm.value.vorname }} {{
+              mainForm.value.nachname }}</span></p>
+          <p><span class="text-gray-400">Geburtsdatum:</span> <span class="text-white ml-1">{{
+              mainForm.value.geburtsdatum | date:'dd.MM.yyyy' }}</span></p>
+          <p><span class="text-gray-400">Grad / Funktion:</span> <span class="text-white ml-1">{{ mainForm.value.grad }}
+              / {{ mainForm.value.funktion }}</span></p>
+          <p><span class="text-gray-400">Status:</span> <span class="text-white ml-1">{{ mainForm.value.status }}</span>
+          </p>
+          <p><span class="text-gray-400">Zug / Gruppe:</span> <span class="text-white ml-1">{{ mainForm.value.zug }} /
+              {{ mainForm.value.gruppe }}</span></p>
+          <p><span class="text-gray-400">Erlernter Beruf:</span> <span class="text-white ml-1">{{
+              mainForm.value.erlernterBeruf }}</span></p>
+          <p><span class="text-gray-400">Ausgeübter Beruf:</span> <span class="text-white ml-1">{{
+              mainForm.value.ausgeubterBeruf }}</span></p>
+          <p><span class="text-gray-400">Führerausweis:</span> <span class="text-white ml-1">{{
+              selectedFuehrerausweis.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Allergien:</span> <span class="text-white ml-1">{{ selectedAllergien.join(', ')
+              }}</span></p>
+          <p><span class="text-gray-400">Sprachen:</span> <span class="text-white ml-1">{{ selectedSprachen.join(', ')
+              }}</span></p>
+          <p><span class="text-gray-400">Essgewohnheiten:</span> <span class="text-white ml-1">{{
+              selectedEssgewohnheiten.join(', ') }}</span></p>
+          <p><span class="text-gray-400">Besonderheiten:</span> <span class="text-white ml-1">{{
+              selectedBesonderheiten.join(', ') }}</span></p>
         </div>
 
         <div class="mt-6 flex flex-col gap-3 sticky bottom-0 bg-black/30 backdrop-blur-md p-4 -mx-4">
           <zso-button type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-          <zso-button type="primary" (click)="handleSave()" [disabled]="(!mainForm.valid && !isEditMode) || isSaving" [loading]="isSaving">
-            {{ isEditMode ? (isSaving ? 'Speichere...' : 'Speichern') : (isSaving ? 'Erstelle Person...' : 'Person erstellen') }}
+          <zso-button type="primary" (click)="handleSave()" [disabled]="(!mainForm.valid && !isEditMode) || isSaving"
+            [loading]="isSaving">
+            {{ isEditMode ? (isSaving ? 'Speichere...' : 'Speichern') : (isSaving ? 'Erstelle Person...' : 'Person
+            erstellen') }}
           </zso-button>
         </div>
       </div>
     </div>
 
     <!-- MOBILE FOOTER -->
-    <div class="sm:hidden fixed bottom-0 inset-x-0 p-4 backdrop-blur-md bg-black/50 flex justify-between gap-3 z-50">
+    <div class="sm:hidden fixed bottom-0 inset-x-0 px-4 py-3 flex gap-3 border-t border-white/10 backdrop-blur-md z-50" style="background: var(--shell-overlay-80)">
       <zso-button class="flex-1" type="neutral" (click)="cancel()" [disabled]="isSaving">Abbrechen</zso-button>
-      <zso-button class="flex-1" type="primary" (click)="handleSave()" [disabled]="(!mainForm.valid && !isEditMode) || isSaving" [loading]="isSaving">
+      <zso-button class="flex-1" type="primary" (click)="handleSave()"
+        [disabled]="(!mainForm.valid && !isEditMode) || isSaving" [loading]="isSaving">
         {{ isEditMode ? (isSaving ? 'Speichern...' : 'Speichern') : (isSaving ? 'Erstelle...' : 'Erstellen') }}
       </zso-button>
     </div>

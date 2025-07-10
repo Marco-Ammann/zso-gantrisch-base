@@ -3,6 +3,8 @@
   /* Brand Colors */
   --cp-orange: #FF7900;
   --cp-blue: #005EB8;
+  --cp-green: #008000; /* TODO: make a better suitable green*/
+  --cp-red:#FF0000;/*TODO: make a better suitable red*/
 
   /* Glassmorphism */
   /* Semi-transparent white with 10% opacity for glass cards */
