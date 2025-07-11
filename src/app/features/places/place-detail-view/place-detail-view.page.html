@@ -3,11 +3,13 @@
   <!-- Back Button -->
   <button
     (click)="back()"
-    class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+    class="inline-flex items-center gap-2 px-2 py-1 mb-4 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white text-sm transition-colors"
   >
     <span class="material-symbols-outlined text-lg">arrow_back</span>
     <span class="text-sm font-medium">Zurück</span>
   </button>
+
+  <h2 class="text-lg text-gray-400 font-medium mb-4">Ort-Details</h2>
 
   <!-- Loader / Fehler -->
   <ng-container *ngIf="!isLoading; else loading">
@@ -41,7 +43,7 @@
                 </span>
               </div>
 
-              <zso-button type="primary" (click)="edit()">
+              <zso-button type="primary" size="sm" (click)="edit()">
                 <span class="material-symbols-outlined text-base mr-1">edit</span>
                 Bearbeiten
               </zso-button>
@@ -49,7 +51,7 @@
           </div>
 
           <!-- Address / Capacity / Contact -->
-          <div class="glass-card p-6 space-y-4">
+          <div class="glass-card space-y-4">
             <h2 class="text-lg font-semibold">Informationen</h2>
             <div class="text-gray-300 space-y-2">
               <div>
@@ -70,11 +72,11 @@
           </div>
 
           <!-- Notes Widget -->
-          <zso-place-notes-widget [placeId]="placeId"></zso-place-notes-widget>
         </div>
+        <zso-place-notes-widget [placeId]="placeId"></zso-place-notes-widget>
 
         <!-- Map -->
-        <div class="lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)]">
+        <div class="relative lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)]">
           <zso-place-map
             class="rounded-lg overflow-hidden h-full w-full min-h-[300px]"
             *ngIf="mapLat !== null || mapAddress"
@@ -82,6 +84,21 @@
             [lng]="mapLng"
             [address]="mapAddress"
           ></zso-place-map>
+          <!-- Overlay Info on Map -->
+          <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md p-4 rounded-lg text-gray-200 text-sm space-y-2 max-w-xs w-[calc(100%-2rem)] lg:hidden">
+            <div>
+              <span class="material-symbols-outlined text-sm mr-1 align-text-top">location_on</span>
+              {{ place!.address.street }}, {{ place!.address.zip }} {{ place!.address.city }}
+            </div>
+            <div *ngIf="place!.capacity?.maxPersons">
+              <span class="material-symbols-outlined text-sm mr-1 align-text-top">groups</span>
+              Kapazität: {{ place!.capacity?.maxPersons }} Personen
+            </div>
+            <div *ngIf="place!.contactPerson">
+              <span class="material-symbols-outlined text-sm mr-1 align-text-top">person</span>
+              {{ place!.contactPerson.firstName }} {{ place!.contactPerson.lastName }}
+            </div>
+          </div>
         </div>
       </div>
     }

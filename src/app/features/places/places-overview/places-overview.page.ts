@@ -32,8 +32,8 @@ import { PlaceCreateModal } from '../components/place-create-modal/place-create-
         <div *ngIf="places.length === 0" class="text-gray-400">
           Keine Orte vorhanden.
         </div>
-        <div class="grid gap-4 mt-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          <zso-place-card *ngFor="let place of places; trackBy: trackById" [place]="place" (click)="viewDetails(place)"></zso-place-card>
+        <div class="grid gap-6 mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
+          <zso-place-card *ngFor="let place of places; trackBy: trackById" class="w-full max-w-[320px]" [place]="place" (click)="viewDetails(place)"></zso-place-card>
         </div>
       </div>
       <ng-template #loading>

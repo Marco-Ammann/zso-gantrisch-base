@@ -5,7 +5,9 @@
 }
 
 .glass-card {
-  @apply bg-white/5 rounded-lg backdrop-blur-md;
+  @apply rounded-lg backdrop-blur-md p-6 border border-white/10 shadow-lg;
+  // subtle gradient and depth
+  background: radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%), rgba(255, 255, 255, 0.02);
 }
 
 @screen lg {

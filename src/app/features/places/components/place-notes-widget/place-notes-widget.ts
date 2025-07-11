@@ -41,10 +41,16 @@ export class PlaceNotesWidget implements OnInit {
   private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
 
+  /** Sort notes by createdAt desc */
+  private sortNotes(): void {
+    this.notes = [...this.notes].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
   async ngOnInit(): Promise<void> {
     if (!this.placeId) return;
     const place = await firstValueFrom(this.placesService.getById(this.placeId));
     this.notes = place?.notes ?? [];
+    this.sortNotes();
     this.cdr.markForCheck();
   }
 
@@ -66,6 +72,7 @@ export class PlaceNotesWidget implements OnInit {
         this.placesService.update(this.placeId, { notes: [...this.notes, note] })
       );
       this.notes = [...this.notes, note];
+      this.sortNotes();
       this.newText = '';
       this.cdr.markForCheck();
     } catch (err) {
@@ -86,6 +93,7 @@ export class PlaceNotesWidget implements OnInit {
     try {
       await firstValueFrom(this.placesService.update(this.placeId, { notes: updated }));
       this.notes = updated;
+      this.sortNotes();
       this.editingId = null;
       this.editText = '';
     } catch (err) {
@@ -110,12 +118,15 @@ export class PlaceNotesWidget implements OnInit {
   }
 
   async delete(id: string): Promise<void> {
+    if (this.pending) return;
+    if (!confirm('Notiz wirklich löschen?')) return;
     this.pending = true;
     this.errorMsg = null;
     const updated = this.notes.filter((n) => n.id !== id);
     try {
       await firstValueFrom(this.placesService.update(this.placeId, { notes: updated }));
       this.notes = updated;
+      this.sortNotes();
       if (this.editingId === id) {
         this.editingId = null;
         this.editText = '';

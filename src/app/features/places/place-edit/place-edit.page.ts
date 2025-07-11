@@ -1,6 +1,7 @@
-// src/app/features/places/place-detail/place-detail.page.ts
-// Detail- & Bearbeitungsseite für einen Ort (Place).
-// Alle Klassen/Dateinamen Englisch, sichtbare Texte Deutsch.
+// src/app/features/places/place-edit/place-edit.page.ts
+// Gemeinsame Seite zum Erstellen oder Bearbeiten eines Ortes.
+// Für neue Orte wird die Route /places/new ohne ID verwendet.
+// Für bestehende Orte wird /places/:id/edit verwendet.
 
 import {
   Component,
@@ -10,32 +11,39 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PlaceMap } from '../components/place-map/place-map';
-import { ZsoButton } from '@shared/ui/zso-button/zso-button';
-import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
-import { PlaceNotesWidget } from '../components/place-notes-widget/place-notes-widget';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import {
   FormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 import { PlacesService } from '../services/places.service';
 import { PlaceDoc, PlaceType } from '@core/models/place.model';
 import { LoggerService } from '@core/services/logger.service';
+import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { PlaceMap } from '../components/place-map/place-map';
+import { PlaceNotesWidget } from '../components/place-notes-widget/place-notes-widget';
 
 @Component({
-  selector: 'zso-place-detail',
+  selector: 'zso-place-edit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, PlaceMap, PlaceNotesWidget, ZsoButton, ZsoInputField],
-  templateUrl: './place-detail.page.html',
-  styleUrls: ['./place-detail.page.scss'],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ReactiveFormsModule,
+    ZsoInputField,
+    ZsoButton,
+    PlaceMap,
+    PlaceNotesWidget,
+  ],
+  templateUrl: './place-edit.page.html',
+  styleUrls: ['./place-edit.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaceDetailPage implements OnInit {
+export class PlaceEditPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -55,21 +63,6 @@ export class PlaceDetailPage implements OnInit {
     { value: 'training_room', label: 'Schulungsraum' },
     { value: 'other', label: 'Sonstiges' },
   ];
-
-  // --- Map helpers ---
-  get mapLat(): number | null {
-    const coords = (this.form.get('address') as any)?.value?.coordinates;
-    return coords?.lat ?? null;
-  }
-  get mapLng(): number | null {
-    const coords = (this.form.get('address') as any)?.value?.coordinates;
-    return coords?.lng ?? null;
-  }
-  get mapAddress(): string {
-    const addr = (this.form.get('address') as any)?.value;
-    if (!addr) return '';
-    return `${addr.street}, ${addr.zip} ${addr.city}`;
-  }
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -91,26 +84,41 @@ export class PlaceDetailPage implements OnInit {
     }),
   });
 
-  ngOnInit(): void {
-    this.placeId = this.route.snapshot.paramMap.get('id');
-    this.isNew = !this.placeId || this.placeId === 'new';
+  /** --- Map helpers ---------------------------------------------------- */
+  get mapLat(): number | null {
+    const coords = (this.form.get('address') as any)?.value?.coordinates;
+    return coords?.lat ?? null;
+  }
+  get mapLng(): number | null {
+    const coords = (this.form.get('address') as any)?.value?.coordinates;
+    return coords?.lng ?? null;
+  }
+  get mapAddress(): string {
+    const addr = (this.form.get('address') as any)?.value;
+    if (!addr) return '';
+    return `${addr.street}, ${addr.zip} ${addr.city}`;
+  }
 
-    if (!this.isNew && this.placeId) {
-      this.loadPlace(this.placeId);
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    this.isNew = !id;
+    this.placeId = id;
+
+    if (id) {
+      this.loadPlace(id);
     }
   }
 
-  async loadPlace(id: string): Promise<void> {
+  private async loadPlace(id: string): Promise<void> {
     try {
       const place = await firstValueFrom(this.placesService.getById(id));
-      if (place) {
-        this.form.patchValue(place as any);
-        this.logger.log('PlaceDetailPage', 'Place loaded', id);
-      } else {
+      if (!place) {
         this.errorMsg = 'Ort nicht gefunden';
+      } else {
+        this.form.patchValue(place as any);
       }
     } catch (err) {
-      this.logger.error('PlaceDetailPage', 'loadPlace failed', err);
+      this.logger.error('PlaceEditPage', 'loadPlace failed', err);
       this.errorMsg = 'Fehler beim Laden des Ortes';
     } finally {
       this.cdr.markForCheck();
@@ -128,20 +136,18 @@ export class PlaceDetailPage implements OnInit {
     this.errorMsg = null;
     this.cdr.markForCheck();
 
-    const data = this.form.value as any;
+    const data = this.form.value as Omit<PlaceDoc, 'id'>;
 
     try {
       if (this.isNew) {
         const newId = await firstValueFrom(this.placesService.create(data));
-        this.logger.log('PlaceDetailPage', 'Place created', newId);
         await this.router.navigate(['/places', newId]);
       } else if (this.placeId) {
         await firstValueFrom(this.placesService.update(this.placeId, data));
-        this.logger.log('PlaceDetailPage', 'Place updated', this.placeId);
-        await this.router.navigate(['/places']);
+        await this.router.navigate(['/places', this.placeId]);
       }
     } catch (err) {
-      this.logger.error('PlaceDetailPage', 'save failed', err);
+      this.logger.error('PlaceEditPage', 'save failed', err);
       this.errorMsg = 'Speichern fehlgeschlagen';
     } finally {
       this.isSaving = false;
@@ -150,14 +156,14 @@ export class PlaceDetailPage implements OnInit {
   }
 
   async delete(): Promise<void> {
-    if (this.isDeleting || this.isNew || !this.placeId) return;
+    if (this.isNew || !this.placeId || this.isDeleting) return;
     if (!confirm('Ort wirklich löschen?')) return;
     this.isDeleting = true;
     try {
       await firstValueFrom(this.placesService.delete(this.placeId));
       await this.router.navigate(['/places']);
     } catch (err) {
-      this.logger.error('PlaceDetailPage', 'delete failed', err);
+      this.logger.error('PlaceEditPage', 'delete failed', err);
       this.errorMsg = 'Löschen fehlgeschlagen';
     } finally {
       this.isDeleting = false;
@@ -166,6 +172,10 @@ export class PlaceDetailPage implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/places']);
+    if (this.isNew) {
+      this.router.navigate(['/places']);
+    } else if (this.placeId) {
+      this.router.navigate(['/places', this.placeId]);
+    }
   }
 }

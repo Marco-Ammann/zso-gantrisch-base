@@ -13,8 +13,8 @@ export const placesRoutes: Routes = [
   {
     path: 'new',
     loadComponent: () =>
-      import('./place-detail/place-detail.page').then(
-        (m) => m.PlaceDetailPage
+      import('./place-edit/place-edit.page').then(
+        (m) => m.PlaceEditPage
       ),
     title: 'Neuer Ort',
   },
@@ -29,8 +29,8 @@ export const placesRoutes: Routes = [
   {
     path: ':id/edit',
     loadComponent: () =>
-      import('./place-detail/place-detail.page').then(
-        (m) => m.PlaceDetailPage
+      import('./place-edit/place-edit.page').then(
+        (m) => m.PlaceEditPage
       ),
     title: 'Ort bearbeiten',
   }
