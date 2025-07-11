@@ -1,0 +1,95 @@
+<!-- src/app/features/places/place-detail-view/place-detail-view.page.html -->
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-white">
+  <!-- Back Button -->
+  <button
+    (click)="back()"
+    class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+  >
+    <span class="material-symbols-outlined text-lg">arrow_back</span>
+    <span class="text-sm font-medium">Zurück</span>
+  </button>
+
+  <!-- Loader / Fehler -->
+  <ng-container *ngIf="!isLoading; else loading">
+    @if (errorMsg) {
+      <p class="text-rose-400">{{ errorMsg }}</p>
+    } @else {
+      <!-- Details -->
+      <div class="max-w-5xl mx-auto grid gap-6 lg:grid-cols-2">
+        <!-- Text Info -->
+        <div class="space-y-6">
+          <!-- Header Info -->
+          <div class="glass-card p-6">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+                  {{ place!.name }}
+                </h1>
+                <span class="inline-block px-2.5 py-0.5 rounded-md text-sm font-medium border"
+                      [ngClass]="{
+                        'border-green-500/30 bg-green-500/20 text-green-400': place!.type === 'accommodation',
+                        'border-blue-500/30 bg-blue-500/20 text-blue-400': place!.type === 'civil_protection_facility',
+                        'border-amber-500/30 bg-amber-500/20 text-amber-400': place!.type === 'training_room',
+                        'border-gray-500/30 bg-gray-500/20 text-gray-400': place!.type === 'other'
+                      }">
+                  {{ {
+                    accommodation: 'Heim',
+                    civil_protection_facility: 'Zivilschutzanlage',
+                    training_room: 'Schulungsraum',
+                    other: 'Sonstiges'
+                  }[place!.type] }}
+                </span>
+              </div>
+
+              <zso-button type="primary" (click)="edit()">
+                <span class="material-symbols-outlined text-base mr-1">edit</span>
+                Bearbeiten
+              </zso-button>
+            </div>
+          </div>
+
+          <!-- Address / Capacity / Contact -->
+          <div class="glass-card p-6 space-y-4">
+            <h2 class="text-lg font-semibold">Informationen</h2>
+            <div class="text-gray-300 space-y-2">
+              <div>
+                <span class="material-symbols-outlined text-sm mr-1 align-text-top">location_on</span>
+                {{ place!.address.street }}, {{ place!.address.zip }} {{ place!.address.city }}
+              </div>
+              <div *ngIf="place!.capacity?.maxPersons">
+                <span class="material-symbols-outlined text-sm mr-1 align-text-top">groups</span>
+                Kapazität: {{ place!.capacity?.maxPersons }} Personen
+              </div>
+              <div *ngIf="place!.contactPerson">
+                <span class="material-symbols-outlined text-sm mr-1 align-text-top">person</span>
+                Ansprechpartner: {{ place!.contactPerson.firstName }} {{ place!.contactPerson.lastName }}
+                <br />Tel: {{ place!.contactPerson.phone }}
+                <br />E-Mail: {{ place!.contactPerson.email }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Widget -->
+          <zso-place-notes-widget [placeId]="placeId"></zso-place-notes-widget>
+        </div>
+
+        <!-- Map -->
+        <div class="lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)]">
+          <zso-place-map
+            class="rounded-lg overflow-hidden h-full w-full min-h-[300px]"
+            *ngIf="mapLat !== null || mapAddress"
+            [lat]="mapLat"
+            [lng]="mapLng"
+            [address]="mapAddress"
+          ></zso-place-map>
+        </div>
+      </div>
+    }
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="flex justify-center items-center h-60">
+      <div class="w-8 h-8 border-4 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  </ng-template>
+</div>

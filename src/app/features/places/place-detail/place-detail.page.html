@@ -1,82 +1,79 @@
 <!-- src/app/features/places/place-detail/place-detail.page.html -->
-<div class="p-4 text-white">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-white">
+  <!-- Back button -->
+  <zso-button type="neutral" class="mb-4" (click)="cancel()">
+    <span class="material-symbols-outlined align-text-top mr-1">arrow_back</span>
+    Zurück
+  </zso-button>
+
   <h1 class="text-2xl font-semibold mb-6">
     {{ isNew ? 'Neuer Ort' : 'Ort bearbeiten' }}
   </h1>
 
   <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6 max-w-3xl">
     <!-- Allgemein -->
-    <div>
-      <label class="block mb-1">Bezeichnung *</label>
-      <input formControlName="name" class="input w-full" />
-    </div>
+    <zso-input-field label="Bezeichnung" formControlName="name"></zso-input-field>
 
-    <div>
-      <label class="block mb-1">Typ *</label>
-      <select formControlName="type" class="input w-full">
-        <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
-      </select>
-    </div>
+    <zso-input-field
+      label="Typ"
+      [select]="true"
+      [options]="types"
+      formControlName="type"
+    ></zso-input-field>
 
     <!-- Adresse -->
     <fieldset formGroupName="address" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <legend class="text-lg font-medium mb-2">Adresse</legend>
-      <div>
-        <label class="block mb-1">Strasse *</label>
-        <input formControlName="street" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">PLZ *</label>
-        <input formControlName="zip" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">Ort *</label>
-        <input formControlName="city" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">Land</label>
-        <input formControlName="country" class="input w-full" />
-      </div>
+
+      <zso-input-field label="Strasse" formControlName="street"></zso-input-field>
+      <zso-input-field label="PLZ" formControlName="zip"></zso-input-field>
+      <zso-input-field label="Ort" formControlName="city"></zso-input-field>
+      <zso-input-field label="Land" formControlName="country"></zso-input-field>
     </fieldset>
+
+    <!-- Karte -->
+    <zso-place-map
+      class="my-8 rounded-lg overflow-hidden"
+      *ngIf="mapLat !== null || mapAddress"
+      [lat]="mapLat"
+      [lng]="mapLng"
+      [address]="mapAddress"
+    ></zso-place-map>
 
     <!-- Ansprechperson -->
     <fieldset formGroupName="contactPerson" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <legend class="text-lg font-medium mb-2">Ansprechperson</legend>
-      <div>
-        <label class="block mb-1">Vorname *</label>
-        <input formControlName="firstName" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">Nachname *</label>
-        <input formControlName="lastName" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">Telefon *</label>
-        <input formControlName="phone" class="input w-full" />
-      </div>
-      <div>
-        <label class="block mb-1">E-Mail *</label>
-        <input formControlName="email" class="input w-full" />
-      </div>
+
+      <zso-input-field label="Vorname" formControlName="firstName"></zso-input-field>
+      <zso-input-field label="Nachname" formControlName="lastName"></zso-input-field>
+      <zso-input-field label="Telefon" formControlName="phone" type="tel"></zso-input-field>
+      <zso-input-field label="E-Mail" formControlName="email" type="email"></zso-input-field>
     </fieldset>
 
     <!-- Kapazität -->
     <fieldset formGroupName="capacity">
       <legend class="text-lg font-medium mb-2">Kapazität</legend>
-      <label class="block mb-1">Max. Personen</label>
-      <input type="number" formControlName="maxPersons" class="input w-full md:max-w-xs" />
+      <zso-input-field label="Max. Personen" formControlName="maxPersons" type="number"></zso-input-field>
     </fieldset>
 
+    <!-- Notizen -->
+    <zso-place-notes-widget *ngIf="!isNew && placeId" [placeId]="placeId" class="block"></zso-place-notes-widget>
+
     <!-- Aktionen -->
-    <div class="flex gap-3">
-      <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+    <div class="flex gap-3 flex-wrap">
+      <zso-button type="primary" htmlType="submit" [loading]="isSaving" [disabled]="isSaving">
         {{ isSaving ? 'Speichern…' : 'Speichern' }}
-      </button>
-      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isSaving">
+      </zso-button>
+
+      <zso-button type="neutral" htmlType="button" (click)="cancel()" [disabled]="isSaving || isDeleting">
         Abbrechen
-      </button>
+      </zso-button>
+
+      <zso-button *ngIf="!isNew" type="danger" htmlType="button" [loading]="isDeleting" (click)="delete()" [disabled]="isDeleting || isSaving">
+        {{ isDeleting ? 'Löschen…' : 'Löschen' }}
+      </zso-button>
     </div>
 
-    <p *ngIf="errorMsg" class="text-red-400 mt-2">{{ errorMsg }}</p>
+    <p *ngIf="errorMsg" class="text-rose-400 mt-2">{{ errorMsg }}</p>
   </form>
 </div>

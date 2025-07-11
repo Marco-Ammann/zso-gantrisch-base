@@ -1,0 +1,15 @@
+// Styling for PlaceDetailViewPage
+// keeps layout responsive
+:host {
+  display: block;
+}
+
+.glass-card {
+  @apply bg-white/5 rounded-lg backdrop-blur-md;
+}
+
+@screen lg {
+  .glass-card {
+    @apply p-8;
+  }
+}

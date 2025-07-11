@@ -10,6 +10,10 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PlaceMap } from '../components/place-map/place-map';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
+import { PlaceNotesWidget } from '../components/place-notes-widget/place-notes-widget';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -26,7 +30,7 @@ import { LoggerService } from '@core/services/logger.service';
 @Component({
   selector: 'zso-place-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PlaceMap, PlaceNotesWidget, ZsoButton, ZsoInputField],
   templateUrl: './place-detail.page.html',
   styleUrls: ['./place-detail.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +46,7 @@ export class PlaceDetailPage implements OnInit {
   placeId: string | null = null;
   isNew = false;
   isSaving = false;
+  isDeleting = false;
   errorMsg: string | null = null;
 
   types: { value: PlaceType; label: string }[] = [
@@ -50,6 +55,21 @@ export class PlaceDetailPage implements OnInit {
     { value: 'training_room', label: 'Schulungsraum' },
     { value: 'other', label: 'Sonstiges' },
   ];
+
+  // --- Map helpers ---
+  get mapLat(): number | null {
+    const coords = (this.form.get('address') as any)?.value?.coordinates;
+    return coords?.lat ?? null;
+  }
+  get mapLng(): number | null {
+    const coords = (this.form.get('address') as any)?.value?.coordinates;
+    return coords?.lng ?? null;
+  }
+  get mapAddress(): string {
+    const addr = (this.form.get('address') as any)?.value;
+    if (!addr) return '';
+    return `${addr.street}, ${addr.zip} ${addr.city}`;
+  }
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -98,6 +118,7 @@ export class PlaceDetailPage implements OnInit {
   }
 
   async save(): Promise<void> {
+    if (this.isSaving) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -124,6 +145,22 @@ export class PlaceDetailPage implements OnInit {
       this.errorMsg = 'Speichern fehlgeschlagen';
     } finally {
       this.isSaving = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  async delete(): Promise<void> {
+    if (this.isDeleting || this.isNew || !this.placeId) return;
+    if (!confirm('Ort wirklich löschen?')) return;
+    this.isDeleting = true;
+    try {
+      await firstValueFrom(this.placesService.delete(this.placeId));
+      await this.router.navigate(['/places']);
+    } catch (err) {
+      this.logger.error('PlaceDetailPage', 'delete failed', err);
+      this.errorMsg = 'Löschen fehlgeschlagen';
+    } finally {
+      this.isDeleting = false;
       this.cdr.markForCheck();
     }
   }

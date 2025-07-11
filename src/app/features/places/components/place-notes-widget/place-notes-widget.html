@@ -1,0 +1,46 @@
+<!-- src/app/features/places/components/place-notes-widget/place-notes-widget.html -->
+<div class="space-y-4" *ngIf="notes">
+  <!-- Notes list -->
+  <div *ngIf="notes.length > 0; else noNotes">
+    <div *ngFor="let n of notes" class="glass-card p-4 rounded-lg flex flex-col gap-2">
+      <!-- Normal view -->
+      <ng-container *ngIf="editingId !== n.id; else editTpl">
+        <div class="flex justify-between items-start gap-2">
+          <p class="whitespace-pre-line break-words flex-1">{{ n.text }}</p>
+          <div class="flex gap-2 shrink-0">
+            <button class="text-gray-400 hover:text-gray-200" (click)="startEdit(n)" aria-label="Bearbeiten">
+              <span class="material-symbols-outlined text-base">edit</span>
+            </button>
+            <button class="text-rose-400 hover:text-rose-300" (click)="delete(n.id)" aria-label="Löschen">
+              <span class="material-symbols-outlined text-base">delete</span>
+            </button>
+          </div>
+        </div>
+        <span class="text-xs text-gray-400">{{ n.createdAt | date:'dd.MM.yyyy, HH:mm' }}</span>
+      </ng-container>
+
+      <!-- Edit form -->
+      <ng-template #editTpl>
+        <textarea [(ngModel)]="editText" rows="3" class="input w-full p-2"></textarea>
+        <div class="flex justify-end gap-2 mt-1">
+          <zso-button size="sm" variant="secondary" (click)="cancelEdit()">Abbrechen</zso-button>
+          <zso-button size="sm" variant="primary" (click)="saveEdit()" [disabled]="pending || !editText.trim()">Speichern</zso-button>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+  <ng-template #noNotes>
+    <p class="text-gray-400 text-sm">Noch keine Notizen vorhanden.</p>
+  </ng-template>
+
+  <!-- Add note -> simple textarea -->
+  <div class="space-y-2">
+    <textarea [(ngModel)]="newText" rows="3" class="input w-full p-2" placeholder="Notiz hinzufügen…"></textarea>
+    <div class="flex justify-end">
+      <zso-button variant="secondary" size="sm" (click)="add()" [disabled]="!newText.trim() || pending">
+        {{ pending ? 'Hinzufügen…' : 'Hinzufügen' }}
+      </zso-button>
+    </div>
+    <p *ngIf="errorMsg" class="text-rose-400 text-sm">{{ errorMsg }}</p>
+  </div>
+</div>

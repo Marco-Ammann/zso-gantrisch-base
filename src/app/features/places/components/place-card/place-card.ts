@@ -11,7 +11,7 @@ import { PlaceDoc } from '@core/models/place.model';
   imports: [CommonModule],
   template: `
     <div
-      class="glass-card p-4 cursor-pointer hover:bg-black/30 transition rounded-lg flex flex-col gap-2"
+      class="glass-card p-5 cursor-pointer hover:bg-white/10 transition-colors rounded-lg h-full flex flex-col justify-between gap-3"
     >
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold text-white">
@@ -24,7 +24,7 @@ import { PlaceDoc } from '@core/models/place.model';
         >
       </div>
 
-      <div class="text-sm text-gray-300 flex flex-wrap gap-3">
+      <div class="text-sm text-gray-300 flex flex-wrap gap-3 mt-1">
         <span
           ><span class="material-symbols-outlined text-sm mr-1"
             >location_on</span
@@ -37,6 +37,17 @@ import { PlaceDoc } from '@core/models/place.model';
             >{{ cap }} Pers.</span
           >
         </ng-container>
+              <ng-container *ngIf="place.address.street as street">
+          <span class="w-full block text-gray-400 text-xs truncate">
+            {{ street }}
+          </span>
+        </ng-container>
+      </div>
+
+      <!-- Footer: contact person -->
+      <div *ngIf="place.contactPerson as cp" class="mt-3 flex items-center gap-2 text-xs text-gray-400">
+        <span class="material-symbols-outlined text-sm">person</span>
+        <span class="truncate">{{ cp.firstName }} {{ cp.lastName }}</span>
       </div>
     </div>
   `,
