@@ -19,6 +19,16 @@
   }
 }
 
+// Blinken für : bei der Uhr  
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 // Responsive stat-hint badges - macht sie kleiner auf Mobile
 :host ::ng-deep zso-stat-hint {
   @media (max-width: 640px) {
@@ -67,6 +77,30 @@
       }
     }
   }
+}
+
+/* -------------------------------------------------- */
+/* Clock Chip Styling                                 */
+/* -------------------------------------------------- */
+
+.clock-chip {
+  @apply inline-flex items-center gap-1 font-mono text-base sm:text-lg text-white px-3 py-1 rounded-full bg-gray-800/60 backdrop-blur-md border border-gray-500/40 shadow shadow-black/30;
+}
+
+.clock-chip .icon {
+  @apply text-cp-orange text-lg leading-none;
+}
+
+.clock-chip .time-text {
+  @apply flex items-baseline gap-0.5;
+}
+
+.clock-chip .seconds {
+  @apply opacity-70 text-xs sm:text-sm;
+}
+
+.clock-chip .blink {
+  animation: blink 1s steps(1) infinite;
 }
 
 // Touch-friendly interactions on mobile
