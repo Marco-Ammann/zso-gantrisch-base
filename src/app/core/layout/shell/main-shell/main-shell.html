@@ -28,6 +28,10 @@
             <span class="material-symbols-outlined text-lg">groups</span>
             AdZS
           </a>
+          <a routerLink="/places" routerLinkActive="nav-active" class="nav-link">
+            <span class="material-symbols-outlined text-lg">place</span>
+            Orte
+          </a>
 
           <a *ngIf="isAdmin$ | async" routerLink="/admin/users" routerLinkActive="nav-active" class="nav-link">
             <span class="material-symbols-outlined text-lg">group</span>
@@ -124,6 +128,10 @@
           <a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
+          </a>
+          <a routerLink="/places" (click)="toggleMobile()" class="mobile-nav-link">
+            <span class="material-symbols-outlined text-lg">place</span>
+            Orte
           </a>
 
           <a *ngIf="isAdmin$ | async" routerLink="/admin/users" (click)="toggleMobile()" class="mobile-nav-link">

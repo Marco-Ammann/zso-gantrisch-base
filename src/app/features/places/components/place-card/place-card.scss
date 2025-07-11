@@ -1,0 +1,6 @@
+/* src/app/features/places/components/place-card/place-card.scss */
+
+// Base card styling using tailwind utilities.
+.glass-card {
+  @apply bg-black/20 backdrop-blur-md border border-white/10;
+}

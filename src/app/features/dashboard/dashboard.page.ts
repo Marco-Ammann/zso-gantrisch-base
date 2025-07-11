@@ -113,6 +113,13 @@ export class DashboardPage implements OnInit, OnDestroy {
       color: 'bg-gray-500/20 hover:bg-gray-500/30 text-blue-400'
     },
     {
+      icon: 'place',
+      label: 'Orte',
+      description: 'WK-Heime und Anlagen verwalten',
+      route: '/places',
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-emerald-400'
+    },
+    {
       icon: 'school',
       label: 'Ausbildungen',
       description: 'Kurse und Trainings planen',

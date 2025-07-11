@@ -9,6 +9,7 @@ import { RoleGuard } from './core/auth/guards/role.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { adminRoutes } from './features/admin/admin.routes';
+import { placesRoutes } from './features/places/places.routes';
 import { adzsRoutes } from './features/adsz/adsz.routes';
 import { legalRoutes } from './features/legal/legal.routes';
 
@@ -47,6 +48,7 @@ export const appRoutes: Routes = [
     children: [
       { path: 'dashboard', children: dashboardRoutes },
       { path: 'adsz', children: adzsRoutes }, // AdZS routes für alle User
+      { path: 'places', children: placesRoutes }, // Orte-Routen
       { path: 'admin', canActivate: [RoleGuard], data: { roles: ['admin'] }, children: adminRoutes },
     ],
   },
