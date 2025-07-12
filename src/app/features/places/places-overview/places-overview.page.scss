@@ -1,0 +1,28 @@
+// Styles specific to PlacesOverviewPage
+// Keep things minimal and rely on global utilities where possible.
+:host {
+  display: block;
+}
+
+.section-header {
+  .section-count {
+    margin-left: 0.5rem;
+    @apply text-xs bg-gray-700/40 px-1.5 py-0.5 rounded font-medium text-gray-200;
+  }
+
+  // Add subtle glowing icon effect on hover for interactivity
+  &:hover .material-symbols-outlined {
+    color: var(--orange-50);
+    transform: scale(1.1);
+  }
+  .material-symbols-outlined {
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+}
+
+// Section card grid tweaks (override default gap on larger screens)
+@media (min-width: 1024px) {
+  .grid {
+    gap: 1.75rem; // lg:gap-7 equivalent
+  }
+}

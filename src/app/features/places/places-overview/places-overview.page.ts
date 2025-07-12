@@ -46,9 +46,10 @@ interface Section {
           <p *ngIf="sections.length === 0" class="text-gray-400">Keine Orte vorhanden.</p>
 
           <ng-container *ngFor="let sec of sections">
-            <div class="flex items-center gap-2 mt-6 mb-2">
+            <div class="section-header flex items-center gap-2 mt-6 mb-2">
               <span class="material-symbols-outlined text-lg text-cp-orange">{{ sec.icon }}</span>
               <h2 class="text-lg font-semibold">{{ sec.label }}</h2>
+              <span class="section-count badge">{{ sec.items.length }}</span>
             </div>
 
             <div class="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,7 +77,7 @@ interface Section {
       ></zso-place-create-modal>
     </div>
   `,
-  styles: [],
+  styleUrls: ['./places-overview.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlacesOverviewPage implements OnInit {
