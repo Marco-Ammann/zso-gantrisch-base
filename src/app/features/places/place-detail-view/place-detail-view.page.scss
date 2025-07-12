@@ -5,13 +5,17 @@
 }
 
 .glass-card {
-  @apply rounded-lg backdrop-blur-md p-6 border border-white/10 shadow-lg;
-  // subtle gradient and depth
+  border-radius: 0.5rem; /* rounded-lg */
+  backdrop-filter: blur(12px); /* backdrop-blur-md */
+  padding: 1.5rem; /* p-6 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  /* subtle gradient and depth */
   background: radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%), rgba(255, 255, 255, 0.02);
 }
 
-@screen lg {
+@media (min-width: 1024px) {
   .glass-card {
-    @apply p-8;
+    padding: 2rem; /* p-8 */
   }
 }

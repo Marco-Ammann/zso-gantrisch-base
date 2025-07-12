@@ -22,31 +22,43 @@ import { PlaceCreateModal } from '../components/place-create-modal/place-create-
   standalone: true,
   imports: [CommonModule, RouterModule, ZsoButton, PlaceCard, PlaceCreateModal],
   template: `
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-white">
-      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 class="text-2xl font-semibold">Orte</h1>
-        <zso-button type="primary" (click)="createNew()">Neuer Ort</zso-button>
+    <div class="min-h-[calc(100vh-64px)] p-3 sm:p-4 md:p-6 lg:p-8 text-white">
+      <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <!-- Header Card -->
+        <div class="glass-card p-4 sm:p-6 flex items-center justify-between gap-4">
+          <h1 class="text-xl sm:text-2xl font-semibold">Orte</h1>
+          <zso-button type="primary" size="sm" (click)="createNew()">
+            <span class="material-symbols-outlined text-base mr-1">add_location</span>
+            Neuer Ort
+          </zso-button>
+        </div>
+
+        <!-- Places List -->
+        <ng-container *ngIf="places$ | async as places; else loading">
+          <p *ngIf="places.length === 0" class="text-gray-400">Keine Orte vorhanden.</p>
+          <div *ngIf="places.length > 0" class="grid gap-4 sm:gap-5 lg:gap-6 mt-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <zso-place-card
+              *ngFor="let place of places; trackBy: trackById"
+              [place]="place"
+              class="w-full max-w-[320px] hover:scale-[1.01] transition-transform"
+              (click)="viewDetails(place)"
+            ></zso-place-card>
+          </div>
+        </ng-container>
+        <ng-template #loading>
+          <div class="flex justify-center py-10">
+            <div class="spinner-lg"></div>
+          </div>
+        </ng-template>
       </div>
 
-      <div *ngIf="places$ | async as places; else loading">
-        <div *ngIf="places.length === 0" class="text-gray-400">
-          Keine Orte vorhanden.
-        </div>
-        <div class="grid gap-6 mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
-          <zso-place-card *ngFor="let place of places; trackBy: trackById" class="w-full max-w-[320px]" [place]="place" (click)="viewDetails(place)"></zso-place-card>
-        </div>
-      </div>
-      <ng-template #loading>
-        <p>Lade Orte…</p>
-      </ng-template>
+      <!-- Create Modal -->
+      <zso-place-create-modal
+        [visible]="showCreateModal"
+        (created)="onCreated($event)"
+        (closed)="showCreateModal = false"
+      ></zso-place-create-modal>
     </div>
-
-    <!-- Create Modal -->
-    <zso-place-create-modal
-      [visible]="showCreateModal"
-      (created)="onCreated($event)"
-      (closed)="showCreateModal = false"
-    ></zso-place-create-modal>
   `,
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
