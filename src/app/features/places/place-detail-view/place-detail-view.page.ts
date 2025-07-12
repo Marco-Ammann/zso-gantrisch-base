@@ -37,6 +37,20 @@ export class PlaceDetailViewPage implements OnInit {
 
   placeId!: string;
   place: PlaceDoc | null = null;
+
+  /** Material icon name for the current place type */
+  get typeIcon(): string {
+    switch (this.place?.type) {
+      case 'accommodation':
+        return 'home';
+      case 'civil_protection_facility':
+        return 'shield';
+      case 'training_room':
+        return 'school';
+      default:
+        return 'location_city';
+    }
+  }
   errorMsg: string | null = null;
   isLoading = true;
 
