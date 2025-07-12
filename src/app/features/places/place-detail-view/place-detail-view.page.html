@@ -69,10 +69,10 @@
               <div class="space-y-1">
                 <div class="flex items-start gap-1">
                   <span class="material-symbols-outlined text-sm mt-0.5">location_on</span>
-                  <span>
+                  <a [href]="mapsLink" target="_blank" rel="noopener" class="hover:text-cp-orange underline-offset-2 underline">
                     {{ place!.address.street }}<br />
                     {{ place!.address.zip }} {{ place!.address.city }}
-                  </span>
+                  </a>
                 </div>
               </div>
 
@@ -83,10 +83,16 @@
                   <span>
                     {{ place!.contactPerson.firstName }} {{ place!.contactPerson.lastName }}
                     <ng-container *ngIf="place!.contactPerson.phone">
-                      <br />Tel: {{ place!.contactPerson.phone }}
+                      <br />Tel:
+                      <a [href]="'tel:' + place!.contactPerson.phone" class="hover:text-cp-orange underline">
+                        {{ place!.contactPerson.phone }}
+                      </a>
                     </ng-container>
                     <ng-container *ngIf="place!.contactPerson.email">
-                      <br />E-Mail: {{ place!.contactPerson.email }}
+                      <br />E-Mail:
+                      <a [href]="'mailto:' + place!.contactPerson.email" class="hover:text-cp-orange underline">
+                        {{ place!.contactPerson.email }}
+                      </a>
                     </ng-container>
                   </span>
                 </div>
@@ -113,7 +119,9 @@
           <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md p-4 rounded-lg text-gray-200 text-sm space-y-2 max-w-xs w-[calc(100%-2rem)] lg:hidden">
             <div>
               <span class="material-symbols-outlined text-sm mr-1 align-text-top">location_on</span>
+              <a [href]="mapsLink" target="_blank" rel="noopener" class="hover:text-cp-orange underline">
               {{ place!.address.street }}, {{ place!.address.zip }} {{ place!.address.city }}
+            </a>
             </div>
             <div *ngIf="place!.capacity?.maxPersons">
               <span class="material-symbols-outlined text-sm mr-1 align-text-top">groups</span>

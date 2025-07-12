@@ -89,6 +89,12 @@ export class PlaceDetailViewPage implements OnInit {
   get mapLng(): number | null {
     return this.place?.address?.coordinates?.lng ?? null;
   }
+  get mapsLink(): string {
+    if (!this.place) return '';
+    const a = this.place.address;
+    return `https://www.google.com/maps/search/${encodeURIComponent(`${a.street}, ${a.zip} ${a.city}`)}`;
+  }
+
   get mapAddress(): string {
     if (!this.place?.address) return '';
     const a = this.place.address;
