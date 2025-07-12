@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 
@@ -32,13 +32,50 @@ interface Section {
   template: `
     <div class="min-h-[calc(100vh-64px)] p-3 sm:p-4 md:p-6 lg:p-8 text-white">
       <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        <!-- Header Card -->
-        <div class="glass-card p-4 sm:p-6 flex items-center justify-between gap-4">
-          <h1 class="text-xl sm:text-2xl font-semibold">Orte</h1>
+        <!-- Page Header - aligned with AdZS overview style -->
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <!-- Title + Icon -->
+          <div class="flex items-center gap-3">
+            <div class="auth-icon-wrapper">
+              <span class="material-symbols-outlined text-2xl text-cp-orange">map</span>
+            </div>
+            <div>
+              <h1 class="text-2xl lg:text-3xl font-bold text-white">Orte</h1>
+              <p class="text-sm text-gray-400">Einsatzorte verwalten</p>
+            </div>
+          </div>
+
+          <!-- Action Button -->
           <zso-button type="primary" size="sm" (click)="createNew()">
             <span class="material-symbols-outlined text-base mr-1">add_location</span>
             Neuer Ort
           </zso-button>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="flex glass-card p-4 sm:p-6 flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
+          <div class="flex-1">
+            <label class="text-sm block mb-1">Suche</label>
+            <input
+              type="text"
+              placeholder="Ortsname suchen..."
+              class="w-full rounded bg-gray-800/40 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cp-orange"
+              (input)="onSearch($any($event.target).value)"
+            />
+          </div>
+          <div>
+            <label class="text-sm block mb-1">Typ</label>
+            <select
+              class="rounded bg-gray-800/40 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-cp-orange"
+              (change)="onTypeFilterChange($any($event.target).value)"
+            >
+              <option value="all">Alle</option>
+              <option value="accommodation">Heime</option>
+              <option value="civil_protection_facility">Zivilschutzanlagen</option>
+              <option value="training_room">Schulungsräume</option>
+              <option value="other">Sonstige</option>
+            </select>
+          </div>
         </div>
 
         <!-- Sections -->
@@ -46,6 +83,7 @@ interface Section {
           <p *ngIf="sections.length === 0" class="text-gray-400">Keine Orte vorhanden.</p>
 
           <ng-container *ngFor="let sec of sections">
+            <div class="glass-card p-6">
             <div class="section-header flex items-center gap-2 mt-6 mb-2">
               <span class="material-symbols-outlined text-lg text-cp-orange">{{ sec.icon }}</span>
               <h2 class="text-lg font-semibold">{{ sec.label }}</h2>
@@ -59,6 +97,7 @@ interface Section {
                 class="w-full max-w-[320px] hover:scale-[1.01] transition-transform"
                 (click)="viewDetails(place)"
               ></zso-place-card>
+            </div>
             </div>
           </ng-container>
         </ng-container>
@@ -87,16 +126,29 @@ export class PlacesOverviewPage implements OnInit {
   sections$!: Observable<Section[]>;
   showCreateModal = false;
 
+  // Observables for search and type filter controls
+  private readonly searchTerm$ = new BehaviorSubject<string>('');
+  private readonly typeFilter$ = new BehaviorSubject<'all' | PlaceType>('all');
+
   ngOnInit(): void {
-    this.sections$ = this.placesService.getAll().pipe(
-      map((places) => {
+    this.sections$ = combineLatest([
+      this.placesService.getAll(),
+      this.searchTerm$,
+      this.typeFilter$,
+    ]).pipe(
+      map(([places, searchTerm, typeFilter]) => {
         const sections: Section[] = [
           { type: 'accommodation', label: 'Heime', icon: 'home', items: [] },
           { type: 'civil_protection_facility', label: 'Zivilschutzanlagen', icon: 'shield', items: [] },
           { type: 'training_room', label: 'Schulungsräume', icon: 'school', items: [] },
           { type: 'other', label: 'Sonstige', icon: 'location_city', items: [] },
         ];
-        for (const p of places) {
+        const filtered = places.filter((p) => {
+            const matchesType = typeFilter === 'all' || p.type === typeFilter;
+            const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesType && matchesSearch;
+          });
+        for (const p of filtered) {
           const sec = sections.find((s) => s.type === p.type);
           if (sec) sec.items.push(p);
         }
@@ -116,6 +168,14 @@ export class PlacesOverviewPage implements OnInit {
 
   trackById(index: number, place: PlaceDoc): string {
     return place.id;
+  }
+
+  onSearch(term: string): void {
+    this.searchTerm$.next(term);
+  }
+
+  onTypeFilterChange(value: string): void {
+    this.typeFilter$.next(value as 'all' | PlaceType);
   }
 
   viewDetails(place: PlaceDoc): void {
