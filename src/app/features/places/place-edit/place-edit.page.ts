@@ -74,10 +74,10 @@ export class PlaceEditPage implements OnInit {
       country: ['Schweiz'],
     }),
     contactPerson: this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      phone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      firstName: [''],
+      lastName: [''],
+      phone: [''],
+      email: ['', Validators.email],
     }),
     capacity: this.fb.group({
       maxPersons: [null],

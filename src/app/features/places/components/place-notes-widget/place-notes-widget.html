@@ -1,7 +1,16 @@
 <!-- src/app/features/places/components/place-notes-widget/place-notes-widget.html -->
-<div class="space-y-4" *ngIf="notes">
+<div class="space-y-4 mt-6" *ngIf="notes">
+  <!-- Add note -->
+  <div class="flex items-start gap-2">
+    <textarea [(ngModel)]="newText" rows="3" class="flex-1 bg-gray-800/50 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-orange-400" placeholder="Notiz hinzufügen…"></textarea>
+    <zso-button variant="secondary" size="sm" (click)="add()" [disabled]="!newText.trim() || pending" class="shrink-0 self-stretch">
+      {{ pending ? 'Hinzufügen…' : 'Hinzufügen' }}
+    </zso-button>
+    <p *ngIf="errorMsg" class="text-rose-400 text-sm mt-1">{{ errorMsg }}</p>
+  </div>
+
   <!-- Notes list -->
-  <div *ngIf="notes.length > 0; else noNotes">
+  <div *ngIf="notes.length > 0; else noNotes" class="space-y-4">
     <div *ngFor="let n of notes" class="glass-card p-4 rounded-lg flex flex-col gap-2">
       <!-- Normal view -->
       <ng-container *ngIf="editingId !== n.id; else editTpl">
@@ -32,15 +41,4 @@
   <ng-template #noNotes>
     <p class="text-gray-400 text-sm">Noch keine Notizen vorhanden.</p>
   </ng-template>
-
-  <!-- Add note -> simple textarea -->
-  <div class="space-y-2">
-    <textarea [(ngModel)]="newText" rows="3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-orange-400" placeholder="Notiz hinzufügen…"></textarea>
-    <div class="flex justify-end">
-      <zso-button variant="secondary" size="sm" (click)="add()" [disabled]="!newText.trim() || pending">
-        {{ pending ? 'Hinzufügen…' : 'Hinzufügen' }}
-      </zso-button>
-    </div>
-    <p *ngIf="errorMsg" class="text-rose-400 text-sm">{{ errorMsg }}</p>
-  </div>
-</div>
+</div><!-- end widget root -->

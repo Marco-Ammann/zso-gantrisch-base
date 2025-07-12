@@ -55,31 +55,49 @@
 
           <!-- Informationen -->
           <div class="glass-card p-6">
-            <h2 class="text-lg font-semibold mb-4">Informationen</h2>
-            <ul class="space-y-2 text-sm text-gray-300 list-none m-0 p-0">
-              <li class="flex items-start gap-1">
-                <span class="material-symbols-outlined text-sm mt-0.5">location_on</span>
-                <span>{{ place!.address.street }}, {{ place!.address.zip }} {{ place!.address.city }}</span>
-              </li>
-              <li *ngIf="place!.capacity?.maxPersons" class="flex items-start gap-1">
-                <span class="material-symbols-outlined text-sm mt-0.5">groups</span>
-                <span>Kapazität: {{ place!.capacity?.maxPersons }} Personen</span>
-              </li>
-              <li *ngIf="place!.contactPerson" class="flex items-start gap-1">
-                <span class="material-symbols-outlined text-sm mt-0.5">person</span>
-                <span>
-                  Ansprechpartner: {{ place!.contactPerson.firstName }} {{ place!.contactPerson.lastName }}<br />
-                  Tel: {{ place!.contactPerson.phone }}<br />
-                  E-Mail: {{ place!.contactPerson.email }}
-                </span>
-              </li>
-            </ul>
+            <div class="md:flex md:items-center md:justify-between">
+              <h2 class="text-lg font-semibold mb-4 md:mb-0">Informationen</h2>
+              <div *ngIf="place!.capacity?.maxPersons" class="inline-flex items-center gap-1 text-xs md:text-sm bg-gray-700/40 text-gray-100 px-2 py-0.5 rounded">
+                <span class="material-symbols-outlined text-sm">groups</span>
+                {{ place!.capacity?.maxPersons }}
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 mt-2 text-sm text-gray-300">
+              <!-- Adresse -->
+              <div class="space-y-1">
+                <div class="flex items-start gap-1">
+                  <span class="material-symbols-outlined text-sm mt-0.5">location_on</span>
+                  <span>
+                    {{ place!.address.street }}<br />
+                    {{ place!.address.zip }} {{ place!.address.city }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Ansprechpartner -->
+              <div *ngIf="place!.contactPerson" class="space-y-1">
+                <div class="flex items-start gap-1">
+                  <span class="material-symbols-outlined text-sm mt-0.5">person</span>
+                  <span>
+                    {{ place!.contactPerson.firstName }} {{ place!.contactPerson.lastName }}
+                    <ng-container *ngIf="place!.contactPerson.phone">
+                      <br />Tel: {{ place!.contactPerson.phone }}
+                    </ng-container>
+                    <ng-container *ngIf="place!.contactPerson.email">
+                      <br />E-Mail: {{ place!.contactPerson.email }}
+                    </ng-container>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div><!-- end informations card -->
 
 
+
           <!-- Notes Widget -->
-        </div>
-        <zso-place-notes-widget [placeId]="placeId"></zso-place-notes-widget>
+            <zso-place-notes-widget [placeId]="placeId"></zso-place-notes-widget>
+          </div>
 
         <!-- Map -->
         <div class="relative lg:sticky lg:top-24 lg:h-[calc(100vh-8rem)]">
@@ -108,7 +126,7 @@
         </div>
       </div>
     }
-  </ng-container>
+   </ng-container>
 
   <ng-template #loading>
     <div class="flex justify-center items-center h-60">
