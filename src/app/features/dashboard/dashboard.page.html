@@ -96,30 +96,30 @@
           </div>
 
           <div class="space-y-2 sm:space-y-3">
-            @for (user of (latestUsers$ | async); track user.uid; let i = $index) {
+            @for (activity of (latestActivities$ | async); track activity.id; let i = $index) {
             <div @fadeIn
-              class="group flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+              class="group flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer" (click)="navigate(activity.route)"
               [style.animation-delay]="i * 100 + 'ms'">
               <div class="relative flex-shrink-0">
                 <div
                   class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-xs sm:text-sm font-medium text-white">
-                  {{ getUserInitials(user) }}
+                  {{ activity.avatarText }}
                 </div>
                 <span
-                  class="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center {{ getActivityColor(user) }} bg-gray-800">
-                  <span class="material-symbols-outlined text-[10px] sm:text-xs">{{ getActivityIcon(user) }}</span>
+                  class="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center {{ activity.color }} bg-gray-800">
+                  <span class="material-symbols-outlined text-[10px] sm:text-xs">{{ activity.icon }}</span>
                 </span>
               </div>
 
               <div class="flex-1 min-w-0">
                 <p class="text-xs sm:text-sm font-medium text-white truncate">
-                  {{ user.firstName }} {{ user.lastName }}
+                  {{ activity.name }}
                 </p>
-                <p class="text-[10px] sm:text-xs text-gray-400">{{ getActivityText(user) }}</p>
+                <p class="text-[10px] sm:text-xs text-gray-400">{{ activity.text }}</p>
               </div>
 
               <span class="text-[10px] sm:text-xs text-gray-500 flex-shrink-0">
-                {{ getRelativeTime(user.updatedAt || user.createdAt) }}
+                {{ getRelativeTime(activity.timestamp) }}
               </span>
             </div>
             } @empty {

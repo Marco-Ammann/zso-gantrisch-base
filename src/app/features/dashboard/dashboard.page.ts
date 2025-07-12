@@ -9,6 +9,7 @@ import { map } from 'rxjs/operators';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
 
 import { UserService } from '@core/services/user.service';
+import { PlacesService } from '../places/services/places.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { PersonService } from '@core/services/person.service';
 import { LoggerService } from '@core/services/logger.service';
@@ -27,6 +28,18 @@ interface QuickLink {
 interface ExtendedStats extends Stats {
   persons?: number;
   activePersons?: number;
+}
+
+// Unified item for activity feed entries
+export interface ActivityFeedItem {
+  id: string;
+  name: string;
+  text: string;
+  icon: string;
+  color: string;
+  timestamp: number;
+  route: string;
+  avatarText?: string; // e.g. user initials or first letter of place
 }
 
 @Component({
@@ -58,6 +71,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly personService = inject(PersonService);
+  private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
@@ -66,6 +80,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   currentDate = new Date();
+
+
 
   // Observables
   appUser$ = this.authService.appUser$;
@@ -100,6 +116,47 @@ export class DashboardPage implements OnInit, OnDestroy {
     catchError(err => {
       this.logger.error('Dashboard', 'Failed to load latest users', err);
       return of([]);
+    })
+  );
+
+  recentPlaces$ = this.placesService.getAll().pipe(
+    map(places => places
+      .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
+      .slice(0, 5)
+    ),
+    catchError(err => {
+      this.logger.error('Dashboard', 'Failed to load recent places', err);
+      return of([]);
+    })
+  );
+
+  latestActivities$ = combineLatest([this.latestUsers$, this.recentPlaces$]).pipe(
+    map(([users, places]) => {
+      const userItems: ActivityFeedItem[] = users.map(u => ({
+        id: u.uid,
+        name: `${u.firstName} ${u.lastName}`,
+        text: this.getActivityText(u),
+        icon: this.getActivityIcon(u),
+        color: this.getActivityColor(u),
+        timestamp: u.updatedAt ?? u.createdAt,
+        route: '/admin/users',
+        avatarText: this.getUserInitials(u),
+      }));
+
+      const placeItems: ActivityFeedItem[] = places.map(p => ({
+        id: p.id,
+        name: p.name,
+        text: p.updatedAt && p.updatedAt > p.createdAt ? 'Ort aktualisiert' : 'Neuer Ort',
+        icon: 'place',
+        color: 'text-emerald-400',
+        timestamp: p.updatedAt ?? p.createdAt,
+        route: `/places/${p.id}`,
+        avatarText: p.name.charAt(0).toUpperCase(),
+      }));
+
+      return [...userItems, ...placeItems]
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 5);
     })
   );
 
