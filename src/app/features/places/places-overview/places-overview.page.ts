@@ -30,8 +30,8 @@ interface Section {
   standalone: true,
   imports: [CommonModule, RouterModule, ZsoButton, PlaceCard, PlaceCreateModal],
   template: `
-    <div class="min-h-[calc(100vh-64px)] p-3 sm:p-4 md:p-6 lg:p-8 text-white">
-      <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+    <div class="min-h-[calc(100vh-64px)] text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         <!-- Page Header - aligned with AdZS overview style -->
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <!-- Title + Icon -->
@@ -53,28 +53,34 @@ interface Section {
         </div>
 
         <!-- Search & Filters -->
-        <div class="flex glass-card p-4 sm:p-6 flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
-          <div class="flex-1">
-            <label class="text-sm block mb-1">Suche</label>
+        <div class="glass-card p-4 space-y-4">
+          <!-- Search bar -->
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              search
+            </span>
             <input
-              type="text"
+              type="search"
               placeholder="Ortsname suchen..."
-              class="w-full rounded bg-gray-800/40 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cp-orange"
+              class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
               (input)="onSearch($any($event.target).value)"
             />
           </div>
-          <div>
-            <label class="text-sm block mb-1">Typ</label>
-            <select
-              class="rounded bg-gray-800/40 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-cp-orange"
-              (change)="onTypeFilterChange($any($event.target).value)"
-            >
-              <option value="all">Alle</option>
-              <option value="accommodation">Heime</option>
-              <option value="civil_protection_facility">Zivilschutzanlagen</option>
-              <option value="training_room">Schulungsräume</option>
-              <option value="other">Sonstige</option>
-            </select>
+          <!-- Filter row -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Typ</label>
+              <select
+                (change)="onTypeFilterChange($any($event.target).value)"
+                class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+              >
+                <option value="all">Alle</option>
+                <option value="accommodation">Heime</option>
+                <option value="civil_protection_facility">Zivilschutzanlagen</option>
+                <option value="training_room">Schulungsräume</option>
+                <option value="other">Sonstige</option>
+              </select>
+            </div>
           </div>
         </div>
 

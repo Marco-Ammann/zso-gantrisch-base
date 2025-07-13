@@ -84,7 +84,7 @@
 
         <!-- Mobile Menu Button -->
         <button class="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-          (click)="toggleMobile()" aria-label="Menü">
+          (click)="toggleMobile()" aria-label="Menü" [attr.aria-expanded]="showLinks">
           <span class="material-symbols-outlined text-2xl transition-transform duration-300"
             [class.rotate-180]="showLinks">
             {{ showLinks ? 'close' : 'menu' }}
@@ -122,12 +122,16 @@
     </nav>
 
     <!-- Mobile Navigation -->
-    <div class="md:hidden overflow-hidden" [@mobileSlide]="showLinks ? 'open' : 'closed'">
+    <div *ngIf="showLinks" class="md:hidden">
       <div class="border-t border-white/5 bg-black/20 backdrop-blur-sm">
         <div class="px-4 py-3 space-y-1">
           <a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
+          </a>
+          <a routerLink="/adsz" (click)="toggleMobile()" class="mobile-nav-link">
+            <span class="material-symbols-outlined text-lg">groups</span>
+            AdZS
           </a>
           <a routerLink="/places" (click)="toggleMobile()" class="mobile-nav-link">
             <span class="material-symbols-outlined text-lg">place</span>
