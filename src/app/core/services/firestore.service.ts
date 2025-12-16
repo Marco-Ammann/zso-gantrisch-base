@@ -22,7 +22,7 @@ import {
 import { Observable, from, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import { APP_SETTINGS, AppSettings } from '../config/app-settings';
+import { APP_SETTINGS, AppSettings } from '@config/app-settings';
 import { LoggerService } from '@core/services/logger.service';
 
 /**
@@ -31,7 +31,6 @@ import { LoggerService } from '@core/services/logger.service';
  */
 @Injectable({ providedIn: 'root' })
 export class FirestoreService {
-  [x: string]: any;
   /** Handle auf die konfigurierte Firestore-DB */
   readonly db: Firestore;
   private injector = inject(Injector);

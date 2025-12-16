@@ -39,9 +39,8 @@ export class UserService implements OnDestroy {
   private readonly functions = inject(Functions);
   private readonly personService = inject(PersonService);
   private readonly destroy$ = new Subject<void>();
-  private readonly fs = inject(FirestoreService);
 
-  constructor(private firestoreService: FirestoreService) {}
+  constructor(private firestoreService: FirestoreService) { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -307,7 +306,7 @@ export class UserService implements OnDestroy {
   }
 
   getUserDoc(uid: string): Observable<UserDoc | null> {
-    return this.fs.getDoc<UserDoc>(`users/${uid}`).pipe(
+    return this.firestoreService.getDoc<UserDoc>(`users/${uid}`).pipe(
       catchError((error) => {
         this.logger.error('UserService', 'Error getting user doc', error);
         return of(null);
@@ -347,13 +346,13 @@ export class UserService implements OnDestroy {
     );
 
     return this.personService.unlinkByUserId(uid).pipe(
-      switchMap(() => this.fs.deleteDoc(`users/${uid}`).pipe(catchError(() => of(void 0)))),
+      switchMap(() => this.firestoreService.deleteDoc(`users/${uid}`).pipe(catchError(() => of(void 0)))),
       switchMap(() => from(deleteAuthFn({ uid })).pipe(
         map(() => void 0),
         catchError((err: any) => {
-        this.logger.error('UserService', 'Cloud function delete failed', err);
-        return of(void 0);
-      })))
+          this.logger.error('UserService', 'Cloud function delete failed', err);
+          return of(void 0);
+        })))
     );
   }
 

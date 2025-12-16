@@ -63,8 +63,8 @@ import { APP_SETTINGS } from '@config/app-settings';
             <h3 class="text-sm font-semibold text-white mb-3">System</h3>
             <div class="space-y-1">
               <p class="text-xs text-gray-500">{{ settings.appName }}</p>
-              <p class="text-xs text-gray-500">Version {{ settings.appVersion }}</p>
-              <p class="text-xs text-gray-500">Angular {{ angularVersion }}</p>
+              <p class="text-xs text-gray-500">App Version {{ settings.appVersion }}</p>
+              <p class="text-xs text-gray-500">Angular Version {{ angularVersion }}</p>
             </div>
           </div>
         </div>
