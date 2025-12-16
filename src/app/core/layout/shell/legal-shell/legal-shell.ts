@@ -15,7 +15,7 @@ import { AppFooter } from '@shared/components/app-footer/app-footer';
 
       <!-- Header -->
       <header class="relative z-20 backdrop-blur-lg border-b border-white/5 flex-shrink-0">
-        <nav class="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center">
+        <nav class="layout-container h-16 flex items-center">
           <!-- Logo -->
           <button (click)="goToApp()" class="flex items-end gap-1 font-bold text-white hover:text-cp-orange transition-colors cursor-pointer">
             <span class="text-xl text-cp-orange">ZSO GANTRISCH</span>
@@ -27,8 +27,7 @@ import { AppFooter } from '@shared/components/app-footer/app-footer';
           <!-- Navigation -->
           <div class="flex items-center gap-4">
             <button (click)="goToApp()"
-               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 
-                      hover:text-white hover:bg-white/10 transition-colors">
+               class="nav-link">
               Zur Anwendung
             </button>
           </div>

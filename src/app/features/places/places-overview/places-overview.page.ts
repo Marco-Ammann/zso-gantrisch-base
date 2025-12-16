@@ -31,7 +31,7 @@ interface Section {
   imports: [CommonModule, RouterModule, ZsoButton, PlaceCard, PlaceCreateModal],
   template: `
     <div class="min-h-[calc(100vh-64px)] text-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <div class="layout-container py-6 sm:py-8 space-y-6">
         <!-- Page Header - aligned with AdZS overview style -->
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <!-- Title + Icon -->
@@ -150,10 +150,10 @@ export class PlacesOverviewPage implements OnInit {
           { type: 'other', label: 'Sonstige', icon: 'location_city', items: [] },
         ];
         const filtered = places.filter((p) => {
-            const matchesType = typeFilter === 'all' || p.type === typeFilter;
-            const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-            return matchesType && matchesSearch;
-          });
+          const matchesType = typeFilter === 'all' || p.type === typeFilter;
+          const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+          return matchesType && matchesSearch;
+        });
         for (const p of filtered) {
           const sec = sections.find((s) => s.type === p.type);
           if (sec) sec.items.push(p);

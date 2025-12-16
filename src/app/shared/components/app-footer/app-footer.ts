@@ -10,7 +10,7 @@ import { APP_SETTINGS } from '@config/app-settings';
   imports: [RouterModule],
   template: `
     <footer class="bg-gray-900/50 backdrop-blur-sm border-t border-white/5 py-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="layout-container">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           
           <!-- Zivilschutz Info -->
@@ -88,11 +88,6 @@ import { APP_SETTINGS } from '@config/app-settings';
       </div>
     </footer>
   `,
-  styles: [`
-    .footer-link {
-      @apply block text-sm text-gray-400 hover:text-cp-orange transition-colors;
-    }
-  `]
 })
 export class AppFooter {
   readonly currentYear = new Date().getFullYear();
