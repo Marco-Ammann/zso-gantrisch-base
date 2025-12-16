@@ -1,6 +1,6 @@
 // src/app/features/dashboard/dashboard.page.ts
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { StatHintComponent } from './components/stat-hint/stat-hint';
 import { ActivityWidgetComponent } from './components/activity-widget/activity-widget';
 import { RouterModule, Router } from '@angular/router';
@@ -48,7 +48,7 @@ export interface ActivityFeedItem {
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, RouterModule, DatePipe, StatHintComponent, ActivityWidgetComponent],
+  imports: [AsyncPipe, RouterModule, DatePipe, StatHintComponent, ActivityWidgetComponent],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   animations: [

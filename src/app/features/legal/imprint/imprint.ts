@@ -1,12 +1,11 @@
 // src/app/features/legal/imprint/imprint.ts
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'zso-imprint',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   template: `
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header -->
@@ -175,4 +174,4 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class ImprintPage {}
+export class ImprintPage { }

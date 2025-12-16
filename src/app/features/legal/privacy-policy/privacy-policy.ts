@@ -1,12 +1,12 @@
 // src/app/features/legal/privacy-policy/privacy-policy.ts
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'zso-privacy-policy',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [DatePipe, RouterModule],
   template: `
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header -->

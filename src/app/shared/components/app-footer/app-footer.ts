@@ -1,6 +1,5 @@
 // src/app/shared/components/app-footer/app-footer.ts
 import { Component, VERSION, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { APP_SETTINGS } from '@config/app-settings';
@@ -8,7 +7,7 @@ import { APP_SETTINGS } from '@config/app-settings';
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   template: `
     <footer class="bg-gray-900/50 backdrop-blur-sm border-t border-white/5 py-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

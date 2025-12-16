@@ -1,13 +1,12 @@
 // src/app/core/layout/shell/legal-shell/legal-shell.ts
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { AppFooter } from '@shared/components/app-footer/app-footer';
 
 @Component({
   selector: 'zso-legal-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, AppFooter],
+  imports: [RouterOutlet, AppFooter],
   template: `
     <div class="min-h-screen flex flex-col bg-gray-900 relative">
       <!-- Fixed Background -->
@@ -53,7 +52,7 @@ import { AppFooter } from '@shared/components/app-footer/app-footer';
   `]
 })
 export class LegalShell {
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   goToApp(): void {
     // Navigate to the main application (dashboard if logged in, otherwise login)
