@@ -20,7 +20,7 @@ import {
   deleteDoc,
 } from '@angular/fire/firestore';
 import { Observable, from, of, Subject } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, take, takeUntil } from 'rxjs/operators';
 
 import {
   PlaceDoc,
@@ -29,14 +29,17 @@ import {
 } from '@core/models/place.model';
 import { FirestoreService } from '@core/services/firestore.service';
 import { LoggerService } from '@core/services/logger.service';
+import { AuthService } from '@core/auth/services/auth.service';
+import { User } from '@angular/fire/auth';
 
 @Injectable({ providedIn: 'root' })
 export class PlacesService implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly logger = inject(LoggerService);
+  private readonly authService = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private firestoreService: FirestoreService) {}
+  constructor(private firestoreService: FirestoreService) { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -63,18 +66,37 @@ export class PlacesService implements OnDestroy {
     return this.firestoreService.getDoc<PlaceDoc>(`places/${id}`);
   }
 
+  private requireUser(): Observable<User> {
+    return this.authService.user$.pipe(
+      filter((u): u is User => !!u),
+      take(1)
+    );
+  }
+
   /** Ort erstellen */
-  create(placeData: Omit<PlaceDoc, 'id' | 'createdAt' | 'updatedAt'>): Observable<string> {
+  create(
+    placeData: Omit<
+      PlaceDoc,
+      'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'notes'
+    > &
+      Partial<Pick<PlaceDoc, 'notes'>>
+  ): Observable<string> {
     return runInInjectionContext(this.injector, () => {
       const placesCol = collection(this.firestoreService.db, 'places');
       const timestamp = Date.now();
-      return from(
-        addDoc(placesCol, {
-          ...placeData,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        })
-      ).pipe(
+      return this.requireUser().pipe(
+        switchMap((user) =>
+          from(
+            addDoc(placesCol, {
+              ...placeData,
+              notes: placeData.notes ?? [],
+              createdBy: user.uid,
+              updatedBy: user.uid,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            })
+          )
+        ),
         map((docRef) => docRef.id),
         takeUntil(this.destroy$)
       );
@@ -85,12 +107,18 @@ export class PlacesService implements OnDestroy {
   update(id: string, updates: Partial<PlaceDoc>): Observable<void> {
     return runInInjectionContext(this.injector, () => {
       const placeDoc = doc(this.firestoreService.db, `places/${id}`);
-      return from(
-        updateDoc(placeDoc, {
-          ...updates,
-          updatedAt: Date.now(),
-        })
-      ).pipe(takeUntil(this.destroy$));
+      return this.requireUser().pipe(
+        switchMap((user) =>
+          from(
+            updateDoc(placeDoc, {
+              ...updates,
+              updatedAt: Date.now(),
+              updatedBy: user.uid,
+            })
+          )
+        ),
+        takeUntil(this.destroy$)
+      );
     });
   }
 

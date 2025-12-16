@@ -6,6 +6,7 @@ import { UserDocGuard } from './core/auth/guards/user-doc.guard';
 import { VerifiedGuard } from './core/auth/guards/verified.guard';
 import { ApprovedGuard } from './core/auth/guards/approved.guard';
 import { RoleGuard } from './core/auth/guards/role.guard';
+import { FeatureFlagGuard } from './core/auth/guards/feature-flag.guard';
 import { authRoutes } from './core/auth/auth.routes';
 import { dashboardRoutes } from './features/dashboard/dashboard.routes';
 import { adminRoutes } from './features/admin/admin.routes';
@@ -47,8 +48,18 @@ export const appRoutes: Routes = [
     canActivate: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
     children: [
       { path: 'dashboard', children: dashboardRoutes },
-      { path: 'adsz', children: adzsRoutes }, // AdZS routes für alle User
-      { path: 'places', children: placesRoutes }, // Orte-Routen
+      {
+        path: 'adsz',
+        canActivate: [FeatureFlagGuard],
+        data: { featureFlag: 'adsz' },
+        children: adzsRoutes,
+      }, // AdZS routes für alle User
+      {
+        path: 'places',
+        canActivate: [FeatureFlagGuard],
+        data: { featureFlag: 'places' },
+        children: placesRoutes,
+      }, // Orte-Routen
       { path: 'admin', canActivate: [RoleGuard], data: { roles: ['admin'] }, children: adminRoutes },
     ],
   },

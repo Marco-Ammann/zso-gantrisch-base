@@ -15,6 +15,7 @@ import { PersonService } from '@core/services/person.service';
 import { LoggerService } from '@core/services/logger.service';
 import { UserDoc } from '@core/models/user-doc';
 import { Stats } from './dashboard.model';
+import { FeatureFlagKey, FeatureFlagsService } from '@core/services/feature-flags.service';
 
 interface QuickLink {
   icon: string;
@@ -23,6 +24,7 @@ interface QuickLink {
   route: string;
   color: string;
   requiresAdmin?: boolean;
+  featureFlag?: FeatureFlagKey;
 }
 
 interface ExtendedStats extends Stats {
@@ -74,6 +76,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
+  private readonly featureFlags = inject(FeatureFlagsService);
   private readonly destroy$ = new Subject<void>();
 
   // State
@@ -85,7 +88,8 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   // Observables
   appUser$ = this.authService.appUser$;
-  
+  featureFlags$ = this.featureFlags.flags$;
+
   stats$ = combineLatest([
     this.userService.getStats().pipe(
       catchError(err => {
@@ -167,28 +171,16 @@ export class DashboardPage implements OnInit, OnDestroy {
       label: 'AdZS Verwaltung',
       description: 'Angehörige des Zivilschutzes verwalten',
       route: '/adsz',
-      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-blue-400'
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-blue-400',
+      featureFlag: 'adsz',
     },
     {
       icon: 'place',
       label: 'Orte',
       description: 'WK-Heime und Anlagen verwalten',
       route: '/places',
-      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-emerald-400'
-    },
-    {
-      icon: 'school',
-      label: 'Ausbildungen',
-      description: 'Kurse und Trainings planen',
-      route: '/training',
-      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-green-400'
-    },
-    {
-      icon: 'emergency',
-      label: 'Notfallkontakte',
-      description: 'Wichtige Kontakte verwalten',
-      route: '/emergency',
-      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-amber-400'
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-emerald-400',
+      featureFlag: 'places',
     },
     {
       icon: 'admin_panel_settings',
@@ -196,13 +188,14 @@ export class DashboardPage implements OnInit, OnDestroy {
       description: 'Systembenutzer administrieren',
       route: '/admin/users',
       color: 'bg-gray-500/20 hover:bg-gray-500/30 text-purple-400',
-      requiresAdmin: true
+      requiresAdmin: true,
+      featureFlag: 'adminUsers',
     }
   ];
 
   ngOnInit(): void {
     this.logger.log('Dashboard', 'Component initialized');
-    
+
     // Start live clock
     interval(1000).pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.currentDate = new Date();
@@ -221,8 +214,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   // Helper methods
-  getFilteredQuickLinks(isAdmin: boolean): QuickLink[] {
-    return this.quickLinks.filter(link => !link.requiresAdmin || isAdmin);
+  getFilteredQuickLinks(
+    isAdmin: boolean,
+    enabledFlags: Partial<Record<FeatureFlagKey, boolean>> | null | undefined
+  ): QuickLink[] {
+    return this.quickLinks.filter((link) => {
+      if (link.requiresAdmin && !isAdmin) return false;
+      if (link.featureFlag && enabledFlags?.[link.featureFlag] === false) return false;
+      return true;
+    });
   }
 
   getUserInitials(user: UserDoc): string {

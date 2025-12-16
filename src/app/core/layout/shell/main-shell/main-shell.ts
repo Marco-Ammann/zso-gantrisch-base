@@ -2,21 +2,22 @@ import { Component, inject, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { map, take, filter, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, combineLatest } from 'rxjs';
 
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
 
 import { AuthService } from '@core/auth/services/auth.service';
+import { FeatureFlagsService } from '@core/services/feature-flags.service';
 import { AppFooter } from '@shared/components/app-footer/app-footer';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
-  selector   : 'zso-main-shell',
-  standalone : true,
-  imports    : [CommonModule, RouterModule, OverlayModule, AppFooter],
+  selector: 'zso-main-shell',
+  standalone: true,
+  imports: [CommonModule, RouterModule, OverlayModule, AppFooter],
   templateUrl: './main-shell.html',
-  styleUrls  : ['./main-shell.scss'],
+  styleUrls: ['./main-shell.scss'],
   animations: [
     trigger('mobileSlide', [
       state('closed', style({ height: '0px', opacity: 0 })),
@@ -40,21 +41,28 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
   ]
 })
 export class MainShell implements OnInit, OnDestroy {
-  readonly auth   = inject(AuthService);
+  readonly auth = inject(AuthService);
+  private readonly featureFlags = inject(FeatureFlagsService);
   appUser$ = this.auth.appUser$;
   private router = inject(Router);
   private destroy$ = new Subject<void>();
 
   showLinks = false;
-  isAdmin$  = this.auth.appUser$.pipe(map(u => u?.doc.roles?.includes('admin') ?? false));
+  isAdmin$ = this.auth.appUser$.pipe(map(u => u?.doc.roles?.includes('admin') ?? false));
   initials$ = this.auth.appUser$.pipe(map(u => u?.doc.email?.[0].toUpperCase() ?? 'U'));
+  showAdzs$ = this.featureFlags.isEnabled$('adsz');
+  showPlaces$ = this.featureFlags.isEnabled$('places');
+  showAdminUsers$ = combineLatest([
+    this.isAdmin$,
+    this.featureFlags.isEnabled$('adminUsers'),
+  ]).pipe(map(([isAdmin, enabled]) => isAdmin && enabled));
 
   /* ---------- Overlay für Avatar ---------- */
   @ViewChild(CdkConnectedOverlay) overlay?: CdkConnectedOverlay;
   overlayOpen = false;
   positions: ConnectedPosition[] = [
-    { originX:'end', originY:'bottom', overlayX:'end', overlayY:'top', offsetY: 8 },
-    { originX:'end', originY:'top',    overlayX:'end', overlayY:'bottom', offsetY:-8 }
+    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
+    { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -8 }
   ];
 
   toggleProfile() { this.overlayOpen = !this.overlayOpen; }
@@ -66,7 +74,7 @@ export class MainShell implements OnInit, OnDestroy {
       this.overlayOpen = false;
     });
   }
-  toggleMobile () { this.showLinks   = !this.showLinks; }
+  toggleMobile() { this.showLinks = !this.showLinks; }
 
   /* Auto-close menus on navigation change */
   ngOnInit() {
@@ -84,7 +92,7 @@ export class MainShell implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
   logout() {
-    this.auth.logout().subscribe(()=>this.router.navigate(['/auth/login']));
+    this.auth.logout().subscribe(() => this.router.navigate(['/auth/login']));
     this.overlayOpen = false;
   }
 }

@@ -1,7 +1,6 @@
 <!-- src/app/features/dashboard/dashboard.page.html -->
 <div class="p-3 sm:p-4 md:p-6 lg:p-8">
   <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-
     <!-- Loading State -->
     @if (loading) {
     <div class="flex items-center justify-center min-h-[60vh]">
@@ -10,69 +9,125 @@
         <p class="text-gray-400">Dashboard wird geladen...</p>
       </div>
     </div>
-    }
-
-    @if (!loading) {
+    } @if (!loading) {
     <!-- Welcome Header -->
     <div @fadeIn class="glass-card p-4 sm:p-6 md:p-8">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+      <div
+        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4"
+      >
         <div class="flex-1">
-          <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2 leading-tight">
+          <h1
+            class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2 leading-tight"
+          >
             Willkommen zurück,
-            <span class="text-cp-orange">{{ (appUser$ | async)?.doc?.firstName ?? 'Gast' }}</span>!
+            <span class="text-cp-orange"
+              >{{ (appUser$ | async)?.doc?.firstName ?? 'Gast' }}</span
+            >!
           </h1>
           <p class="text-sm sm:text-base text-gray-400">
             Hier ist deine aktuelle Übersicht für heute,
-            <span class="font-medium">{{ currentDate | date:'EEEE, dd. MMMM yyyy':'de-CH' }}</span>
+            <span class="font-medium"
+              >{{ currentDate | date:'EEEE, dd. MMMM yyyy':'de-CH' }}</span
+            >
           </p>
         </div>
         <!-- Compact pill clock with icon -->
-        <time class="clock-chip"
-            [attr.datetime]="currentDate | date:'yyyy-MM-ddTHH:mm:ss'"
-            [attr.aria-label]="'Aktuelle Uhrzeit ' + (currentDate | date:'HH:mm:ss')">
-            <span class="material-symbols-outlined icon">schedule</span>
-            <span class="time-text">
-              {{ currentDate | date:'HH:mm' }}<span class="blink">:</span><span class="seconds">{{ currentDate | date:'ss' }}</span>
-            </span>
-          </time>
+        <time
+          class="clock-chip"
+          [attr.datetime]="currentDate | date:'yyyy-MM-ddTHH:mm:ss'"
+          [attr.aria-label]="'Aktuelle Uhrzeit ' + (currentDate | date:'HH:mm:ss')"
+        >
+          <span class="material-symbols-outlined icon">schedule</span>
+          <span class="time-text">
+            {{ currentDate | date:'HH:mm' }}<span class="blink">:</span
+            ><span class="seconds">{{ currentDate | date:'ss' }}</span>
+          </span>
+        </time>
       </div>
     </div>
 
     <!-- Glance Stats (horizontal scrollable chips) -->
-    <section class="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-thin px-1" @staggerIn>
+    <section
+      class="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-thin px-1"
+      @staggerIn
+    >
       @let s = stats$ | async;
-      <zso-stat-hint icon="group" [value]="s?.total ?? 0" (select)="navigate('/admin/users')" color="text-blue-400"
-        title="Alle Benutzer"></zso-stat-hint>
-      <zso-stat-hint icon="verified" [value]="s?.active ?? 0" (select)="navigate('/admin/users')" color="text-green-400"
-        title="Aktive Benutzer"></zso-stat-hint>
-      <zso-stat-hint icon="schedule" [value]="s?.pending ?? 0" (select)="navigate('/admin/users')"
-        color="text-amber-400" title="Wartend"></zso-stat-hint>
-      <zso-stat-hint icon="block" [value]="s?.blocked ?? 0" (select)="navigate('/admin/users')" color="text-rose-400"
-        title="Gesperrt"></zso-stat-hint>
-      <zso-stat-hint icon="badge" [value]="s?.persons ?? 0" (select)="navigate('/adsz')" color="text-purple-400"
-        title="AdZS"></zso-stat-hint>
-      <zso-stat-hint icon="military_tech" [value]="s?.activePersons ?? 0" (select)="navigate('/adsz')"
-        color="text-cyan-400" title="Im Dienst"></zso-stat-hint>
+      <zso-stat-hint
+        icon="group"
+        [value]="s?.total ?? 0"
+        (select)="navigate('/admin/users')"
+        color="text-blue-400"
+        title="Alle Benutzer"
+      ></zso-stat-hint>
+      <zso-stat-hint
+        icon="verified"
+        [value]="s?.active ?? 0"
+        (select)="navigate('/admin/users')"
+        color="text-green-400"
+        title="Aktive Benutzer"
+      ></zso-stat-hint>
+      <zso-stat-hint
+        icon="schedule"
+        [value]="s?.pending ?? 0"
+        (select)="navigate('/admin/users')"
+        color="text-amber-400"
+        title="Wartend"
+      ></zso-stat-hint>
+      <zso-stat-hint
+        icon="block"
+        [value]="s?.blocked ?? 0"
+        (select)="navigate('/admin/users')"
+        color="text-rose-400"
+        title="Gesperrt"
+      ></zso-stat-hint>
+      <zso-stat-hint
+        icon="badge"
+        [value]="s?.persons ?? 0"
+        (select)="navigate('/adsz')"
+        color="text-purple-400"
+        title="AdZS"
+      ></zso-stat-hint>
+      <zso-stat-hint
+        icon="military_tech"
+        [value]="s?.activePersons ?? 0"
+        (select)="navigate('/adsz')"
+        color="text-cyan-400"
+        title="Im Dienst"
+      ></zso-stat-hint>
     </section>
 
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-
       <!-- Quick Links -->
       <div class="lg:col-span-2">
         <div @fadeIn class="glass-card p-4 sm:p-6">
-          <h2 class="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange text-xl sm:text-2xl">rocket_launch</span>
+          <h2
+            class="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2"
+          >
+            <span
+              class="material-symbols-outlined text-cp-orange text-xl sm:text-2xl"
+              >rocket_launch</span
+            >
             Schnellzugriff
           </h2>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-            @for (link of getFilteredQuickLinks((appUser$ | async)?.doc?.roles?.includes('admin') ?? false); track
-            link.route) {
-            <a [routerLink]="link.route"
-              class="glass-card flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-white/5 transition-all min-h-[80px] sm:min-h-[100px] {{ link.color }}">
-              <span class="material-symbols-outlined text-2xl sm:text-3xl">{{ link.icon }}</span>
-              <span class="text-xs sm:text-sm font-medium text-white text-center leading-tight">{{ link.label }}</span>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"
+          >
+            @for (link of getFilteredQuickLinks( (appUser$ |
+            async)?.doc?.roles?.includes('admin') ?? false, (featureFlags$ |
+            async) ); track link.route) {
+            <a
+              [routerLink]="link.route"
+              class="glass-card flex flex-col items-center justify-center gap-2 p-3 sm:p-4 hover:bg-white/5 transition-all min-h-[80px] sm:min-h-[100px] {{ link.color }}"
+            >
+              <span class="material-symbols-outlined text-2xl sm:text-3xl"
+                >{{ link.icon }}</span
+              >
+              <span
+                class="text-xs sm:text-sm font-medium text-white text-center leading-tight"
+                >{{ link.label }}</span
+              >
             </a>
             }
           </div>
@@ -83,31 +138,46 @@
       <div class="lg:col-span-1 lg:row-span-2 order-last lg:order-none">
         <div @fadeIn class="glass-card p-4 sm:p-6 h-full">
           <div class="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-              <span class="material-symbols-outlined text-cp-orange text-xl sm:text-2xl">history</span>
+            <h2
+              class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2"
+            >
+              <span
+                class="material-symbols-outlined text-cp-orange text-xl sm:text-2xl"
+                >history</span
+              >
               Aktivitäten
             </h2>
             @if ((appUser$ | async)?.doc?.roles?.includes('admin')) {
-            <a routerLink="/admin/users"
-              class="text-xs sm:text-sm text-gray-400 hover:text-cp-orange transition-colors">
+            <a
+              routerLink="/admin/users"
+              class="text-xs sm:text-sm text-gray-400 hover:text-cp-orange transition-colors"
+            >
               Alle anzeigen
             </a>
             }
           </div>
 
           <div class="space-y-2 sm:space-y-3">
-            @for (activity of (latestActivities$ | async); track activity.id; let i = $index) {
-            <div @fadeIn
-              class="group flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer" (click)="navigate(activity.route)"
-              [style.animation-delay]="i * 100 + 'ms'">
+            @for (activity of (latestActivities$ | async); track activity.id;
+            let i = $index) {
+            <div
+              @fadeIn
+              class="group flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+              (click)="navigate(activity.route)"
+              [style.animation-delay]="i * 100 + 'ms'"
+            >
               <div class="relative flex-shrink-0">
                 <div
-                  class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-xs sm:text-sm font-medium text-white">
+                  class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-xs sm:text-sm font-medium text-white"
+                >
                   {{ activity.avatarText }}
                 </div>
                 <span
-                  class="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center {{ activity.color }} bg-gray-800">
-                  <span class="material-symbols-outlined text-[10px] sm:text-xs">{{ activity.icon }}</span>
+                  class="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center {{ activity.color }} bg-gray-800"
+                >
+                  <span class="material-symbols-outlined text-[10px] sm:text-xs"
+                    >{{ activity.icon }}</span
+                  >
                 </span>
               </div>
 
@@ -115,7 +185,9 @@
                 <p class="text-xs sm:text-sm font-medium text-white truncate">
                   {{ activity.name }}
                 </p>
-                <p class="text-[10px] sm:text-xs text-gray-400">{{ activity.text }}</p>
+                <p class="text-[10px] sm:text-xs text-gray-400">
+                  {{ activity.text }}
+                </p>
               </div>
 
               <span class="text-[10px] sm:text-xs text-gray-500 flex-shrink-0">
@@ -124,7 +196,9 @@
             </div>
             } @empty {
             <div class="text-center py-6 sm:py-8 text-gray-500">
-              <span class="material-symbols-outlined text-3xl sm:text-4xl mb-2">inbox</span>
+              <span class="material-symbols-outlined text-3xl sm:text-4xl mb-2"
+                >inbox</span
+              >
               <p class="text-sm">Keine Aktivitäten</p>
             </div>
             }
@@ -135,31 +209,66 @@
       <!-- Activity Widgets - Zweite Reihe, linke 2 Spalten -->
       <div class="lg:col-span-2">
         <div @fadeIn class="glass-card p-4 sm:p-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+          >
             @let stats = stats$ | async;
-            <zso-activity-widget icon="person_add" [value]="stats?.pending ?? 0" label="Neue Anmeldungen"
-              (select)="navigate('/admin/users')" color="text-amber-400"></zso-activity-widget>
-            <zso-activity-widget icon="block" [value]="stats?.blocked ?? 0" label="Gesperrt"
-              (select)="navigate('/admin/users')" color="text-rose-400"></zso-activity-widget>
-            <zso-activity-widget icon="military_tech" [value]="stats?.activePersons ?? 0" label="Im Dienst"
-              (select)="navigate('/adsz')" color="text-cyan-400"></zso-activity-widget>
+            <zso-activity-widget
+              icon="person_add"
+              [value]="stats?.pending ?? 0"
+              label="Neue Anmeldungen"
+              (select)="navigate('/admin/users')"
+              color="text-amber-400"
+            ></zso-activity-widget>
+            <zso-activity-widget
+              icon="block"
+              [value]="stats?.blocked ?? 0"
+              label="Gesperrt"
+              (select)="navigate('/admin/users')"
+              color="text-rose-400"
+            ></zso-activity-widget>
+            <zso-activity-widget
+              icon="military_tech"
+              [value]="stats?.activePersons ?? 0"
+              label="Im Dienst"
+              (select)="navigate('/adsz')"
+              color="text-cyan-400"
+            ></zso-activity-widget>
           </div>
         </div>
       </div>
     </div>
 
     <!-- System Info -->
-    <div @fadeIn class="glass-card p-3 sm:p-4 bg-gradient-to-r from-cp-orange/10 to-transparent">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+    <div
+      @fadeIn
+      class="glass-card p-3 sm:p-4 bg-gradient-to-r from-cp-orange/10 to-transparent"
+    >
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4"
+      >
         <div class="flex items-center gap-2 sm:gap-3">
-          <span class="material-symbols-outlined text-cp-orange text-lg sm:text-xl">info</span>
+          <span
+            class="material-symbols-outlined text-cp-orange text-lg sm:text-xl"
+            >info</span
+          >
           <p class="text-xs sm:text-sm text-gray-300">
             <span class="font-medium">ZSO Gantrisch Base</span> - Version 1.0.0
           </p>
         </div>
-        <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400 ml-auto sm:ml-0">
-          <a href="/legal/privacy" class="hover:text-cp-orange transition-colors">Datenschutz</a>
-          <a href="/legal/terms" class="hover:text-cp-orange transition-colors">Nutzungsbedingungen</a>
+        <div
+          class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400 ml-auto sm:ml-0"
+        >
+          <a
+            routerLink="/datenschutz"
+            class="hover:text-cp-orange transition-colors"
+            >Datenschutz</a
+          >
+          <a
+            routerLink="/impressum"
+            class="hover:text-cp-orange transition-colors"
+            >Impressum</a
+          >
         </div>
       </div>
     </div>

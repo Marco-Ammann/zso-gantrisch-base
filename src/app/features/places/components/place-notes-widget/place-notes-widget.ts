@@ -17,6 +17,8 @@ import { NoteEntry } from '@core/models/place.model';
 import { PlacesService } from '../../services/places.service';
 import { LoggerService } from '@core/services/logger.service';
 import { firstValueFrom } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { AuthService } from '@core/auth/services/auth.service';
 
 @Component({
   selector: 'zso-place-notes-widget',
@@ -40,6 +42,7 @@ export class PlaceNotesWidget implements OnInit {
 
   private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
+  private readonly authService = inject(AuthService);
 
   /** Sort notes by createdAt desc */
   private sortNotes(): void {
@@ -60,11 +63,25 @@ export class PlaceNotesWidget implements OnInit {
     this.pending = true;
     this.errorMsg = null;
 
+    const user = await firstValueFrom(
+      this.authService.user$.pipe(
+        filter((u): u is NonNullable<typeof u> => !!u),
+        take(1)
+      )
+    ).catch(() => null);
+
+    if (!user) {
+      this.errorMsg = 'Speichern fehlgeschlagen';
+      this.pending = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
     const note: NoteEntry = {
       id: crypto.randomUUID(),
       text: this.newText.trim(),
       createdAt: Date.now(),
-      createdBy: 'system', // TODO replace with auth user ID
+      createdBy: user.uid,
     };
 
     try {

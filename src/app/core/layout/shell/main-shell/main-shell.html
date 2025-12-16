@@ -1,41 +1,78 @@
 <div
-  class="relative min-h-screen flex flex-col bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]">
-  <div class="absolute inset-0 backdrop-blur-sm" style="background: var(--shell-overlay-90)"></div>
+  class="relative min-h-screen flex flex-col bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]"
+>
+  <div
+    class="absolute inset-0 backdrop-blur-sm"
+    style="background: var(--shell-overlay-90)"
+  ></div>
 
   <!-- Header -->
   <header
-    class="z-20 backdrop-blur-lg flex-shrink-0 fixed top-0 left-0 right-0" style="background: var(--shell-overlay-90)">
+    class="z-20 backdrop-blur-lg flex-shrink-0 fixed top-0 left-0 right-0"
+    style="background: var(--shell-overlay-90)"
+  >
     <nav class="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center">
       <!-- Logo -->
-      <a routerLink="/dashboard" class="flex items-end gap-1 font-bold text-white">
+      <a
+        routerLink="/dashboard"
+        class="flex items-end gap-1 font-bold text-white"
+      >
         <span class="text-xl text-cp-orange">ZSO GANTRISCH</span>
         <span class="text-sm leading-none tracking-tight opacity-80">base</span>
       </a>
 
       <div class="flex-1"></div>
 
-
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center">
         <nav class="flex gap-2">
-          <a routerLink="/dashboard" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact:true}"
-            class="nav-link ">
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="nav-active"
+            [routerLinkActiveOptions]="{exact:true}"
+            class="nav-link"
+          >
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
           </a>
 
-          <a routerLink="/adsz" routerLinkActive="nav-active" class="nav-link">
+          <a
+            *ngIf="showAdzs$ | async"
+            routerLink="/adsz"
+            routerLinkActive="nav-active"
+            class="nav-link"
+          >
             <span class="material-symbols-outlined text-lg">groups</span>
             AdZS
           </a>
-          <a routerLink="/places" routerLinkActive="nav-active" class="nav-link">
+          <a
+            *ngIf="showPlaces$ | async"
+            routerLink="/places"
+            routerLinkActive="nav-active"
+            class="nav-link"
+          >
             <span class="material-symbols-outlined text-lg">place</span>
             Orte
           </a>
 
-          <a *ngIf="isAdmin$ | async" routerLink="/admin/users" routerLinkActive="nav-active" class="nav-link">
+          <a
+            *ngIf="showAdminUsers$ | async"
+            routerLink="/admin/users"
+            routerLinkActive="nav-active"
+            class="nav-link"
+          >
             <span class="material-symbols-outlined text-lg">group</span>
             Benutzer
+          </a>
+
+          <a
+            *ngIf="isAdmin$ | async"
+            routerLink="/admin/settings"
+            routerLinkActive="nav-active"
+            class="nav-link"
+          >
+            <span class="material-symbols-outlined text-lg">settings</span>
+            Einstellungen
           </a>
         </nav>
       </div>
@@ -45,18 +82,28 @@
       <!-- User Menu -->
       <div class="flex items-center gap-3">
         <!-- User Avatar Button (dont show in mobile) -->
-        <button cdkOverlayOrigin #origin="cdkOverlayOrigin" (click)="toggleProfile()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 zso-desktop-only-avatar
-                       border border-white/10 hover:border-cp-orange/50 transition-all duration-200"
-          [attr.aria-expanded]="overlayOpen">
-
+        <button
+          cdkOverlayOrigin
+          #origin="cdkOverlayOrigin"
+          (click)="toggleProfile()"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 zso-desktop-only-avatar border border-white/10 hover:border-cp-orange/50 transition-all duration-200"
+          [attr.aria-expanded]="overlayOpen"
+        >
           <!-- Avatar -->
           <ng-container *ngIf="appUser$ | async as user; else guestAvatar">
-            <ng-container *ngIf="user.doc.photoUrl || user.doc.photoURL; else initials">
-              <img [src]="user.doc.photoUrl || user.doc.photoURL" alt="Avatar"
-                class="w-7 h-7 rounded-full object-cover" />
+            <ng-container
+              *ngIf="user.doc.photoUrl || user.doc.photoURL; else initials"
+            >
+              <img
+                [src]="user.doc.photoUrl || user.doc.photoURL"
+                alt="Avatar"
+                class="w-7 h-7 rounded-full object-cover"
+              />
             </ng-container>
             <ng-template #initials>
-              <div class="w-7 h-7 rounded-full bg-cp-orange/20 flex items-center justify-center">
+              <div
+                class="w-7 h-7 rounded-full bg-cp-orange/20 flex items-center justify-center"
+              >
                 <span class="text-cp-orange text-sm font-medium">
                   {{ (initials$ | async) }}
                 </span>
@@ -70,38 +117,57 @@
           </ng-container>
 
           <ng-template #guestAvatar>
-            <div class="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center">
-              <span class="material-symbols-outlined text-gray-300 text-sm">person</span>
+            <div
+              class="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-gray-300 text-sm"
+                >person</span
+              >
             </div>
           </ng-template>
 
           <!-- Dropdown Arrow -->
-          <span class="material-symbols-outlined text-gray-400 transition-transform duration-200"
-            [class.rotate-180]="overlayOpen">
+          <span
+            class="material-symbols-outlined text-gray-400 transition-transform duration-200"
+            [class.rotate-180]="overlayOpen"
+          >
             expand_more
           </span>
         </button>
 
         <!-- Mobile Menu Button -->
-        <button class="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-          (click)="toggleMobile()" aria-label="Menü" [attr.aria-expanded]="showLinks">
-          <span class="material-symbols-outlined text-2xl transition-transform duration-300"
-            [class.rotate-180]="showLinks">
+        <button
+          class="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+          (click)="toggleMobile()"
+          aria-label="Menü"
+          [attr.aria-expanded]="showLinks"
+        >
+          <span
+            class="material-symbols-outlined text-2xl transition-transform duration-300"
+            [class.rotate-180]="showLinks"
+          >
             {{ showLinks ? 'close' : 'menu' }}
           </span>
         </button>
       </div>
 
       <!-- User Dropdown -->
-      <ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="origin" [cdkConnectedOverlayOpen]="overlayOpen"
-        [cdkConnectedOverlayPositions]="positions" cdkConnectedOverlayHasBackdrop
-        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop" (backdropClick)="overlayOpen=false"
-        (detach)="overlayOpen=false">
-
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="origin"
+        [cdkConnectedOverlayOpen]="overlayOpen"
+        [cdkConnectedOverlayPositions]="positions"
+        cdkConnectedOverlayHasBackdrop
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        (backdropClick)="overlayOpen=false"
+        (detach)="overlayOpen=false"
+      >
         <div class="dropdown-menu w-48 mt-2" [@fadeInOut]>
           <div class="px-4 py-3 border-b border-gray-700">
             <ng-container *ngIf="appUser$ | async as user">
-              <p class="text-sm font-medium text-white">{{ user.doc.firstName }} {{ user.doc.lastName }}</p>
+              <p class="text-sm font-medium text-white">
+                {{ user.doc.firstName }} {{ user.doc.lastName }}
+              </p>
               <p class="text-xs text-gray-400 truncate">{{ user.doc.email }}</p>
             </ng-container>
           </div>
@@ -113,7 +179,10 @@
 
           <div class="border-t border-gray-700"></div>
 
-          <button class="dropdown-item w-full text-rose-400 hover:text-rose-300" (click)="logout()">
+          <button
+            class="dropdown-item w-full text-rose-400 hover:text-rose-300"
+            (click)="logout()"
+          >
             <span class="material-symbols-outlined text-base mr-3">logout</span>
             Abmelden
           </button>
@@ -125,22 +194,51 @@
     <div *ngIf="showLinks" class="md:hidden">
       <div class="border-t border-white/5 bg-black/20 backdrop-blur-sm">
         <div class="px-4 py-3 space-y-1">
-          <a routerLink="/dashboard" (click)="toggleMobile()" class="mobile-nav-link">
+          <a
+            routerLink="/dashboard"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
             <span class="material-symbols-outlined text-lg">dashboard</span>
             Dashboard
           </a>
-          <a routerLink="/adsz" (click)="toggleMobile()" class="mobile-nav-link">
+          <a
+            *ngIf="showAdzs$ | async"
+            routerLink="/adsz"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
             <span class="material-symbols-outlined text-lg">groups</span>
             AdZS
           </a>
-          <a routerLink="/places" (click)="toggleMobile()" class="mobile-nav-link">
+          <a
+            *ngIf="showPlaces$ | async"
+            routerLink="/places"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
             <span class="material-symbols-outlined text-lg">place</span>
             Orte
           </a>
 
-          <a *ngIf="isAdmin$ | async" routerLink="/admin/users" (click)="toggleMobile()" class="mobile-nav-link">
+          <a
+            *ngIf="showAdminUsers$ | async"
+            routerLink="/admin/users"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
             <span class="material-symbols-outlined text-lg">group</span>
             Benutzer
+          </a>
+
+          <a
+            *ngIf="isAdmin$ | async"
+            routerLink="/admin/settings"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
+            <span class="material-symbols-outlined text-lg">settings</span>
+            Einstellungen
           </a>
 
           <div class="border-t border-white/10 my-2"></div>
@@ -160,7 +258,7 @@
   </header>
 
   <!-- Main Content -->
-  <main class="relative z-10 flex-1" style="margin-top: 64px;">
+  <main class="relative z-10 flex-1" style="margin-top: 64px">
     <router-outlet></router-outlet>
   </main>
 

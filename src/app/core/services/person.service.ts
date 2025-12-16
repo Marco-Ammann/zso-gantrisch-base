@@ -16,6 +16,7 @@ import {
   where,
   addDoc,
   deleteDoc,
+  deleteField,
 } from '@angular/fire/firestore';
 import { Observable, from, of, throwError, Subject, forkJoin } from 'rxjs';
 import { switchMap, catchError, map, takeUntil, take } from 'rxjs/operators';
@@ -45,7 +46,7 @@ export class PersonService implements OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private firestoreService: FirestoreService) {}
+  constructor(private firestoreService: FirestoreService) { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -374,7 +375,7 @@ export class PersonService implements OnDestroy {
 
       return from(
         updateDoc(personDoc, {
-          userId: undefined,
+          userId: deleteField(),
           aktualisiertAm: Date.now(),
         })
       ).pipe(takeUntil(this.destroy$));
@@ -391,7 +392,7 @@ export class PersonService implements OnDestroy {
       switchMap(persons => {
         if (persons.length === 0) return of(void 0);
         const person = persons[0];
-        return this.update(person.id, { userId: undefined });
+        return this.unlinkFromUser(person.id);
       })
     );
   }

@@ -10,15 +10,17 @@ import { from, Observable, Subject, EMPTY, throwError } from 'rxjs';
 import { switchMap, takeUntil, first, catchError } from 'rxjs/operators';
 import { AuthService } from '../auth/services/auth.service';
 import { LoggerService } from '../services/logger.service';
+import { UserService } from '../services/user.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly logger = inject(LoggerService);
+  private readonly userService = inject(UserService);
   private lastUpdate = 0;
   private readonly UPDATE_INTERVAL = 5 * 60 * 1000; // 5 Minuten
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   intercept(
     req: HttpRequest<unknown>,
@@ -93,7 +95,7 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
       '.jpeg',
       '.svg'
     ];
-    
+
     return skipPatterns.some(pattern => url.includes(pattern));
   }
 
@@ -101,7 +103,7 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
     const now = Date.now();
     if (now - this.lastUpdate > this.UPDATE_INTERVAL) {
       this.lastUpdate = now;
-      
+
       this.authService.appUser$.pipe(
         first(),
         takeUntil(this.destroy$),
@@ -113,7 +115,8 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
         next: user => {
           if (user?.doc.uid) {
             // Use a simple service call without complex subscription management
-            this.authService['userService']?.updateLastActiveAt(user.doc.uid)
+            this.userService
+              .updateLastActiveAt(user.doc.uid)
               .pipe(
                 first(),
                 catchError(() => EMPTY) // Silent fail for last active updates

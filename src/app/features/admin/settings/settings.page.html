@@ -1,0 +1,56 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+  <div class="flex items-center gap-3">
+    <div class="auth-icon-wrapper">
+      <span class="material-symbols-outlined text-2xl text-cp-orange"
+        >settings</span
+      >
+    </div>
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-bold text-white">Einstellungen</h1>
+      <p class="text-sm text-gray-400">
+        Funktionen zur Laufzeit ein- und ausschalten
+      </p>
+    </div>
+  </div>
+
+  @if (errorMsg) {
+  <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-500/10">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-rose-400">error</span>
+      <span class="text-rose-300">{{ errorMsg }}</span>
+    </div>
+  </div>
+  }
+
+  <div class="glass-card p-4 sm:p-6 space-y-4">
+    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+      <span class="material-symbols-outlined text-cp-orange">toggle_on</span>
+      Feature Flags
+    </h2>
+
+    @let flags = flags$ | async;
+
+    <div class="space-y-4">
+      @for (item of items; track item.key) {
+      <div
+        class="flex items-start justify-between gap-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+      >
+        <div class="min-w-0">
+          <p class="text-white font-medium">{{ item.label }}</p>
+          <p class="text-sm text-gray-400">{{ item.description }}</p>
+        </div>
+
+        <label class="toggle-switch" [attr.aria-label]="item.label">
+          <input
+            type="checkbox"
+            [checked]="(flags?.[item.key] ?? false)"
+            (change)="setEnabled(item.key, $any($event.target).checked)"
+            [disabled]="isPending(item.key)"
+          />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      }
+    </div>
+  </div>
+</div>
