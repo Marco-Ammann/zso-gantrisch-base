@@ -30,11 +30,8 @@
               },
               {
                 "glob": "**/*",
-                "input": "src/assets"
-              },
-              {
-                "glob": "**/*",
-                "input": "src/assets/images"
+                "input": "src/assets",
+                "output": "assets"
               }
             ],
             "styles": [
