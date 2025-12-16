@@ -1,7 +1,9 @@
 // src/app/shared/components/app-footer/app-footer.ts
-import { Component } from '@angular/core';
+import { Component, VERSION, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+
+import { APP_SETTINGS } from '@config/app-settings';
 
 @Component({
   selector: 'app-footer',
@@ -60,9 +62,9 @@ import { RouterModule } from '@angular/router';
           <div>
             <h3 class="text-sm font-semibold text-white mb-3">System</h3>
             <div class="space-y-1">
-              <p class="text-xs text-gray-500">ZSO Gantrisch Base</p>
-              <p class="text-xs text-gray-500">Version 1.0.0</p>
-              <p class="text-xs text-gray-500">Angular 20.x</p>
+              <p class="text-xs text-gray-500">{{ settings.appName }}</p>
+              <p class="text-xs text-gray-500">Version {{ settings.appVersion }}</p>
+              <p class="text-xs text-gray-500">Angular {{ angularVersion }}</p>
             </div>
           </div>
         </div>
@@ -71,7 +73,7 @@ import { RouterModule } from '@angular/router';
         <div class="mt-8 pt-6 border-t border-gray-800">
           <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p class="text-xs text-gray-500">
-              © {{ currentYear }} Zivilschutz Gantrisch. Alle Rechte vorbehalten.
+              &copy; {{ currentYear }} Zivilschutz Gantrisch. Alle Rechte vorbehalten.
             </p>
             <p class="text-xs text-gray-500">
               Entwickelt von 
@@ -95,4 +97,6 @@ import { RouterModule } from '@angular/router';
 })
 export class AppFooter {
   readonly currentYear = new Date().getFullYear();
+  readonly settings = inject(APP_SETTINGS);
+  readonly angularVersion = VERSION.full;
 }

@@ -3,9 +3,11 @@ import { InjectionToken } from '@angular/core';
 
 /** Struktur der globalen Konfiguration */
 export interface AppSettings {
-  firestoreDbId : string;
+  appName: string;
+  appVersion: string;
+  firestoreDbId: string;
   verifyRedirect: string;
-  resetRedirect : string;
+  resetRedirect: string;
 }
 
 /** Injection-Token mit Default-Factory  */
@@ -14,9 +16,12 @@ export const APP_SETTINGS = new InjectionToken<AppSettings>(
   {
     providedIn: 'root',
     factory: (): AppSettings => ({
-      firestoreDbId : 'zso-base',
+      appName: 'ZSO Gantrisch Base',
+      appVersion: '0.5.1',
+      firestoreDbId: 'zso-base',
       verifyRedirect: `${location.origin}/auth/verify-email-success`,
-      resetRedirect : `${location.origin}/auth/login?reset=1`
+      resetRedirect: `${location.origin}/auth/login?reset=1`
     })
   }
 );
+

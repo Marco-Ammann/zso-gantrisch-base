@@ -16,6 +16,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { UserDoc } from '@core/models/user-doc';
 import { Stats } from './dashboard.model';
 import { FeatureFlagKey, FeatureFlagsService } from '@core/services/feature-flags.service';
+import { APP_SETTINGS } from '@config/app-settings';
 
 interface QuickLink {
   icon: string;
@@ -77,6 +78,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly featureFlags = inject(FeatureFlagsService);
+  readonly settings = inject(APP_SETTINGS);
   private readonly destroy$ = new Subject<void>();
 
   // State
