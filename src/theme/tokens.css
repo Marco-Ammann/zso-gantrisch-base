@@ -1,15 +1,15 @@
 /* Design Tokens: global CSS variables */
 :root {
   /* Brand Colors */
-  --cp-orange: #FF7900;
-  --cp-blue: #005EB8;
+  --cp-orange: #ff7900;
+  --cp-blue: #005eb8;
   --cp-green: #008000; /* TODO: make a better suitable green*/
-  --cp-red:#FF0000;/*TODO: make a better suitable red*/
+  --cp-red: #ff0000; /*TODO: make a better suitable red*/
 
   /* Glassmorphism */
   /* Semi-transparent white with 10% opacity for glass cards */
-  --glass-bg: rgba(255, 255, 255, 0.10);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.16);
+  --glass-border: rgba(255, 255, 255, 0.18);
   --glass-radius: 1.25rem;
 
   /* Spacing scale */
@@ -26,58 +26,58 @@
 
   /* Inputs */
   --input-bg: rgba(255, 255, 255, 0.15);
-  --input-bg-focus: rgba(255, 255, 255, 0.30);
-  --input-ring: rgba(255, 255, 255, 0.40);
+  --input-bg-focus: rgba(255, 255, 255, 0.3);
+  --input-ring: rgba(255, 255, 255, 0.4);
   --input-border: #d1d5db;
   --input-error: #dc2626;
 
   /* Avatar */
-  --avatar-bg: rgba(255, 255, 255, 0.10);
+  --avatar-bg: rgba(255, 255, 255, 0.1);
   --avatar-ring: rgba(255, 255, 255, 0.15);
 
   /* Badges */
-  --badge-bg-success: rgba(34, 197, 94, 0.20);
+  --badge-bg-success: rgba(34, 197, 94, 0.2);
   --badge-text-success: rgba(74, 222, 128, 1);
-  --badge-border-success: rgba(34, 197, 94, 0.30);
+  --badge-border-success: rgba(34, 197, 94, 0.3);
 
-  --badge-bg-warning: rgba(245, 158, 11, 0.20);
+  --badge-bg-warning: rgba(245, 158, 11, 0.2);
   --badge-text-warning: rgba(252, 211, 77, 1);
-  --badge-border-warning: rgba(245, 158, 11, 0.30);
+  --badge-border-warning: rgba(245, 158, 11, 0.3);
 
-  --badge-bg-danger: rgba(239, 68, 68, 0.20);
+  --badge-bg-danger: rgba(239, 68, 68, 0.2);
   --badge-text-danger: rgba(252, 165, 165, 1);
-  --badge-border-danger: rgba(239, 68, 68, 0.30);
+  --badge-border-danger: rgba(239, 68, 68, 0.3);
 
-  --badge-bg-info: rgba(59, 130, 246, 0.20);
+  --badge-bg-info: rgba(59, 130, 246, 0.2);
   --badge-text-info: rgba(147, 197, 253, 1);
-  --badge-border-info: rgba(59, 130, 246, 0.30);
+  --badge-border-info: rgba(59, 130, 246, 0.3);
 
-  --badge-bg-neutral: rgba(107, 114, 128, 0.20);
+  --badge-bg-neutral: rgba(107, 114, 128, 0.2);
   --badge-text-neutral: rgba(156, 163, 175, 1);
-  --badge-border-neutral: rgba(107, 114, 128, 0.30);
+  --badge-border-neutral: rgba(107, 114, 128, 0.3);
 
   /* Pills */
   --pill-text: rgba(209, 213, 219, 1);
-  --pill-text-hover: rgba(255, 121, 0, 0.80);
+  --pill-text-hover: rgba(255, 121, 0, 0.8);
   --pill-text-active: rgba(255, 255, 255, 1);
-  --pill-bg-active: rgba(255, 121, 0, 0.20);
+  --pill-bg-active: rgba(255, 121, 0, 0.2);
   --pill-shadow-active: 0 0 8px 1px rgba(255, 121, 0, 0.5);
-  --pill-underline-bg: #FF7900;
+  --pill-underline-bg: #ff7900;
 
   /* Brand Orange Alphas */
   --orange-15: rgba(255, 121, 0, 0.15);
-  --orange-20: rgba(255, 121, 0, 0.20);
-  --orange-30: rgba(255, 121, 0, 0.30);
+  --orange-20: rgba(255, 121, 0, 0.2);
+  --orange-30: rgba(255, 121, 0, 0.3);
   --orange-35: rgba(255, 121, 0, 0.35);
-  --orange-50: rgba(255, 121, 0, 0.50);
+  --orange-50: rgba(255, 121, 0, 0.5);
   --orange-55: rgba(255, 121, 0, 0.55);
 
   /* Danger Red Alphas */
   --danger-05: rgba(239, 68, 68, 0.05);
-  --danger-10: rgba(239, 68, 68, 0.10);
+  --danger-10: rgba(239, 68, 68, 0.1);
   --danger-15: rgba(239, 68, 68, 0.15);
-  --danger-30: rgba(239, 68, 68, 0.30);
-  --danger-50: rgba(239, 68, 68, 0.50);
+  --danger-30: rgba(239, 68, 68, 0.3);
+  --danger-50: rgba(239, 68, 68, 0.5);
 
   /* Borders */
   --border-dark: #1f2937;

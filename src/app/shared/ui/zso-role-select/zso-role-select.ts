@@ -25,7 +25,7 @@ import { CdkConnectedOverlay, ConnectedPosition } from '@angular/cdk/overlay';
         cdkOverlayOrigin
         type="button"
         (click)="toggle()"
-        class="inline-flex items-center justify-between w-full rounded glass-card bg-white/5 hover:bg-white/10 px-3 py-1.5 text-sm text-white min-w-[120px] transition-colors"
+        class="inline-flex items-center justify-between w-full rounded glass-card hover:bg-white/20 px-3 py-1.5 text-sm text-white min-w-[120px] transition-colors"
         [class.border-primary-500]="selected?.length"
       >
         <ng-container *ngIf="selected?.length; else ph">
