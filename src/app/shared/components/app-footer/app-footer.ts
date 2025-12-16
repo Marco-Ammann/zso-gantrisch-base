@@ -9,7 +9,7 @@ import { APP_SETTINGS } from '@config/app-settings';
   standalone: true,
   imports: [RouterModule],
   template: `
-    <footer class="bg-gray-900/50 backdrop-blur-sm border-t border-white/5 py-8">
+    <footer class="bg-gray-900/80 border-t border-white/5 py-8">
       <div class="layout-container">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           

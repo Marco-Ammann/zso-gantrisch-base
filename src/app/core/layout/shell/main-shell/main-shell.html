@@ -1,14 +1,14 @@
 <div
-  class="relative min-h-screen flex flex-col bg-fixed bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]"
+  class="relative min-h-screen flex flex-col bg-cover bg-center bg-[url('assets/images/background_mountains.jpg')]"
 >
   <div
-    class="absolute inset-0 backdrop-blur-sm"
+    class="absolute inset-0"
     style="background: var(--shell-overlay-90)"
   ></div>
 
   <!-- Header -->
   <header
-    class="z-20 backdrop-blur-lg flex-shrink-0 fixed top-0 left-0 right-0"
+    class="z-20 flex-shrink-0 fixed top-0 left-0 right-0"
     style="background: var(--shell-overlay-90)"
   >
     <nav class="layout-container h-16 flex items-center">
@@ -192,7 +192,7 @@
 
     <!-- Mobile Navigation -->
     <div *ngIf="showLinks" class="md:hidden">
-      <div class="border-t border-white/5 bg-black/20 backdrop-blur-sm">
+      <div class="border-t border-white/5 bg-black/20">
         <div class="px-4 py-3 space-y-1">
           <a
             routerLink="/dashboard"

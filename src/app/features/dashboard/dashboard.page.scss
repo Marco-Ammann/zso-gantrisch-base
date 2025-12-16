@@ -22,34 +22,52 @@
 // Blinken für : bei der Uhr  
 .blink {
   animation: blink 1s steps(1) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 // Responsive stat-hint badges - macht sie kleiner auf Mobile
 :host ::ng-deep zso-stat-hint {
   @media (max-width: 640px) {
+
     // Kleinere Badges auf Mobile
-    .glass-card, .badge, [class*="badge"], [class*="hint"] {
+    .glass-card,
+    .badge,
+    [class*="badge"],
+    [class*="hint"] {
       @apply px-2 py-1 text-xs;
       min-width: auto;
       white-space: nowrap;
-      
+
       // Kleinere Icons
       .material-symbols-outlined {
         @apply text-sm;
       }
-      
+
       // Kleinere Zahlen
-      .value, [class*="value"] {
+      .value,
+      [class*="value"] {
         @apply text-sm font-medium;
       }
-      
+
       // Kompakterer Text
-      .title, [class*="title"], span:not(.material-symbols-outlined) {
+      .title,
+      [class*="title"],
+      span:not(.material-symbols-outlined) {
         @apply text-xs;
         max-width: 60px;
         overflow: hidden;
@@ -57,21 +75,28 @@
       }
     }
   }
-  
+
   @media (max-width: 375px) {
+
     // Noch kleinere Badges auf sehr kleinen Screens
-    .glass-card, .badge, [class*="badge"], [class*="hint"] {
+    .glass-card,
+    .badge,
+    [class*="badge"],
+    [class*="hint"] {
       @apply px-1.5 py-0.5 text-[10px];
-      
+
       .material-symbols-outlined {
         @apply text-xs;
       }
-      
-      .value, [class*="value"] {
+
+      .value,
+      [class*="value"] {
         @apply text-xs;
       }
-      
-      .title, [class*="title"], span:not(.material-symbols-outlined) {
+
+      .title,
+      [class*="title"],
+      span:not(.material-symbols-outlined) {
         @apply text-[10px];
         max-width: 45px;
       }
@@ -84,7 +109,7 @@
 /* -------------------------------------------------- */
 
 .clock-chip {
-  @apply inline-flex items-center gap-1 font-mono text-base sm:text-lg text-white px-3 py-1 rounded-full bg-gray-800/60 backdrop-blur-md border border-gray-500/40 shadow shadow-black/30;
+  @apply inline-flex items-center gap-1 font-mono text-base sm:text-lg text-white px-3 py-1 rounded-full bg-gray-800/80 border border-gray-500/40 shadow shadow-black/30;
 }
 
 .clock-chip .icon {
@@ -101,18 +126,22 @@
 
 .clock-chip .blink {
   animation: blink 1s steps(1) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 // Touch-friendly interactions on mobile
 @media (max-width: 1024px) {
   .glass-card {
     @apply touch-manipulation;
-    
+
     // Leicht größere Touch-Targets
     &:hover {
       transform: none; // Disable hover effects on mobile
     }
-    
+
     &:active {
       transform: scale(0.98);
       transition: transform 0.1s ease;
@@ -124,11 +153,11 @@
     a {
       @apply min-h-[70px] active:scale-95;
       transition: all 0.15s ease;
-      
+
       .material-symbols-outlined {
         @apply text-xl;
       }
-      
+
       span:last-child {
         @apply text-xs leading-tight;
         line-height: 1.2;
@@ -137,11 +166,11 @@
   }
 
   // Activity items mobile spacing
-  .space-y-2 > * + * {
+  .space-y-2>*+* {
     margin-top: 0.5rem;
   }
 
-  .space-y-3 > * + * {
+  .space-y-3>*+* {
     margin-top: 0.75rem;
   }
 }
@@ -151,28 +180,28 @@
   .glass-card {
     @apply p-3;
   }
-  
+
   .quick-links-grid {
     grid-template-columns: repeat(2, 1fr);
-    
+
     a {
       @apply min-h-[60px] p-2;
-      
+
       .material-symbols-outlined {
         @apply text-lg;
       }
-      
+
       span:last-child {
         @apply text-[10px];
       }
     }
   }
-  
+
   // Kompakte Header auf sehr kleinen Screens
   h1 {
     @apply text-xl leading-tight;
   }
-  
+
   h2 {
     @apply text-lg;
   }

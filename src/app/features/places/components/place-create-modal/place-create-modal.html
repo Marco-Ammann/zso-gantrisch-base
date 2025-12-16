@@ -1,6 +1,6 @@
 <!-- src/app/features/places/components/place-create-modal/place-create-modal.html -->
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
   *ngIf="visible"
   (click)="onBackdrop($event)"
 >
@@ -13,7 +13,10 @@
       Neuen Ort erstellen
     </h2>
 
-    <form [formGroup]="form" class="space-y-4 max-h-[70vh] overflow-y-auto pl-2 pr-2">
+    <form
+      [formGroup]="form"
+      class="space-y-4 max-h-[70vh] overflow-y-auto pl-2 pr-2"
+    >
       <!-- Name -->
       <zso-input-field label="Name" formControlName="name"></zso-input-field>
 
@@ -26,27 +29,60 @@
       ></zso-input-field>
 
       <!-- Address -->
-      <div formGroupName="address" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <zso-input-field label="Strasse" formControlName="street"></zso-input-field>
+      <div
+        formGroupName="address"
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
+        <zso-input-field
+          label="Strasse"
+          formControlName="street"
+        ></zso-input-field>
         <zso-input-field label="PLZ" formControlName="zip"></zso-input-field>
         <zso-input-field label="Ort" formControlName="city"></zso-input-field>
-        <zso-input-field label="Land" formControlName="country"></zso-input-field>
+        <zso-input-field
+          label="Land"
+          formControlName="country"
+        ></zso-input-field>
       </div>
 
       <!-- Contact Person -->
-      <fieldset formGroupName="contactPerson" class="border border-gray-700 p-4 rounded-lg">
+      <fieldset
+        formGroupName="contactPerson"
+        class="border border-gray-700 p-4 rounded-lg"
+      >
         <legend class="px-2 text-sm text-gray-400">Kontaktperson</legend>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <zso-input-field label="Vorname" formControlName="firstName"></zso-input-field>
-          <zso-input-field label="Nachname" formControlName="lastName"></zso-input-field>
-          <zso-input-field label="Telefon" formControlName="phone" type="tel"></zso-input-field>
-          <zso-input-field label="E-Mail" formControlName="email" type="email"></zso-input-field>
+          <zso-input-field
+            label="Vorname"
+            formControlName="firstName"
+          ></zso-input-field>
+          <zso-input-field
+            label="Nachname"
+            formControlName="lastName"
+          ></zso-input-field>
+          <zso-input-field
+            label="Telefon"
+            formControlName="phone"
+            type="tel"
+          ></zso-input-field>
+          <zso-input-field
+            label="E-Mail"
+            formControlName="email"
+            type="email"
+          ></zso-input-field>
         </div>
       </fieldset>
 
       <!-- Capacity -->
-      <div formGroupName="capacity" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <zso-input-field label="Max. Personen" formControlName="maxPersons" type="number"></zso-input-field>
+      <div
+        formGroupName="capacity"
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
+        <zso-input-field
+          label="Max. Personen"
+          formControlName="maxPersons"
+          type="number"
+        ></zso-input-field>
       </div>
 
       <!-- Error -->

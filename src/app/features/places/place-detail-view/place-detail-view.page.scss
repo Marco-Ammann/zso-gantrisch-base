@@ -5,9 +5,10 @@
 }
 
 .glass-card {
-  border-radius: 0.5rem; /* rounded-lg */
-  backdrop-filter: blur(12px); /* backdrop-blur-md */
-  padding: 1.5rem; /* p-6 */
+  border-radius: 0.5rem;
+  /* rounded-lg */
+  padding: 1.5rem;
+  /* p-6 */
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   /* subtle gradient and depth */
@@ -16,6 +17,7 @@
 
 @media (min-width: 1024px) {
   .glass-card {
-    padding: 2rem; /* p-8 */
+    padding: 2rem;
+    /* p-8 */
   }
 }

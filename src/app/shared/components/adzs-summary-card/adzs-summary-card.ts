@@ -49,7 +49,7 @@ import { PersonDoc, NotfallkontaktDoc } from '@core/models/person.model';
   styles: [
     `
     .overview-card {
-      @apply bg-white/10 backdrop-blur rounded-2xl p-6 space-y-2;
+      @apply bg-white/10 rounded-2xl p-6 space-y-2;
     }
 
     .entry-group {

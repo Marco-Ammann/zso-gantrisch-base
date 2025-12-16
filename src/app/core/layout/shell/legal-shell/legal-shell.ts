@@ -11,10 +11,10 @@ import { AppFooter } from '@shared/components/app-footer/app-footer';
     <div class="min-h-screen flex flex-col bg-gray-900 relative">
       <!-- Fixed Background -->
       <div class="fixed inset-0 bg-[url('assets/images/background_mountains.jpg')] bg-cover bg-center bg-no-repeat"></div>
-      <div class="fixed inset-0 backdrop-blur-sm" style="background: var(--shell-overlay-90)"></div>
+      <div class="fixed inset-0" style="background: var(--shell-overlay-90)"></div>
 
       <!-- Header -->
-      <header class="relative z-20 backdrop-blur-lg border-b border-white/5 flex-shrink-0">
+      <header class="relative z-20 border-b border-white/5 flex-shrink-0">
         <nav class="layout-container h-16 flex items-center">
           <!-- Logo -->
           <button (click)="goToApp()" class="flex items-end gap-1 font-bold text-white hover:text-cp-orange transition-colors cursor-pointer">

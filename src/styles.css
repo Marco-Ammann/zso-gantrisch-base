@@ -50,7 +50,7 @@
 @layer components {
   /* Glass Card Grundstil */
   .glass-card {
-    @apply relative overflow-hidden backdrop-blur-xl backdrop-saturate-150 rounded-2xl shadow-lg;
+    @apply relative overflow-hidden rounded-2xl shadow-lg;
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     z-index: 10;
@@ -140,11 +140,12 @@
   /* Buttons */
   .glass-btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold
-           backdrop-blur-md transition duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-cp-orange;
+           transition duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-cp-orange;
     background-color: var(--glass-btn-bg);
     border: 1px solid var(--glass-btn-border);
     color: var(--glass-btn-text);
   }
+
   .glass-btn-primary {
     @apply glass-btn border-cp-orange/50 text-cp-orange hover:text-white hover:bg-cp-orange/30;
   }
@@ -238,7 +239,7 @@
   }
   .auth-icon-wrapper {
     @apply flex items-center justify-center h-14 w-14 rounded-full
-           bg-white/10 backdrop-blur-md ring-1 ring-white/20;
+          bg-white/10 ring-1 ring-white/20;
   }
   .divider-labeled {
     @apply relative flex items-center text-gray-400 text-sm;
@@ -261,7 +262,7 @@
   /* Dropdown-Menü */
   .dropdown-menu {
     @apply w-44 rounded-xl overflow-hidden shadow-xl border border-white/15 
-           backdrop-blur-md bg-gray-900/90 dark:bg-gray-900/90;
+          bg-gray-900/90 dark:bg-gray-900/90;
   }
   .dropdown-item {
     @apply block w-full px-4 py-2 text-left text-gray-200 dark:text-gray-200 
@@ -412,8 +413,6 @@
   /* Safari-sichere Dialog Hintergründe */
   .dialog-backdrop {
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
   }
 
   /* Safari Transform-Fix für Dialoge */
@@ -579,7 +578,7 @@
     }
   }
   .glass-card::before {
-    content: "";
+    content: none;
     position: absolute;
     inset: 0;
     padding: 1px;
@@ -708,6 +707,17 @@
     background: var(--danger-10) !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px var(--danger-15);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .underline-sweep::after,
+    .sparkle::after,
+    .shimmer-once,
+    .animate-fadeUp,
+    .animate-pop-in,
+    .upload-toast {
+      animation: none !important;
+    }
   }
 }
 
