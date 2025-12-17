@@ -9,8 +9,11 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   inject,
+  OnChanges,
   OnInit,
   ChangeDetectorRef,
+  OnDestroy,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -25,6 +28,7 @@ import { PlaceDoc, PlaceType } from '@core/models/place.model';
 import { PlacesService } from '../../services/places.service';
 import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '@core/services/logger.service';
+import { ScrollLockService } from '@core/services/scroll-lock.service';
 
 @Component({
   selector: 'zso-place-create-modal',
@@ -34,7 +38,7 @@ import { LoggerService } from '@core/services/logger.service';
   styleUrls: ['./place-create-modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaceCreateModal implements OnInit {
+export class PlaceCreateModal implements OnInit, OnChanges, OnDestroy {
   /** Sichtbarkeit steuern */
   @Input() visible = false;
   /** Emits neu erstelltes PlaceDoc (inklusive ID) */
@@ -46,6 +50,8 @@ export class PlaceCreateModal implements OnInit {
   private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
 
   isSaving = false;
   errorMsg: string | null = null;
@@ -79,6 +85,27 @@ export class PlaceCreateModal implements OnInit {
 
   ngOnInit(): void {
     // Nothing to init yet
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['visible']) return;
+
+    if (this.visible && !this.scrollLocked) {
+      this.scrollLock.lock();
+      this.scrollLocked = true;
+    }
+
+    if (!this.visible && this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
   }
 
   async save(): Promise<void> {

@@ -35,7 +35,11 @@ import { AppFooter } from '@shared/components/app-footer/app-footer';
       </header>
 
       <!-- Main Content -->
-      <main class="relative z-10 flex-1 overflow-y-auto">
+      <main
+        id="app-scroll-container"
+        data-scroll-lock-container
+        class="relative z-10 flex-1 overflow-y-auto"
+      >
         <router-outlet></router-outlet>
       </main>
 

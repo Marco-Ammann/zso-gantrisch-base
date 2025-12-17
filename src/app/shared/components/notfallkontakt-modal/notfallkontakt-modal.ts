@@ -7,6 +7,7 @@ import {
   ChangeDetectorRef,
   inject,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -18,6 +19,7 @@ import {
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 import { ZsoInputField } from '@shared/ui/zso-input-field/zso-input-field';
 import { PersonService } from '@core/services/person.service';
+import { ScrollLockService } from '@core/services/scroll-lock.service';
 import { NotfallkontaktDoc } from '@core/models/person.model';
 import { take } from 'rxjs';
 
@@ -29,10 +31,12 @@ import { take } from 'rxjs';
   styleUrls: ['./notfallkontakt-modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotfallkontaktModal implements OnChanges {
+export class NotfallkontaktModal implements OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly personService = inject(PersonService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
 
   @Input() personId!: string;
   @Input() kontakt: NotfallkontaktDoc | null = null;
@@ -55,6 +59,18 @@ export class NotfallkontaktModal implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['visible']) {
+      if (this.visible && !this.scrollLocked) {
+        this.scrollLock.lock();
+        this.scrollLocked = true;
+      }
+
+      if (!this.visible && this.scrollLocked) {
+        this.scrollLock.unlock();
+        this.scrollLocked = false;
+      }
+    }
+
     if (changes['kontakt'] && this.kontakt) {
       this.form.patchValue({
         name: this.kontakt.name,
@@ -72,6 +88,13 @@ export class NotfallkontaktModal implements OnChanges {
     if (changes['visible'] && this.visible && !this.isEditMode) {
       this.form.reset({ prioritaet: 1 });
       this.cdr.markForCheck();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
     }
   }
 

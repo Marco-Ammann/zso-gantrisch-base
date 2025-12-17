@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div
-      class="glass-card p-4 flex items-center gap-4 hover:bg-white/5 transition-all cursor-pointer"
+      class="glass-card p-4 flex items-center gap-4 hover:bg-white/20 transition-all cursor-pointer"
       (click)="select.emit()"
     >
       <span class="material-symbols-outlined text-4xl" [ngClass]="color">{{ icon }}</span>

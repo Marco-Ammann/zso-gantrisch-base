@@ -6,9 +6,14 @@ import {
   Output,
   ElementRef,
   ViewChild,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ZsoButton } from '../../ui/zso-button/zso-button';
+import { ScrollLockService } from '@core/services/scroll-lock.service';
 
 @Component({
   selector: 'zso-confirmation-dialog',
@@ -17,7 +22,7 @@ import { ZsoButton } from '../../ui/zso-button/zso-button';
   template: `
     <div
       #backdrop
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
+      class="fixed inset-0 bg-black/60 backdrop-blur-glass flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
       [class.opacity-100]="visible"
       [class.pointer-events-auto]="visible"
     >
@@ -80,7 +85,10 @@ import { ZsoButton } from '../../ui/zso-button/zso-button';
     `,
   ],
 })
-export class ConfirmationDialogComponent {
+export class ConfirmationDialogComponent implements OnChanges, OnDestroy {
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
+
   @ViewChild('backdrop') backdrop!: ElementRef<HTMLDivElement>;
   @Input() visible = false;
   @Input() title = 'Bestätigung';
@@ -90,6 +98,27 @@ export class ConfirmationDialogComponent {
   @Input() confirmType: 'primary' | 'danger' | 'neutral' = 'primary';
 
   @Output() confirmed = new EventEmitter<boolean>();
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['visible']) return;
+
+    if (this.visible && !this.scrollLocked) {
+      this.scrollLock.lock();
+      this.scrollLocked = true;
+    }
+
+    if (!this.visible && this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
+  }
 
   // Handle click outside to close
   onClickOutside(event: MouseEvent) {
@@ -109,6 +138,10 @@ export class ConfirmationDialogComponent {
   }
 
   private close() {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
     this.visible = false;
   }
 }

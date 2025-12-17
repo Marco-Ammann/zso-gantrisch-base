@@ -69,7 +69,7 @@ export class ZsoCard {
         arr.push('p-8');
         break;
     }
-    if (this.hover) arr.push('hover:bg-white/10 transition-colors');
+    if (this.hover) arr.push('hover:bg-white/20 transition-colors');
     return arr.join(' ');
   }
 

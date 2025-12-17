@@ -8,8 +8,8 @@
 
   /* Glassmorphism */
   /* Semi-transparent white with 10% opacity for glass cards */
-  --glass-bg: rgba(255, 255, 255, 0.16);
-  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.24);
+  --glass-border: rgba(255, 255, 255, 0.22);
   --glass-radius: 1.25rem;
 
   /* Spacing scale */

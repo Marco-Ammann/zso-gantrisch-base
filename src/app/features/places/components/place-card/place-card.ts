@@ -11,7 +11,7 @@ import { PlaceDoc } from '@core/models/place.model';
   imports: [CommonModule],
   template: `
     <div
-      class="glass-card p-5 cursor-pointer hover:bg-white/10 transition-colors rounded-lg h-full flex flex-col justify-between gap-3"
+      class="glass-card p-5 cursor-pointer hover:bg-white/20 transition-colors rounded-lg h-full flex flex-col justify-between gap-3"
     >
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold text-white">

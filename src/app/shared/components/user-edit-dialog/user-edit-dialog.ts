@@ -1,10 +1,20 @@
 // src/app/shared/components/user-edit-dialog/user-edit-dialog.ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ZsoInputField } from '../../ui/zso-input-field/zso-input-field';
 import { ZsoButton } from '../../ui/zso-button/zso-button';
 import { UserDoc } from '@core/models/user-doc';
+import { ScrollLockService } from '@core/services/scroll-lock.service';
 
 @Component({
   selector: 'zso-user-edit-dialog',
@@ -13,7 +23,7 @@ import { UserDoc } from '@core/models/user-doc';
   template: `
     <!-- Backdrop ----------------------------------------------------------- -->
     <div
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
+      class="fixed inset-0 bg-black/60 backdrop-blur-glass flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
       [class.opacity-100]="visible"
       [class.pointer-events-auto]="visible"
       (click)="onBackdrop($event)"
@@ -72,7 +82,10 @@ import { UserDoc } from '@core/models/user-doc';
     </div>
   `,
 })
-export class UserEditDialogComponent {
+export class UserEditDialogComponent implements OnChanges, OnDestroy {
+  private readonly scrollLock = inject(ScrollLockService);
+  private scrollLocked = false;
+
   @Input() visible = false;
   @Input() set user(u: UserDoc | null) {
     if (u) {
@@ -105,6 +118,27 @@ export class UserEditDialogComponent {
   birthDateStr = '';
   private _uid = '';
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['visible']) return;
+
+    if (this.visible && !this.scrollLocked) {
+      this.scrollLock.lock();
+      this.scrollLocked = true;
+    }
+
+    if (!this.visible && this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
+  }
+
   onBackdrop(_e: MouseEvent) {
     this.cancel();
   }
@@ -121,11 +155,19 @@ export class UserEditDialogComponent {
       phoneNumber: this.phoneNumber.trim(),
       birthDate: birthDateTs,
     });
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
     this.visible = false;
     this.closed.emit();
   }
 
   cancel() {
+    if (this.scrollLocked) {
+      this.scrollLock.unlock();
+      this.scrollLocked = false;
+    }
     this.visible = false;
     this.closed.emit();
   }

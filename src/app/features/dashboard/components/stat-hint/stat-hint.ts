@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="stat-hint glass-card flex items-center gap-1 px-3 py-1 cursor-pointer select-none hover:bg-white/5 transition">
+    <div class="stat-hint glass-card flex items-center gap-1 px-3 py-1 cursor-pointer select-none hover:bg-white/20 transition">
       <span class="material-symbols-outlined text-base" [ngClass]="color">{{ icon }}</span>
       <span class="text-sm font-semibold text-white">{{ value }}</span>
     </div>
