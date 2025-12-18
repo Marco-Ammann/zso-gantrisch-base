@@ -192,6 +192,9 @@
     background-color: var(--input-bg);
     --tw-ring-color: var(--input-ring);
   }
+  .form-input:focus {
+    background-color: var(--input-bg-focus);
+  }
   .form-input[aria-invalid="true"] {
     @apply ring-rose-500 text-rose-100;
   }
@@ -279,11 +282,16 @@
 
   /* Sort-Select */
   .sort-select {
-    @apply appearance-none bg-gray-800 dark:bg-gray-800
-           border border-white/20 rounded-lg
-           py-1.5 pl-3 pr-8 text-sm text-gray-200
-           focus:ring-2 focus:ring-cp-orange focus:border-cp-orange
-           transition-colors cursor-pointer;
+    @apply appearance-none rounded-lg ring-1 py-2 px-3 pr-8 text-sm text-gray-200 transition focus:ring-2 focus:ring-cp-orange cursor-pointer;
+    background-color: var(--input-bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem 1.25rem;
+    --tw-ring-color: var(--input-ring);
+  }
+  .sort-select:focus {
+    background-color: var(--input-bg-focus);
   }
   .sort-select::-ms-expand {
     display: none;

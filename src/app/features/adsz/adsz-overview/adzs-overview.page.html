@@ -151,7 +151,7 @@
         [(ngModel)]="searchQuery"
         (ngModelChange)="onSearchChange($event)"
         placeholder="Name, E-Mail, Grad oder Funktion suchen..."
-        class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
+        class="form-input pl-10 pr-4 outline-none"
       />
     </div>
 
@@ -165,7 +165,7 @@
         <select
           (change)="onFilterChange('status', $any($event.target).value)"
           [value]="currentFilters.status"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="sort-select w-full"
         >
           <option value="all">Alle</option>
           <option value="aktiv">Aktiv</option>
@@ -180,7 +180,7 @@
         <select
           (change)="onFilterChange('zug', $any($event.target).value === 'all' ? 'all' : +$any($event.target).value)"
           [value]="currentFilters.zug"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="sort-select w-full"
         >
           <option value="all">Alle</option>
           <option value="1">Zug 1</option>
@@ -196,7 +196,7 @@
         <select
           (change)="onFilterChange('gruppe', $any($event.target).value)"
           [value]="currentFilters.gruppe"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="sort-select w-full"
         >
           <option value="all">Alle</option>
           <option value="A">Gruppe A</option>
@@ -214,7 +214,7 @@
         <select
           (change)="onFilterChange('contactMethod', $any($event.target).value)"
           [value]="currentFilters.contactMethod"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="sort-select w-full"
         >
           <option value="all">Alle</option>
           <option value="digital">Digital</option>
