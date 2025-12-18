@@ -26,6 +26,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { PersonDoc } from '@core/models/person.model';
 import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-create-modal';
+import { ZsoButton } from '@shared/ui/zso-button/zso-button';
 
 interface FilterState {
   status: 'all' | 'aktiv' | 'neu' | 'inaktiv';
@@ -47,9 +48,10 @@ interface Stats {
   selector: 'zso-adzs-overview',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    RouterModule, 
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    ZsoButton,
     AdzsCreateModal  // Neue Modal-Komponente
   ],
   templateUrl: './adzs-overview.page.html',
@@ -241,7 +243,7 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
       filtered = filtered.filter(
         person =>
           person.preferences?.contactMethod ===
-            this.currentFilters.contactMethod ||
+          this.currentFilters.contactMethod ||
           (this.currentFilters.contactMethod === 'both' &&
             person.preferences?.contactMethod === 'both')
       );
@@ -295,13 +297,13 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
 
   onPersonCreated(person: PersonDoc): void {
     this.logger.log('AdzsOverviewPage', 'Person created successfully:', person.id);
-    
+
     // Success-Message anzeigen
     this.successMsg = `${person.grunddaten.vorname} ${person.grunddaten.nachname} wurde erfolgreich erstellt.`;
-    
+
     // Daten neu laden
     this.loadPersons();
-    
+
     // Success-Message nach 5 Sekunden ausblenden
     setTimeout(() => {
       this.successMsg = null;

@@ -67,73 +67,77 @@
     <!-- Action Buttons -->
     <div class="flex items-center gap-2">
       <!-- GEÄNDERT: Öffnet Modal statt Navigation -->
-      <button
-        (click)="openCreateModal()"
-        class="glass-btn-primary px-4 py-2 rounded-lg flex items-center gap-2"
-      >
-        <span class="material-symbols-outlined text-base">person_add</span>
-        <span class="text-sm font-medium">Neue Person</span>
-      </button>
+      <zso-button type="primary" size="sm" (click)="openCreateModal()">
+        <span class="material-symbols-outlined text-base mr-1">person_add</span>
+        Neue Person
+      </zso-button>
     </div>
   </div>
 
   <!-- Compact Statistics Bar -->
-  <div class="glass-card p-3 flex items-center justify-between overflow-x-auto">
-    <div class="flex items-center gap-6 text-sm">
-      <div class="flex items-center gap-2">
-        <span class="text-gray-400">Gesamt:</span>
-        <span class="font-bold text-white"
-          >{{ (stats$ | async)?.total ?? '—' }}</span
+  <div class="glass-card p-4">
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+    >
+      <div class="flex items-center gap-2 text-sm flex-wrap">
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-800/80 text-gray-300"
+          title="Gesamtanzahl Personen"
         >
-      </div>
-      <div class="h-4 w-px bg-gray-700"></div>
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-green-400"></span>
-        <span class="text-gray-400">Aktiv:</span>
-        <span class="font-medium text-white"
-          >{{ (stats$ | async)?.active ?? '—' }}</span
-        >
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-        <span class="text-gray-400">Neu:</span>
-        <span class="font-medium text-white"
-          >{{ (stats$ | async)?.new ?? '—' }}</span
-        >
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-        <span class="text-gray-400">Inaktiv:</span>
-        <span class="font-medium text-white"
-          >{{ (stats$ | async)?.inactive ?? '—' }}</span
-        >
-      </div>
-    </div>
+          <span class="material-symbols-outlined text-sm">people</span>
+          <span>{{ (stats$ | async)?.total ?? '—' }}</span>
+        </div>
 
-    <!-- Filters & Actions -->
-    <div class="flex items-center gap-2">
-      <button
-        (click)="refresh()"
-        [disabled]="isLoading"
-        class="p-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700 hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200 disabled:opacity-50"
-        title="Aktualisieren"
-      >
-        <span
-          class="material-symbols-outlined text-base"
-          [class.animate-spin]="isLoading"
-          >refresh</span
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-500/15 text-green-300"
+          title="Aktive Personen"
         >
-      </button>
+          <span class="material-symbols-outlined text-sm">verified</span>
+          <span>{{ (stats$ | async)?.active ?? '—' }}</span>
+        </div>
 
-      @if (hasActiveFilters) {
-      <button
-        (click)="clearFilters()"
-        class="text-xs px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
-        title="Filter zurücksetzen"
-      >
-        Filter löschen
-      </button>
-      }
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-300"
+          title="Neue Personen"
+        >
+          <span class="material-symbols-outlined text-sm">schedule</span>
+          <span>{{ (stats$ | async)?.new ?? '—' }}</span>
+        </div>
+
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-500/15 text-rose-300"
+          title="Inaktive Personen"
+        >
+          <span class="material-symbols-outlined text-sm">block</span>
+          <span>{{ (stats$ | async)?.inactive ?? '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Filters & Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          (click)="refresh()"
+          [disabled]="isLoading"
+          class="p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Aktualisieren"
+        >
+          <span
+            class="material-symbols-outlined text-base"
+            [class.animate-spin]="isLoading"
+            >refresh</span
+          >
+        </button>
+
+        @if (hasActiveFilters) {
+        <button
+          (click)="clearFilters()"
+          class="text-xs px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
+          title="Filter zurücksetzen"
+        >
+          Filter löschen
+        </button>
+        }
+      </div>
     </div>
   </div>
 
@@ -151,12 +155,12 @@
         [(ngModel)]="searchQuery"
         (ngModelChange)="onSearchChange($event)"
         placeholder="Name, E-Mail, Grad oder Funktion suchen..."
-        class="form-input pl-10 pr-4 outline-none"
+        class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
       />
     </div>
 
     <!-- Filter Row -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
       <!-- Status Filter -->
       <div>
         <label class="block text-xs font-medium text-gray-400 mb-1"
@@ -165,7 +169,7 @@
         <select
           (change)="onFilterChange('status', $any($event.target).value)"
           [value]="currentFilters.status"
-          class="sort-select w-full"
+          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
         >
           <option value="all">Alle</option>
           <option value="aktiv">Aktiv</option>
@@ -180,7 +184,7 @@
         <select
           (change)="onFilterChange('zug', $any($event.target).value === 'all' ? 'all' : +$any($event.target).value)"
           [value]="currentFilters.zug"
-          class="sort-select w-full"
+          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
         >
           <option value="all">Alle</option>
           <option value="1">Zug 1</option>
@@ -196,7 +200,7 @@
         <select
           (change)="onFilterChange('gruppe', $any($event.target).value)"
           [value]="currentFilters.gruppe"
-          class="sort-select w-full"
+          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
         >
           <option value="all">Alle</option>
           <option value="A">Gruppe A</option>
@@ -214,7 +218,7 @@
         <select
           (change)="onFilterChange('contactMethod', $any($event.target).value)"
           [value]="currentFilters.contactMethod"
-          class="sort-select w-full"
+          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
         >
           <option value="all">Alle</option>
           <option value="digital">Digital</option>
@@ -362,12 +366,9 @@
 
     @if (!hasActiveFilters) {
     <!-- GEÄNDERT: Öffnet Modal statt Navigation -->
-    <button
-      (click)="openCreateModal()"
-      class="glass-btn-primary px-4 py-2 rounded-lg"
-    >
+    <zso-button type="primary" size="sm" (click)="openCreateModal()">
       Erste Person erfassen
-    </button>
+    </zso-button>
     }
   </div>
   }
