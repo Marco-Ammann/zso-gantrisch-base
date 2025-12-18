@@ -1,109 +1,118 @@
 <!-- src/app/features/places/components/place-create-modal/place-create-modal.html -->
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-glass"
-  *ngIf="visible"
+  class="fixed inset-0 bg-black/60 backdrop-blur-glass z-50 flex items-start justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-200"
+  [class.opacity-100]="visible"
+  [class.pointer-events-auto]="visible"
   (click)="onBackdrop($event)"
 >
   <div
-    class="bg-gray-800 text-white rounded-lg shadow-xl w-full max-w-xl p-6 relative"
+    class="glass-card w-full flex flex-col mx-auto overflow-hidden transform transition-transform duration-200 sm:max-w-xl sm:rounded-lg max-h-[calc(100vh-5.5rem)]"
+    [class.translate-y-full]="!visible"
+    [class.translate-y-0]="visible"
     (click)="$event.stopPropagation()"
   >
-    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-      <span class="material-symbols-outlined text-2xl">add_location</span>
-      Neuen Ort erstellen
-    </h2>
-
-    <form
-      [formGroup]="form"
-      class="space-y-4 max-h-[70vh] overflow-y-auto pl-2 pr-2"
+    <div
+      class="flex items-center justify-between p-4 sm:p-6 border-b border-white/10 bg-black/30 sm:bg-transparent sticky top-0 sm:static z-10"
     >
-      <!-- Name -->
-      <zso-input-field label="Name" formControlName="name"></zso-input-field>
-
-      <!-- Type -->
-      <zso-input-field
-        label="Typ"
-        [select]="true"
-        [options]="types"
-        formControlName="type"
-      ></zso-input-field>
-
-      <!-- Address -->
-      <div
-        formGroupName="address"
-        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      <h2
+        class="text-lg sm:text-xl font-semibold text-white flex items-center gap-2"
       >
-        <zso-input-field
-          label="Strasse"
-          formControlName="street"
-        ></zso-input-field>
-        <zso-input-field label="PLZ" formControlName="zip"></zso-input-field>
-        <zso-input-field label="Ort" formControlName="city"></zso-input-field>
-        <zso-input-field
-          label="Land"
-          formControlName="country"
-        ></zso-input-field>
-      </div>
-
-      <!-- Contact Person -->
-      <fieldset
-        formGroupName="contactPerson"
-        class="border border-gray-700 p-4 rounded-lg"
+        <span class="material-symbols-outlined text-cp-orange"
+          >add_location</span
+        >
+        Neuen Ort erstellen
+      </h2>
+      <button
+        aria-label="Close"
+        (click)="cancel()"
+        [disabled]="isSaving"
+        class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-all disabled:opacity-50"
       >
-        <legend class="px-2 text-sm text-gray-400">Kontaktperson</legend>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <zso-input-field
-            label="Vorname"
-            formControlName="firstName"
-          ></zso-input-field>
-          <zso-input-field
-            label="Nachname"
-            formControlName="lastName"
-          ></zso-input-field>
-          <zso-input-field
-            label="Telefon"
-            formControlName="phone"
-            type="tel"
-          ></zso-input-field>
-          <zso-input-field
-            label="E-Mail"
-            formControlName="email"
-            type="email"
-          ></zso-input-field>
-        </div>
-      </fieldset>
-
-      <!-- Capacity -->
-      <div
-        formGroupName="capacity"
-        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-      >
-        <zso-input-field
-          label="Max. Personen"
-          formControlName="maxPersons"
-          type="number"
-        ></zso-input-field>
-      </div>
-
-      <!-- Error -->
-      <p *ngIf="errorMsg" class="text-rose-400 text-sm">{{ errorMsg }}</p>
-    </form>
-
-    <!-- Buttons -->
-    <div class="mt-6 flex justify-end gap-3">
-      <zso-button variant="ghost" (click)="cancel()">Abbrechen</zso-button>
-      <zso-button variant="primary" [disabled]="isSaving" (click)="save()">
-        {{ isSaving ? 'Speichern…' : 'Speichern' }}
-      </zso-button>
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
 
-    <!-- Close Icon -->
-    <button
-      aria-label="Close"
-      class="absolute top-2 right-2 text-gray-400 hover:text-white"
-      (click)="cancel()"
-    >
-      <span class="material-symbols-outlined">close</span>
-    </button>
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <form [formGroup]="form" class="space-y-4">
+        <!-- Name -->
+        <zso-input-field label="Name" formControlName="name"></zso-input-field>
+
+        <!-- Type -->
+        <zso-input-field
+          label="Typ"
+          [select]="true"
+          [options]="types"
+          formControlName="type"
+        ></zso-input-field>
+
+        <!-- Address -->
+        <div
+          formGroupName="address"
+          class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          <zso-input-field
+            label="Strasse"
+            formControlName="street"
+          ></zso-input-field>
+          <zso-input-field label="PLZ" formControlName="zip"></zso-input-field>
+          <zso-input-field label="Ort" formControlName="city"></zso-input-field>
+          <zso-input-field
+            label="Land"
+            formControlName="country"
+          ></zso-input-field>
+        </div>
+
+        <!-- Contact Person -->
+        <fieldset
+          formGroupName="contactPerson"
+          class="border border-gray-700 p-4 rounded-lg"
+        >
+          <legend class="px-2 text-sm text-gray-400">Kontaktperson</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <zso-input-field
+              label="Vorname"
+              formControlName="firstName"
+            ></zso-input-field>
+            <zso-input-field
+              label="Nachname"
+              formControlName="lastName"
+            ></zso-input-field>
+            <zso-input-field
+              label="Telefon"
+              formControlName="phone"
+              type="tel"
+            ></zso-input-field>
+            <zso-input-field
+              label="E-Mail"
+              formControlName="email"
+              type="email"
+            ></zso-input-field>
+          </div>
+        </fieldset>
+
+        <!-- Capacity -->
+        <div
+          formGroupName="capacity"
+          class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          <zso-input-field
+            label="Max. Personen"
+            formControlName="maxPersons"
+            type="number"
+          ></zso-input-field>
+        </div>
+
+        <!-- Error -->
+        <p *ngIf="errorMsg" class="text-rose-400 text-sm">{{ errorMsg }}</p>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex justify-end gap-3">
+          <zso-button variant="ghost" (click)="cancel()">Abbrechen</zso-button>
+          <zso-button variant="primary" [disabled]="isSaving" (click)="save()">
+            {{ isSaving ? 'Speichern…' : 'Speichern' }}
+          </zso-button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

@@ -18,7 +18,7 @@ import { NotfallkontaktDoc } from '@core/models/person.model';
   template: `
     <!-- Backdrop -->
     <div
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
+      class="fixed inset-0 bg-black/60 backdrop-blur-glass flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-200"
       [class.opacity-100]="visible"
       [class.pointer-events-auto]="visible"
       (click)="onBackdrop($event)"
@@ -149,7 +149,7 @@ export class NotfallkontaktDialogComponent implements OnInit {
 
   readonly prioritaetOptions = [1, 2, 3, 4, 5];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
     this.initForm();
