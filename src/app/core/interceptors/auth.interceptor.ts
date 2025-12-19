@@ -86,6 +86,7 @@ export class AuthInterceptor implements HttpInterceptor, OnDestroy {
     const skipPatterns = [
       '/datenschutz',
       '/impressum',
+      '/changelog',
       'assets/',
       '.css',
       '.js',

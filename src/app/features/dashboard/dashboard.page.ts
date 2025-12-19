@@ -114,7 +114,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     startWith({ total: 0, active: 0, pending: 0, blocked: 0, persons: 0, activePersons: 0 })
   );
 
-  latestUsers$ = this.userService.getAllUsers().pipe(
+  latestUsers$ = this.userService.getAll().pipe(
     map(users => users
       .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
       .slice(0, 5)

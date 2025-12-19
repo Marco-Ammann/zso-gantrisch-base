@@ -72,9 +72,6 @@ export class UserService implements OnDestroy {
     });
   }
 
-  getAllUsers(): Observable<UserDoc[]> {
-    return this.getAll();
-  }
 
   getStats(): Observable<Stats> {
     return this.getAll().pipe(
