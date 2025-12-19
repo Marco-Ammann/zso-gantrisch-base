@@ -2,9 +2,11 @@
 
 // Base card styling using tailwind utilities.
 .glass-card {
-  @apply bg-black/25 border border-white/10 transition-transform duration-200;
+  transition: all 0.2s ease;
 
   &:hover {
-    @apply -translate-y-0.5 scale-[1.02] shadow-lg shadow-black/30;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--orange-15);
+    border-color: var(--orange-30);
   }
 }

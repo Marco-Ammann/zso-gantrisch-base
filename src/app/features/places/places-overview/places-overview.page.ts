@@ -62,7 +62,7 @@ interface Section {
             <input
               type="search"
               placeholder="Ortsname suchen..."
-              class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
+              class="form-input pl-10 pr-4"
               (input)="onSearch($any($event.target).value)"
             />
           </div>
@@ -72,7 +72,7 @@ interface Section {
               <label class="block text-xs font-medium text-gray-400 mb-1">Typ</label>
               <select
                 (change)="onTypeFilterChange($any($event.target).value)"
-                class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+                class="w-full sort-select"
               >
                 <option value="all">Alle</option>
                 <option value="accommodation">Heime</option>
@@ -90,10 +90,10 @@ interface Section {
 
           <ng-container *ngFor="let sec of sections">
             <div class="glass-card p-6">
-            <div class="section-header flex items-center gap-2 mt-6 mb-2">
+            <div class="section-header flex items-center gap-2 mb-4">
               <span class="material-symbols-outlined text-lg text-cp-orange">{{ sec.icon }}</span>
               <h2 class="text-lg font-semibold">{{ sec.label }}</h2>
-              <span class="section-count badge">{{ sec.items.length }}</span>
+              <span class="section-count">{{ sec.items.length }}</span>
             </div>
 
             <div class="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

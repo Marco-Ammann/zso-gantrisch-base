@@ -155,7 +155,7 @@
         [(ngModel)]="searchQuery"
         (ngModelChange)="onSearchChange($event)"
         placeholder="Name, E-Mail, Grad oder Funktion suchen..."
-        class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
+        class="form-input pl-10 pr-4"
       />
     </div>
 
@@ -169,7 +169,7 @@
         <select
           (change)="onFilterChange('status', $any($event.target).value)"
           [value]="currentFilters.status"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="w-full sort-select"
         >
           <option value="all">Alle</option>
           <option value="aktiv">Aktiv</option>
@@ -184,7 +184,7 @@
         <select
           (change)="onFilterChange('zug', $any($event.target).value === 'all' ? 'all' : +$any($event.target).value)"
           [value]="currentFilters.zug"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="w-full sort-select"
         >
           <option value="all">Alle</option>
           <option value="1">Zug 1</option>
@@ -200,7 +200,7 @@
         <select
           (change)="onFilterChange('gruppe', $any($event.target).value)"
           [value]="currentFilters.gruppe"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="w-full sort-select"
         >
           <option value="all">Alle</option>
           <option value="A">Gruppe A</option>
@@ -218,7 +218,7 @@
         <select
           (change)="onFilterChange('contactMethod', $any($event.target).value)"
           [value]="currentFilters.contactMethod"
-          class="w-full text-sm rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-cp-orange transition-all"
+          class="w-full sort-select"
         >
           <option value="all">Alle</option>
           <option value="digital">Digital</option>
@@ -243,112 +243,125 @@
 
   <!-- Persons Grid -->
   @if (hasResults && !isLoading) {
-  <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-    @for (person of filteredPersons; track person.id) {
-    <div
-      class="glass-card person-card-hover cursor-pointer"
-      (click)="viewPersonDetails(person)"
-      [@itemFade]
-    >
-      <div class="p-5">
-        <!-- Header mit Avatar und Basic Info -->
-        <div class="flex items-center gap-3 mb-4">
-          <!-- Avatar -->
-          <div class="relative flex-shrink-0">
-            @if (person.photoUrl) {
-            <img
-              [src]="person.photoUrl"
-              alt="Avatar"
-              class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700"
-            />
-            } @else {
-            <div
-              class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-gray-700"
-            >
-              <span class="text-gray-400 font-medium text-sm">
-                {{ getPersonInitials(person) }}
-              </span>
-            </div>
-            }
+  <div class="glass-card p-6">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-lg text-cp-orange"
+        >groups</span
+      >
+      <h2 class="text-lg font-semibold text-white">Personen</h2>
+      <span
+        class="text-xs bg-gray-700/40 px-1.5 py-0.5 rounded font-medium text-gray-200"
+        >{{ filteredPersons.length }}</span
+      >
+    </div>
 
-            <!-- Status Indicator -->
-            <div
-              class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-800"
-              [class]="{
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      @for (person of filteredPersons; track person.id) {
+      <div
+        class="glass-card person-card-hover cursor-pointer"
+        (click)="viewPersonDetails(person)"
+        [@itemFade]
+      >
+        <div class="p-5">
+          <!-- Header mit Avatar und Basic Info -->
+          <div class="flex items-center gap-3 mb-4">
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+              @if (person.photoUrl) {
+              <img
+                [src]="person.photoUrl"
+                alt="Avatar"
+                class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700"
+              />
+              } @else {
+              <div
+                class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-gray-700"
+              >
+                <span class="text-gray-400 font-medium text-sm">
+                  {{ getPersonInitials(person) }}
+                </span>
+              </div>
+              }
+
+              <!-- Status Indicator -->
+              <div
+                class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-800"
+                [class]="{
                          'bg-green-500': person.zivilschutz.status === 'aktiv',
                          'bg-yellow-500': person.zivilschutz.status === 'neu',
                          'bg-red-500': person.zivilschutz.status === 'inaktiv'
                        }"
-            ></div>
+              ></div>
+            </div>
+
+            <!-- Person Info -->
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-white truncate">
+                {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
+              </h3>
+              <p class="text-sm text-gray-400 truncate">
+                {{ person.grunddaten.grad }} • {{ person.grunddaten.funktion }}
+              </p>
+            </div>
+
+            <!-- Action Button -->
+            <button
+              class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-cp-orange hover:text-white transition-all duration-200 flex items-center justify-center group"
+              (click)="$event.stopPropagation(); viewPersonDetails(person)"
+              title="Details anzeigen"
+            >
+              <span
+                class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform"
+              >
+                arrow_forward
+              </span>
+            </button>
           </div>
 
-          <!-- Person Info -->
-          <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-white truncate">
-              {{ person.grunddaten.vorname }} {{ person.grunddaten.nachname }}
-            </h3>
-            <p class="text-sm text-gray-400 truncate">
-              {{ person.grunddaten.grad }} • {{ person.grunddaten.funktion }}
-            </p>
+          <!-- Contact Info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2 text-gray-300">
+              <span class="material-symbols-outlined text-base text-cp-orange"
+                >mail</span
+              >
+              <span class="truncate">{{ person.kontaktdaten.email }}</span>
+            </div>
+
+            @if (person.kontaktdaten.telefonMobil) {
+            <div class="flex items-center gap-2 text-gray-300">
+              <span class="material-symbols-outlined text-base text-cp-orange"
+                >phone</span
+              >
+              <span>{{ person.kontaktdaten.telefonMobil }}</span>
+            </div>
+            }
           </div>
 
-          <!-- Action Button -->
-          <button
-            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-cp-orange hover:text-white transition-all duration-200 flex items-center justify-center group"
-            (click)="$event.stopPropagation(); viewPersonDetails(person)"
-            title="Details anzeigen"
+          <!-- Bottom Info -->
+          <div
+            class="flex items-center justify-between pt-3 mt-3 border-t border-gray-700"
           >
-            <span
-              class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform"
-            >
-              arrow_forward
+            <span class="text-xs text-gray-500">
+              Zug {{ person.zivilschutz.einteilung.zug }}@if
+              (person.zivilschutz.einteilung.gruppe) {, Gr. {{
+              person.zivilschutz.einteilung.gruppe }}}
             </span>
-          </button>
-        </div>
 
-        <!-- Contact Info -->
-        <div class="space-y-2 text-sm">
-          <div class="flex items-center gap-2 text-gray-300">
-            <span class="material-symbols-outlined text-base text-cp-orange"
-              >mail</span
-            >
-            <span class="truncate">{{ person.kontaktdaten.email }}</span>
-          </div>
-
-          @if (person.kontaktdaten.telefonMobil) {
-          <div class="flex items-center gap-2 text-gray-300">
-            <span class="material-symbols-outlined text-base text-cp-orange"
-              >phone</span
-            >
-            <span>{{ person.kontaktdaten.telefonMobil }}</span>
-          </div>
-          }
-        </div>
-
-        <!-- Bottom Info -->
-        <div
-          class="flex items-center justify-between pt-3 mt-3 border-t border-gray-700"
-        >
-          <span class="text-xs text-gray-500">
-            Zug {{ person.zivilschutz.einteilung.zug }}@if
-            (person.zivilschutz.einteilung.gruppe) {, Gr. {{
-            person.zivilschutz.einteilung.gruppe }}}
-          </span>
-
-          <span
-            class="text-xs px-2 py-1 rounded-full"
-            [class]="{
+            <span
+              class="text-xs px-2 py-1 rounded-full"
+              [class]="{
                         'bg-green-500/20 text-green-400': person.zivilschutz.status === 'aktiv',
                         'bg-yellow-500/20 text-yellow-400': person.zivilschutz.status === 'neu',
                         'bg-red-500/20 text-red-400': person.zivilschutz.status === 'inaktiv'
                       }"
-          >
-            {{ person.zivilschutz.status | titlecase }}
-          </span>
+            >
+              {{ person.zivilschutz.status | titlecase }}
+            </span>
+          </div>
         </div>
       </div>
+      }
     </div>
-    }
   </div>
   }
 

@@ -23,7 +23,7 @@
 
   <!-- Page Header -->
   <div
-    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+    class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4"
   >
     <div class="flex items-center gap-3">
       <div class="auth-icon-wrapper">
@@ -38,65 +38,81 @@
         <p class="text-sm text-gray-400">Benutzer genehmigen und verwalten</p>
       </div>
     </div>
+  </div>
 
-    <!-- Refined Stats with Icons -->
-    <div class="flex items-center gap-2 text-sm">
-      <div
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-800/80 text-gray-300"
-        title="Gesamtanzahl Benutzer"
-      >
-        <span class="material-symbols-outlined text-sm">people</span>
-        <span>{{ stats.total }}</span>
+  <!-- Refined Stats with Icons -->
+  <div class="glass-card p-4">
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+    >
+      <div class="flex items-center gap-2 text-sm flex-wrap">
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-800/80 text-gray-300"
+          title="Gesamtanzahl Benutzer"
+        >
+          <span class="material-symbols-outlined text-sm">people</span>
+          <span>{{ stats.total }}</span>
+        </div>
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-300"
+          title="Warten auf Genehmigung"
+        >
+          <span class="material-symbols-outlined text-sm">schedule</span>
+          <span>{{ stats.pending }}</span>
+        </div>
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-500/15 text-green-300"
+          title="Genehmigt und aktiv"
+        >
+          <span class="material-symbols-outlined text-sm">verified</span>
+          <span>{{ stats.approved }}</span>
+        </div>
       </div>
-      <div
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-300"
-        title="Warten auf Genehmigung"
-      >
-        <span class="material-symbols-outlined text-sm">schedule</span>
-        <span>{{ stats.pending }}</span>
-      </div>
-      <div
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-500/15 text-green-300"
-        title="Genehmigt und aktiv"
-      >
-        <span class="material-symbols-outlined text-sm">verified</span>
-        <span>{{ stats.approved }}</span>
+
+      <!-- Refresh Button -->
+      <div class="flex items-center gap-2">
+        <button
+          (click)="refresh()"
+          [disabled]="isLoading"
+          class="p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Aktualisieren"
+        >
+          <span
+            class="material-symbols-outlined text-base"
+            [class.animate-spin]="isLoading"
+            >refresh</span
+          >
+        </button>
+
+        @if (searchQuery) {
+        <button
+          (click)="onSearchChange('')"
+          class="text-xs px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
+          title="Suche zurücksetzen"
+        >
+          Suche löschen
+        </button>
+        }
       </div>
     </div>
   </div>
 
   <!-- Search Bar -->
   <div class="glass-card p-4">
-    <div class="flex gap-3">
-      <!-- Search Input -->
-      <div class="relative flex-1">
-        <span
-          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-        >
-          search
-        </span>
-        <input
-          type="search"
-          [(ngModel)]="searchQuery"
-          (ngModelChange)="onSearchChange($event)"
-          placeholder="Name oder E-Mail suchen..."
-          class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:border-cp-orange focus:ring-2 focus:ring-cp-orange/20 transition-all duration-200 outline-none"
-        />
-      </div>
-
-      <!-- Refresh Button -->
-      <button
-        (click)="refresh()"
-        [disabled]="isLoading"
-        class="p-2.5 rounded-xl bg-gray-800 text-gray-300 border border-gray-700 hover:border-cp-orange/50 hover:text-cp-orange transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Aktualisieren"
+    <!-- Search Input -->
+    <div class="relative">
+      <span
+        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
       >
-        <span
-          class="material-symbols-outlined {{ isLoading ? 'animate-spin' : '' }}"
-        >
-          refresh
-        </span>
-      </button>
+        search
+      </span>
+      <input
+        type="search"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Name oder E-Mail suchen..."
+        class="form-input pl-10 pr-4"
+      />
     </div>
   </div>
 
@@ -114,17 +130,16 @@
 
   <!-- Pending Users Section -->
   @if (pendingUsers.length > 0) {
-  <div class="space-y-4">
-    <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-amber-400 text-xl"
+  <div class="glass-card p-6">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-lg text-amber-400"
         >schedule</span
       >
-      <h2 class="text-xl font-semibold text-white">
-        Wartende Genehmigungen
-        <span class="text-sm font-normal text-gray-400 ml-2"
-          >({{ pendingUsers.length }})</span
-        >
-      </h2>
+      <h2 class="text-lg font-semibold text-white">Wartende Genehmigungen</h2>
+      <span
+        class="text-xs bg-gray-700/40 px-1.5 py-0.5 rounded font-medium text-gray-200"
+        >{{ pendingUsers.length }}</span
+      >
     </div>
 
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
@@ -252,8 +267,18 @@
 
   <!-- Approved Users Section -->
   @if (approvedUsers.length > 0) {
-  <div class="space-y-4">
-    <h3 class="text-lg font-medium text-white">Genehmigte Benutzer</h3>
+  <div class="glass-card p-6">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-symbols-outlined text-lg text-green-400"
+        >verified</span
+      >
+      <h2 class="text-lg font-semibold text-white">Genehmigte Benutzer</h2>
+      <span
+        class="text-xs bg-gray-700/40 px-1.5 py-0.5 rounded font-medium text-gray-200"
+        >{{ approvedUsers.length }}</span
+      >
+    </div>
+
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
       @for (user of approvedUsers; track user.uid) {
       <div class="glass-card p-5 user-card" [@itemFade]>

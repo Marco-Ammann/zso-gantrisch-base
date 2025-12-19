@@ -11,17 +11,29 @@ import { PlaceDoc } from '@core/models/place.model';
   imports: [CommonModule],
   template: `
     <div
-      class="glass-card p-5 cursor-pointer hover:bg-white/20 transition-colors rounded-lg h-full flex flex-col justify-between gap-3"
+      class="glass-card p-5 cursor-pointer hover:bg-white/5 transition-colors h-full flex flex-col justify-between gap-3"
     >
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-white">
+      <div class="flex items-start justify-between gap-3">
+        <h3 class="flex-1 min-w-0 font-semibold text-white truncate">
           {{ place.name }}
         </h3>
-        <span
-          class="px-2 py-0.5 text-xs rounded-md border"
-          [ngClass]="typeBadgeClass"
-          >{{ typeLabel }}</span
-        >
+        <div class="flex items-center gap-2 shrink-0">
+          <span
+            class="px-2 py-0.5 text-xs rounded-md border"
+            [ngClass]="typeBadgeClass"
+            >{{ typeLabel }}</span
+          >
+          <button
+            type="button"
+            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-cp-orange hover:text-white transition-all duration-200 flex items-center justify-center group"
+            title="Details anzeigen"
+          >
+            <span
+              class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform"
+              >arrow_forward</span
+            >
+          </button>
+        </div>
       </div>
 
       <div class="text-sm text-gray-300 flex flex-wrap gap-3 mt-1">
