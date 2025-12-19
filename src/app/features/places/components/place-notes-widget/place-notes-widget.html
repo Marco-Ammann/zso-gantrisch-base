@@ -1,44 +1,84 @@
 <!-- src/app/features/places/components/place-notes-widget/place-notes-widget.html -->
-<div class="space-y-4 mt-6" *ngIf="notes">
+<div class="space-y-4" *ngIf="notes" [class.mt-6]="!embedded">
+  <p *ngIf="errorMsg" class="text-rose-400 text-sm">{{ errorMsg }}</p>
+
   <!-- Add note -->
-  <div class="flex items-start gap-2">
-    <textarea [(ngModel)]="newText" rows="3" class="flex-1 bg-gray-800/50 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-orange-400" placeholder="Notiz hinzufügen…"></textarea>
-    <zso-button variant="secondary" size="sm" (click)="add()" [disabled]="!newText.trim() || pending" class="shrink-0 self-stretch">
+  <div *ngIf="mode !== 'list'" class="flex items-start gap-2">
+    <textarea
+      [(ngModel)]="newText"
+      rows="3"
+      class="form-input flex-1 resize-y min-h-[84px]"
+      placeholder="Notiz hinzufügen…"
+    ></textarea>
+    <zso-button
+      variant="secondary"
+      size="sm"
+      (click)="add()"
+      [disabled]="!newText.trim() || pending"
+      class="shrink-0 self-stretch"
+    >
       {{ pending ? 'Hinzufügen…' : 'Hinzufügen' }}
     </zso-button>
-    <p *ngIf="errorMsg" class="text-rose-400 text-sm mt-1">{{ errorMsg }}</p>
   </div>
 
   <!-- Notes list -->
-  <div *ngIf="notes.length > 0; else noNotes" class="space-y-4">
-    <div *ngFor="let n of notes" class="glass-card p-4 rounded-lg flex flex-col gap-2">
-      <!-- Normal view -->
-      <ng-container *ngIf="editingId !== n.id; else editTpl">
-        <div class="flex justify-between items-start gap-2">
-          <p class="whitespace-pre-line break-words flex-1">{{ n.text }}</p>
-          <div class="flex gap-2 shrink-0">
-            <button class="text-gray-400 hover:text-gray-200" (click)="startEdit(n)" aria-label="Bearbeiten">
-              <span class="material-symbols-outlined text-base">edit</span>
-            </button>
-            <button class="text-rose-400 hover:text-rose-300" (click)="delete(n.id)" aria-label="Löschen">
-              <span class="material-symbols-outlined text-base">delete</span>
-            </button>
+  <div *ngIf="mode !== 'editor'">
+    <div
+      *ngIf="notes.length > 0; else noNotes"
+      [ngClass]="embedded ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'"
+    >
+      <div *ngFor="let n of notes" class="glass-card p-4 flex flex-col gap-2">
+        <!-- Normal view -->
+        <ng-container *ngIf="editingId !== n.id; else editTpl">
+          <div class="flex justify-between items-start gap-2">
+            <p class="whitespace-pre-line break-words flex-1">{{ n.text }}</p>
+            <div class="flex gap-2 shrink-0">
+              <button
+                class="text-gray-400 hover:text-gray-200"
+                (click)="startEdit(n)"
+                aria-label="Bearbeiten"
+              >
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button
+                class="text-rose-400 hover:text-rose-300"
+                (click)="delete(n.id)"
+                aria-label="Löschen"
+              >
+                <span class="material-symbols-outlined text-base">delete</span>
+              </button>
+            </div>
           </div>
-        </div>
-        <span class="text-xs text-gray-400">{{ n.createdAt | date:'dd.MM.yyyy, HH:mm' }}</span>
-      </ng-container>
+          <span class="text-xs text-gray-400"
+            >{{ n.createdAt | date:'dd.MM.yyyy, HH:mm' }}</span
+          >
+        </ng-container>
 
-      <!-- Edit form -->
-      <ng-template #editTpl>
-        <textarea [(ngModel)]="editText" rows="3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-orange-400"></textarea>
-        <div class="flex justify-end gap-2 mt-1">
-          <zso-button size="sm" variant="secondary" (click)="cancelEdit()">Abbrechen</zso-button>
-          <zso-button size="sm" variant="primary" (click)="saveEdit()" [disabled]="pending || !editText.trim()">Speichern</zso-button>
-        </div>
-      </ng-template>
+        <!-- Edit form -->
+        <ng-template #editTpl>
+          <textarea
+            [(ngModel)]="editText"
+            rows="3"
+            class="form-input resize-y min-h-[84px]"
+          ></textarea>
+          <div class="flex justify-end gap-2 mt-1">
+            <zso-button size="sm" variant="secondary" (click)="cancelEdit()"
+              >Abbrechen</zso-button
+            >
+            <zso-button
+              size="sm"
+              variant="primary"
+              (click)="saveEdit()"
+              [disabled]="pending || !editText.trim()"
+              >Speichern</zso-button
+            >
+          </div>
+        </ng-template>
+      </div>
     </div>
+    <ng-template #noNotes>
+      <p class="text-gray-400 text-sm">Noch keine Notizen vorhanden.</p>
+    </ng-template>
   </div>
-  <ng-template #noNotes>
-    <p class="text-gray-400 text-sm">Noch keine Notizen vorhanden.</p>
-  </ng-template>
-</div><!-- end widget root -->
+</div>
+<!-- end widget root -->

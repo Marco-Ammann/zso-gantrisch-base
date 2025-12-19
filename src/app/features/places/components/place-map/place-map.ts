@@ -11,7 +11,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full h-64 rounded-lg overflow-hidden bg-gray-700/40">
+    <div class="w-full h-full min-h-[16rem] bg-gray-700/40">
       <iframe
         class="w-full h-full border-0"
         [src]="mapUrl"

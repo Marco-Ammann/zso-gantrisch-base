@@ -6,6 +6,7 @@ import {
   Component,
   Input,
   OnInit,
+  OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
@@ -19,6 +20,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { firstValueFrom } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { AuthService } from '@core/auth/services/auth.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'zso-place-notes-widget',
@@ -27,11 +29,13 @@ import { AuthService } from '@core/auth/services/auth.service';
   templateUrl: './place-notes-widget.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaceNotesWidget implements OnInit {
+export class PlaceNotesWidget implements OnInit, OnDestroy {
   /** editing state */
   editingId: string | null = null;
   editText = '';
   @Input() placeId!: string;
+  @Input() mode: 'full' | 'editor' | 'list' = 'full';
+  @Input() embedded = false;
 
   notes: NoteEntry[] = [];
   newText = '';
@@ -44,6 +48,8 @@ export class PlaceNotesWidget implements OnInit {
   private readonly logger = inject(LoggerService);
   private readonly authService = inject(AuthService);
 
+  private readonly destroy$ = new Subject<void>();
+
   /** Sort notes by createdAt desc */
   private sortNotes(): void {
     this.notes = [...this.notes].sort((a, b) => b.createdAt - a.createdAt);
@@ -51,10 +57,20 @@ export class PlaceNotesWidget implements OnInit {
 
   async ngOnInit(): Promise<void> {
     if (!this.placeId) return;
-    const place = await firstValueFrom(this.placesService.getById(this.placeId));
-    this.notes = place?.notes ?? [];
-    this.sortNotes();
-    this.cdr.markForCheck();
+
+    this.placesService
+      .getById(this.placeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((place) => {
+        this.notes = place?.notes ?? [];
+        this.sortNotes();
+        this.cdr.markForCheck();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async add(): Promise<void> {

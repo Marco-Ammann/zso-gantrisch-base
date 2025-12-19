@@ -1,11 +1,12 @@
 <!-- src/app/features/admin/users/user-detail/user-detail.page.html -->
 <ng-container *ngIf="user$ | async as user; else loading">
   <!-- Header -->
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Back Button -->
-    <button (click)="back()" 
-            class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 
-                   hover:bg-gray-700 hover:text-white transition-colors">
+    <button
+      (click)="back()"
+      class="inline-flex items-center gap-2 px-3 py-2 mb-6 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+    >
       <span class="material-symbols-outlined text-lg">arrow_back</span>
       <span class="text-sm font-medium">Zurück zur Übersicht</span>
     </button>
@@ -13,92 +14,127 @@
     <!-- User Card -->
     <div class="glass-card p-6 mb-6">
       <!-- User Header -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6"
+      >
         <!-- Avatar with Upload -->
         <div class="relative group">
           @if (user.photoUrl || user.photoURL) {
-            <img [src]="user.photoUrl || user.photoURL" alt="Avatar"
-              class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700 
-                     group-hover:ring-cp-orange transition-all duration-200" />
+          <img
+            [src]="user.photoUrl || user.photoURL"
+            alt="Avatar"
+            class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200"
+          />
           } @else {
-            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 
-                      flex items-center justify-center ring-2 ring-gray-700 
-                      group-hover:ring-cp-orange transition-all duration-200">
-              <span class="text-gray-400 font-medium text-2xl md:text-3xl">
-                {{ getUserInitials(user) }}
-              </span>
-            </div>
+          <div
+            class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ring-2 ring-gray-700 group-hover:ring-cp-orange transition-all duration-200"
+          >
+            <span class="text-gray-400 font-medium text-2xl md:text-3xl">
+              {{ getUserInitials(user) }}
+            </span>
+          </div>
           }
-          
+
           <!-- Upload Overlay -->
-          <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center 
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-               (click)="fileInput.click()"
-               [class.opacity-100]="uploading">
+          <div
+            class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+            (click)="fileInput.click()"
+            [class.opacity-100]="uploading"
+          >
             @if (uploading) {
-              <div class="flex flex-col items-center gap-2">
-                <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-white text-xs">Upload...</span>
-              </div>
+            <div class="flex flex-col items-center gap-2">
+              <div
+                class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></div>
+              <span class="text-white text-xs">Upload...</span>
+            </div>
             } @else {
-              <div class="flex flex-col items-center gap-1">
-                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
-                <span class="text-white text-xs font-medium">Foto ändern</span>
-              </div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="material-symbols-outlined text-white text-2xl"
+                >photo_camera</span
+              >
+              <span class="text-white text-xs font-medium">Foto ändern</span>
+            </div>
             }
           </div>
-          
+
           <!-- Hidden File Input -->
-          <input #fileInput
-                 type="file"
-                 accept="image/*"
-                 (change)="onFileSelected($event, user.uid)"
-                 class="hidden" />
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event, user.uid)"
+            class="hidden"
+          />
         </div>
 
         <!-- User Info -->
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
             <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white">
-              {{ user.firstName }} {{ user.lastName }}@if (user.uid === (currentUserId$ | async)) {<span class="opacity-60"> (du)</span>}
+              {{ user.firstName }} {{ user.lastName }}@if (user.uid ===
+              (currentUserId$ | async)) {<span class="opacity-60"> (du)</span>}
             </h1>
             @if (user.emailVerified) {
-              <span class="material-symbols-outlined text-cp-orange text-xl md:text-2xl" title="E-Mail-Adresse wurde bestätigt">verified</span>
+            <span
+              class="material-symbols-outlined text-cp-orange text-xl md:text-2xl"
+              title="E-Mail-Adresse wurde bestätigt"
+              >verified</span
+            >
             } @else {
-              <span class="material-symbols-outlined text-gray-500 text-xl md:text-2xl" title="E-Mail-Adresse wurde noch nicht bestätigt">mail</span>
+            <span
+              class="material-symbols-outlined text-gray-500 text-xl md:text-2xl"
+              title="E-Mail-Adresse wurde noch nicht bestätigt"
+              >mail</span
+            >
             }
-            <button (click)="startEdit(user)" 
-                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800 text-gray-300 
-                           hover:bg-gray-700 hover:text-white transition-colors"
-                    title="Benutzer bearbeiten">
+            <button
+              (click)="startEdit(user)"
+              class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              title="Benutzer bearbeiten"
+            >
               <span class="material-symbols-outlined text-lg">edit</span>
-              <span class="hidden sm:inline text-sm font-medium">Bearbeiten</span>
+              <span class="hidden sm:inline text-sm font-medium"
+                >Bearbeiten</span
+              >
             </button>
-            @if ((user.uid === (currentUserId$ | async)) || (currentUserIsAdmin$ | async)) {
-              <button (click)="confirmDelete(user.uid)"
-                      class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 
-                             hover:bg-rose-500/30 hover:text-white transition-colors"
-                      title="Benutzer löschen">
-                <span class="material-symbols-outlined text-lg">delete</span>
-                <span class="hidden sm:inline text-sm font-medium">Löschen</span>
-              </button>
+            @if ((user.uid === (currentUserId$ | async)) || (currentUserIsAdmin$
+            | async)) {
+            <button
+              (click)="confirmDelete(user.uid)"
+              class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 hover:text-white transition-colors"
+              title="Benutzer löschen"
+            >
+              <span class="material-symbols-outlined text-lg">delete</span>
+              <span class="hidden sm:inline text-sm font-medium">Löschen</span>
+            </button>
             }
           </div>
-          
+
           <p class="text-gray-300 mb-3">{{ user.email }}</p>
-          
+
           <!-- Status Badges -->
           <div class="flex flex-wrap gap-2">
             @if (user.approved) {
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400" title="Dieser Benutzer hat Zugriff auf die Anwendung">
-                <span class="material-symbols-outlined text-xs mr-1">check_circle</span>
-                Genehmigt
-              </span>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400"
+              title="Dieser Benutzer hat Zugriff auf die Anwendung"
+            >
+              <span class="material-symbols-outlined text-xs mr-1"
+                >check_circle</span
+              >
+              Genehmigt
+            </span>
             } @else {
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300" title="Dieser Benutzer wartet auf Genehmigung">
-                <span class="material-symbols-outlined text-xs mr-1">schedule</span>
-                Wartend
-              </span>
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300"
+              title="Dieser Benutzer wartet auf Genehmigung"
+            >
+              <span class="material-symbols-outlined text-xs mr-1"
+                >schedule</span
+              >
+              Wartend
+            </span>
             }
           </div>
         </div>
@@ -108,11 +144,16 @@
       <div class="flex flex-col items-end gap-3">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-400">Zugang:</span>
-          <label class="toggle-switch" [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'">
-            <input type="checkbox" 
-                   [checked]="user.approved" 
-                   (change)="toggleAccess(user.uid, $any($event.target).checked)"
-                   [disabled]="isLoading" />
+          <label
+            class="toggle-switch"
+            [title]="user.approved ? 'Zugang entziehen' : 'Zugang gewähren'"
+          >
+            <input
+              type="checkbox"
+              [checked]="user.approved"
+              (change)="toggleAccess(user.uid, $any($event.target).checked)"
+              [disabled]="isLoading"
+            />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -123,7 +164,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Personal Information -->
       <div class="glass-card p-6">
-        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h3
+          class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+        >
           <span class="material-symbols-outlined text-cp-orange">person</span>
           Persönliche Daten
         </h3>
@@ -142,7 +185,10 @@
 
           <div>
             <p class="label">E-Mail</p>
-            <a [href]="'mailto:' + user.email" class="text-cp-orange hover:text-cp-orange/80">
+            <a
+              [href]="'mailto:' + user.email"
+              class="text-cp-orange hover:text-cp-orange/80"
+            >
               {{ user.email }}
             </a>
           </div>
@@ -150,24 +196,30 @@
           <div>
             <p class="label">Telefon</p>
             @if (user.phoneNumber) {
-              <a [href]="'tel:' + user.phoneNumber" class="text-cp-orange hover:text-cp-orange/80">
-                {{ user.phoneNumber | swissPhone }}
-              </a>
+            <a
+              [href]="'tel:' + user.phoneNumber"
+              class="text-cp-orange hover:text-cp-orange/80"
+            >
+              {{ user.phoneNumber | swissPhone }}
+            </a>
             } @else {
-              <span class="text-gray-500">Nicht angegeben</span>
+            <span class="text-gray-500">Nicht angegeben</span>
             }
           </div>
 
           <div>
             <p class="label">Geburtsdatum</p>
             <p class="value">
-              {{ user.birthDate ? (user.birthDate | date:'dd.MM.yyyy') : 'Nicht angegeben' }}
+              {{ user.birthDate ? (user.birthDate | date:'dd.MM.yyyy') : 'Nicht
+              angegeben' }}
             </p>
           </div>
 
           <div>
             <p class="label">Benutzer-ID</p>
-            <p class="text-xs text-gray-500 font-mono break-all">{{ user.uid }}</p>
+            <p class="text-xs text-gray-500 font-mono break-all">
+              {{ user.uid }}
+            </p>
           </div>
         </div>
       </div>
@@ -176,8 +228,12 @@
       <div class="space-y-6">
         <!-- Account Status -->
         <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-cp-orange">security</span>
+          <h3
+            class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-cp-orange"
+              >security</span
+            >
             Account Status
           </h3>
 
@@ -185,51 +241,60 @@
             <div class="flex justify-between items-center">
               <span class="label">E-Mail verifiziert</span>
               @if (user.emailVerified) {
-                <span class="badge badge--verified">
-                  <span class="material-symbols-outlined text-xs mr-1">verified_user</span>
-                  Ja
-                </span>
+              <span class="badge badge--verified">
+                <span class="material-symbols-outlined text-xs mr-1"
+                  >verified_user</span
+                >
+                Ja
+              </span>
               } @else {
-                <span class="badge badge--unverified">
-                  <span class="material-symbols-outlined text-xs mr-1">mail</span>
-                  Nein
-                </span>
+              <span class="badge badge--unverified">
+                <span class="material-symbols-outlined text-xs mr-1">mail</span>
+                Nein
+              </span>
               }
             </div>
 
             <div class="flex justify-between items-center">
               <span class="label">Zugang</span>
               @if (user.approved) {
-                <span class="badge badge--approved">
-                  <span class="material-symbols-outlined text-xs mr-1">verified</span>
-                  Erlaubt
-                </span>
+              <span class="badge badge--approved">
+                <span class="material-symbols-outlined text-xs mr-1"
+                  >verified</span
+                >
+                Erlaubt
+              </span>
               } @else {
-                <span class="badge badge--pending">
-                  <span class="material-symbols-outlined text-xs mr-1">schedule</span>
-                  Verweigert
-                </span>
+              <span class="badge badge--pending">
+                <span class="material-symbols-outlined text-xs mr-1"
+                  >schedule</span
+                >
+                Verweigert
+              </span>
               }
             </div>
 
             @if (user.blocked) {
-              <div class="flex justify-between items-center">
-                <span class="label">Status</span>
-                <span class="badge badge--blocked">
-                  <span class="material-symbols-outlined text-xs mr-1">block</span>
-                  Gesperrt
-                </span>
-              </div>
+            <div class="flex justify-between items-center">
+              <span class="label">Status</span>
+              <span class="badge badge--blocked">
+                <span class="material-symbols-outlined text-xs mr-1"
+                  >block</span
+                >
+                Gesperrt
+              </span>
+            </div>
             }
 
             <div class="pt-3 border-t border-gray-800">
               <div class="flex justify-between items-center mb-2">
                 <span class="label">Rollen</span>
               </div>
-              <zso-role-select 
-                [roleOptions]="['user', 'admin']" 
+              <zso-role-select
+                [roleOptions]="['user', 'admin']"
                 [selected]="user.roles"
-                (selectedChange)="updateRoles($event, user.uid)">
+                (selectedChange)="updateRoles($event, user.uid)"
+              >
               </zso-role-select>
             </div>
           </div>
@@ -237,7 +302,9 @@
 
         <!-- System Info -->
         <div class="glass-card p-6">
-          <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <h3
+            class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+          >
             <span class="material-symbols-outlined text-cp-orange">info</span>
             System-Info
           </h3>
@@ -250,22 +317,28 @@
               </div>
               <div>
                 <p class="label">Registriert</p>
-                <p class="value">{{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+                <p class="value">
+                  {{ user.createdAt | date:'dd.MM.yyyy HH:mm' }}
+                </p>
               </div>
               <div>
                 <p class="label">Letztes Update</p>
-                <p class="value">{{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}</p>
+                <p class="value">
+                  {{ user.updatedAt | date:'dd.MM.yyyy HH:mm' }}
+                </p>
               </div>
               <div>
                 <p class="label">Letzter Login</p>
                 <p class="value">
-                  {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy HH:mm') : 'Noch nie' }}
+                  {{ user.lastLoginAt ? (user.lastLoginAt | date:'dd.MM.yyyy
+                  HH:mm') : 'Noch nie' }}
                 </p>
               </div>
               <div>
                 <p class="label">Letzte Aktivität</p>
                 <p class="value">
-                  {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy HH:mm') : 'Unbekannt' }}
+                  {{ user.lastActiveAt ? (user.lastActiveAt | date:'dd.MM.yyyy
+                  HH:mm') : 'Unbekannt' }}
                 </p>
               </div>
             </div>
@@ -277,27 +350,30 @@
 
   <!-- Upload Toast -->
   @if (uploadMsg) {
-    <div class="fixed bottom-4 right-4 z-50 glass-card p-4 min-w-64" 
-         [class.border-green-500]="!uploadError"
-         [class.border-rose-500]="uploadError"
-         [@toastSlide]>
-      <div class="flex items-center gap-3">
-        @if (uploadError) {
-          <span class="material-symbols-outlined text-rose-400">error</span>
-        } @else {
-          <span class="material-symbols-outlined text-green-400">check_circle</span>
-        }
-        <span class="text-white text-sm">{{ uploadMsg }}</span>
-      </div>
+  <div
+    class="fixed bottom-4 right-4 z-50 glass-card p-4 min-w-64"
+    [class.border-green-500]="!uploadError"
+    [class.border-rose-500]="uploadError"
+    [@toastSlide]
+  >
+    <div class="flex items-center gap-3">
+      @if (uploadError) {
+      <span class="material-symbols-outlined text-rose-400">error</span>
+      } @else {
+      <span class="material-symbols-outlined text-green-400">check_circle</span>
+      }
+      <span class="text-white text-sm">{{ uploadMsg }}</span>
     </div>
+  </div>
   }
 
   <!-- Edit Dialog -->
-  <zso-user-edit-dialog 
-    [user]="editUser" 
-    [visible]="dialogVisible" 
+  <zso-user-edit-dialog
+    [user]="editUser"
+    [visible]="dialogVisible"
     (saved)="onDialogSaved($event)"
-    (closed)="onDialogClosed()">
+    (closed)="onDialogClosed()"
+  >
   </zso-user-edit-dialog>
 </ng-container>
 
@@ -305,7 +381,9 @@
 <ng-template #loading>
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
-      <div class="w-12 h-12 border-3 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin mx-auto mb-4"></div>
+      <div
+        class="w-12 h-12 border-3 border-cp-orange/30 border-t-cp-orange rounded-full animate-spin mx-auto mb-4"
+      ></div>
       <p class="text-gray-400">Lade Benutzerdaten...</p>
     </div>
   </div>
