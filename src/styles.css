@@ -264,6 +264,18 @@
     @apply text-[10px] uppercase tracking-wide text-white/60;
   }
 
+  .text-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .text-break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   /* Dropdown-Menü */
   .dropdown-menu {
     @apply w-44 rounded-xl overflow-hidden shadow-xl border border-white/15 
@@ -423,6 +435,12 @@
   /* Safari-sichere Dialog Hintergründe */
   .dialog-backdrop {
     background: rgba(0, 0, 0, 0.5);
+  }
+
+  .notes-modal-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   /* Safari Transform-Fix für Dialoge */

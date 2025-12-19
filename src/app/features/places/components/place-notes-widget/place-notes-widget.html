@@ -27,58 +27,121 @@
       *ngIf="notes.length > 0; else noNotes"
       [ngClass]="embedded ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'"
     >
-      <div *ngFor="let n of notes" class="glass-card p-4 flex flex-col gap-2">
-        <!-- Normal view -->
-        <ng-container *ngIf="editingId !== n.id; else editTpl">
-          <div class="flex justify-between items-start gap-2">
-            <p class="whitespace-pre-line break-words flex-1">{{ n.text }}</p>
-            <div class="flex gap-2 shrink-0">
-              <button
-                class="text-gray-400 hover:text-gray-200"
-                (click)="startEdit(n)"
-                aria-label="Bearbeiten"
-              >
-                <span class="material-symbols-outlined text-base">edit</span>
-              </button>
-              <button
-                class="text-rose-400 hover:text-rose-300"
-                (click)="delete(n.id)"
-                aria-label="Löschen"
-              >
-                <span class="material-symbols-outlined text-base">delete</span>
-              </button>
-            </div>
-          </div>
-          <span class="text-xs text-gray-400"
-            >{{ n.createdAt | date:'dd.MM.yyyy, HH:mm' }}</span
+      <div
+        *ngFor="let n of notes"
+        class="glass-card p-4 flex flex-col gap-2 h-[132px] cursor-pointer hover:border-cp-orange/50 transition-colors"
+        (click)="openNote(n)"
+      >
+        <p class="text-sm text-gray-200 text-clamp-3">
+          {{ getPreview(n.text) }}
+        </p>
+        <div
+          class="mt-auto flex items-center justify-between text-xs text-gray-400"
+        >
+          <span>{{ n.createdAt | date:'dd.MM.yyyy, HH:mm' }}</span>
+          <span class="material-symbols-outlined text-base text-gray-500"
+            >open_in_full</span
           >
-        </ng-container>
-
-        <!-- Edit form -->
-        <ng-template #editTpl>
-          <textarea
-            [(ngModel)]="editText"
-            rows="3"
-            class="form-input resize-y min-h-[84px]"
-          ></textarea>
-          <div class="flex justify-end gap-2 mt-1">
-            <zso-button size="sm" variant="secondary" (click)="cancelEdit()"
-              >Abbrechen</zso-button
-            >
-            <zso-button
-              size="sm"
-              variant="primary"
-              (click)="saveEdit()"
-              [disabled]="pending || !editText.trim()"
-              >Speichern</zso-button
-            >
-          </div>
-        </ng-template>
+        </div>
       </div>
     </div>
     <ng-template #noNotes>
       <p class="text-gray-400 text-sm">Noch keine Notizen vorhanden.</p>
     </ng-template>
   </div>
+
+  <ng-template #noteModalTpl>
+    @if (activeNote) {
+    <div
+      class="w-full h-full flex items-start justify-center pt-20 pb-4 px-2 sm:px-4 overflow-hidden"
+    >
+      <div
+        class="glass-card w-full flex flex-col mx-auto overflow-hidden sm:max-w-3xl md:max-w-4xl sm:rounded-lg max-h-[calc(100vh-5.5rem)]"
+      >
+        <div
+          class="flex items-start justify-between gap-3 p-5 border-b border-white/10"
+        >
+          <div class="min-w-0">
+            <h3 class="text-lg font-semibold text-white">Notiz</h3>
+            <p class="text-xs text-gray-400">
+              {{ activeNote.createdAt | date:'dd.MM.yyyy, HH:mm' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+            (click)="closeNote()"
+            title="Schließen"
+          >
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <div
+          class="p-5 flex-1"
+          [ngClass]="modalIsEditing ? 'overflow-hidden' : 'overflow-auto'"
+        >
+          @if (!modalIsEditing) {
+          <div
+            class="text-sm text-gray-200 whitespace-pre-wrap text-break-anywhere"
+          >
+            {{ activeNote.text }}
+          </div>
+          } @else {
+          <textarea
+            [(ngModel)]="modalEditText"
+            rows="10"
+            class="form-input w-full h-full min-h-[280px] resize-none"
+          ></textarea>
+          }
+        </div>
+
+        <div
+          class="p-5 border-t border-white/10 flex items-center justify-between gap-3"
+        >
+          <zso-button
+            type="danger"
+            size="sm"
+            (click)="deleteActive()"
+            [disabled]="pending"
+          >
+            Löschen
+          </zso-button>
+
+          <div class="flex items-center gap-2">
+            @if (!modalIsEditing) {
+            <zso-button
+              type="neutral"
+              size="sm"
+              (click)="startModalEdit()"
+              [disabled]="pending"
+            >
+              Bearbeiten
+            </zso-button>
+            } @else {
+            <zso-button
+              type="neutral"
+              size="sm"
+              (click)="cancelModalEdit()"
+              [disabled]="pending"
+            >
+              Abbrechen
+            </zso-button>
+            <zso-button
+              type="primary"
+              size="sm"
+              (click)="saveModalEdit()"
+              [loading]="pending"
+              [disabled]="pending || !modalEditText.trim()"
+            >
+              Speichern
+            </zso-button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </ng-template>
 </div>
 <!-- end widget root -->
