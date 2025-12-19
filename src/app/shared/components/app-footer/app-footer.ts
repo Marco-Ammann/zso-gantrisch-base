@@ -3,6 +3,7 @@ import { Component, HostListener, VERSION, inject, OnDestroy } from '@angular/co
 import { RouterModule } from '@angular/router';
 
 import { APP_SETTINGS } from '@config/app-settings';
+import { CHANGELOG } from '@config/changelog';
 import { ScrollLockService } from '@core/services/scroll-lock.service';
 
 @Component({
@@ -72,6 +73,12 @@ import { ScrollLockService } from '@core/services/scroll-lock.service';
               >
                 App Version {{ settings.appVersion }}
               </button>
+              <a
+                routerLink="/changelog"
+                class="text-xs text-gray-500 hover:text-cp-orange transition-colors underline-offset-2 hover:underline"
+              >
+                Was ist neu?
+              </a>
               <p class="text-xs text-gray-500">Angular Version {{ angularVersion }}</p>
             </div>
           </div>
@@ -150,28 +157,11 @@ export class AppFooter implements OnDestroy {
   readonly currentYear = new Date().getFullYear();
   readonly settings = inject(APP_SETTINGS);
   readonly angularVersion = VERSION.full;
+  readonly changelog = inject(CHANGELOG);
   private readonly scrollLock = inject(ScrollLockService);
   private scrollLocked = false;
 
   changelogOpen = false;
-
-  readonly changelog = [
-    {
-      version: '0.5.2',
-      title: 'Neu & verbessert',
-      items: [
-        'Glas-Effekt besser lesbar (milchiger).',
-        'Hover-Effekte vereinheitlicht.',
-        'Logo-Icon korrigiert (Alpha-Symbol sichtbar).',
-        'Neu: Changelog per Klick auf die Version.',
-      ],
-    },
-    {
-      version: '0.5.1',
-      title: 'Stabilität & UI-Politur',
-      items: ['Kleinere Verbesserungen und Korrekturen.'],
-    },
-  ] as const;
 
   openChangelog(): void {
     this.changelogOpen = true;

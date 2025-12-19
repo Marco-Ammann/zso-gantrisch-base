@@ -8,6 +8,11 @@ export const legalRoutes: Routes = [
       import('./privacy-policy/privacy-policy').then(m => m.PrivacyPolicyPage),
   },
   {
+    path: 'changelog',
+    loadComponent: () =>
+      import('./changelog/changelog').then(m => m.ChangelogPage),
+  },
+  {
     path: 'impressum',
     loadComponent: () =>
       import('./imprint/imprint').then(m => m.ImprintPage),
