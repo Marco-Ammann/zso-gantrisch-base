@@ -1,4 +1,4 @@
-export type ActivitySource = 'users' | 'places' | 'adsz';
+export type ActivitySource = 'users' | 'places' | 'adsz' | 'planning';
 
 export interface ActivityFeedItem {
     key: string;

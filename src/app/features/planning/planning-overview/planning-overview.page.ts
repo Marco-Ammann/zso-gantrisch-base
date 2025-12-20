@@ -17,6 +17,8 @@ interface MissionRow {
     mission: MissionDoc;
     placeName: string;
     assignedPersonsCount: number;
+    placeMaxPersons: number | null;
+    isOverPlaceCapacity: boolean;
 }
 
 @Component({
@@ -52,10 +54,15 @@ export class PlanningOverviewPage {
                 .filter((m) => (q ? m.title.toLowerCase().includes(q) : true))
                 .map((m): MissionRow => {
                     const placeName = placeById.get(m.placeId)?.name ?? '—';
+                    const max = placeById.get(m.placeId)?.capacity?.maxPersons;
+                    const placeMaxPersons = typeof max === 'number' && max > 0 ? max : null;
+                    const assignedPersonsCount = m.assignedPersonIds?.length ?? 0;
                     return {
                         mission: m,
                         placeName,
-                        assignedPersonsCount: m.assignedPersonIds?.length ?? 0,
+                        assignedPersonsCount,
+                        placeMaxPersons,
+                        isOverPlaceCapacity: !!placeMaxPersons && assignedPersonsCount > placeMaxPersons,
                     };
                 });
         })

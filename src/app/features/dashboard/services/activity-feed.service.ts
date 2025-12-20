@@ -7,10 +7,12 @@ import { PersonService } from '@core/services/person.service';
 import { UserService } from '@core/services/user.service';
 import { FeatureFlagsService } from '@core/services/feature-flags.service';
 import { PlacesService } from '@features/places/services/places.service';
+import { MissionsService } from '@features/planning/services/missions.service';
 
 import { PlaceDoc } from '@core/models/place.model';
 import { PersonDoc } from '@core/models/person.model';
 import { UserDoc } from '@core/models/user-doc';
+import { MissionDoc } from '@core/models/mission.model';
 
 import { ActivityFeedItem } from '../activity-feed.model';
 import { ActivityPreferencesService } from './activity-preferences.service';
@@ -23,6 +25,7 @@ export class ActivityFeedService {
     private readonly userService = inject(UserService);
     private readonly placesService = inject(PlacesService);
     private readonly personService = inject(PersonService);
+    private readonly missionsService = inject(MissionsService);
 
     activities$(limit?: number): Observable<ActivityFeedItem[]> {
         const isAdmin$ = this.authService.appUser$.pipe(
@@ -43,13 +46,18 @@ export class ActivityFeedService {
                     ? this.personService.getAll().pipe(catchError(() => of([] as PersonDoc[])))
                     : of([] as PersonDoc[]);
 
-                return combineLatest([users$, places$, persons$]).pipe(
-                    map(([users, places, persons]) => {
+                const missions$ = prefs.showPlanning && flags.planning && isAdmin
+                    ? this.missionsService.getAll().pipe(catchError(() => of([] as MissionDoc[])))
+                    : of([] as MissionDoc[]);
+
+                return combineLatest([users$, places$, persons$, missions$]).pipe(
+                    map(([users, places, persons, missions]) => {
                         const userItems = users.map((u) => this.userToActivity(u));
                         const placeItems = places.map((p) => this.placeToActivity(p));
                         const personItems = persons.map((p) => this.personToActivity(p));
+                        const missionItems = missions.map((m) => this.missionToActivity(m));
 
-                        const items = [...userItems, ...placeItems, ...personItems]
+                        const items = [...userItems, ...placeItems, ...personItems, ...missionItems]
                             .filter((i) => i.timestamp > 0)
                             .sort((a, b) => b.timestamp - a.timestamp);
 
@@ -59,6 +67,64 @@ export class ActivityFeedService {
                 );
             })
         );
+    }
+
+    private missionToActivity(mission: MissionDoc): ActivityFeedItem {
+        const timestamp = mission.updatedAt ?? mission.createdAt;
+        const isUpdated = !!mission.updatedAt && mission.updatedAt > mission.createdAt;
+
+        const statusText =
+            {
+                draft: 'Entwurf',
+                planned: 'Geplant',
+                active: 'Aktiv',
+                done: 'Erledigt',
+                cancelled: 'Abgesagt',
+            } as const;
+
+        const text =
+            mission.status === 'active'
+                ? 'Einsatz aktiv'
+                : mission.status === 'done'
+                    ? 'Einsatz abgeschlossen'
+                    : mission.status === 'cancelled'
+                        ? 'Einsatz abgesagt'
+                        : isUpdated
+                            ? `Einsatz aktualisiert (Status: ${statusText[mission.status]})`
+                            : `Neuer Einsatz (Status: ${statusText[mission.status]})`;
+
+        const icon =
+            mission.status === 'active'
+                ? 'play_circle'
+                : mission.status === 'done'
+                    ? 'task_alt'
+                    : mission.status === 'cancelled'
+                        ? 'cancel'
+                        : isUpdated
+                            ? 'edit'
+                            : 'event_note';
+
+        const color =
+            mission.status === 'active'
+                ? 'text-green-400'
+                : mission.status === 'done'
+                    ? 'text-sky-400'
+                    : mission.status === 'cancelled'
+                        ? 'text-rose-400'
+                        : 'text-cp-orange';
+
+        return {
+            key: `planning:${mission.id}`,
+            source: 'planning',
+            id: mission.id,
+            name: mission.title,
+            text,
+            icon,
+            color,
+            timestamp,
+            route: `/planning/${mission.id}`,
+            avatarText: (mission.title || 'E').charAt(0).toUpperCase(),
+        };
     }
 
     private userToActivity(user: UserDoc): ActivityFeedItem {

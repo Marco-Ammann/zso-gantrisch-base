@@ -77,7 +77,32 @@ export class MissionEditPage implements OnInit {
     });
 
     get placeOptions(): Array<{ value: string; label: string }> {
-        return this.places.map((p) => ({ value: p.id, label: p.name }));
+        return this.places.map((p) => {
+            const max = p.capacity?.maxPersons;
+            const cap = typeof max === 'number' && max > 0 ? ` (max ${max})` : '';
+            return { value: p.id, label: `${p.name}${cap}` };
+        });
+    }
+
+    get selectedPersonsCount(): number {
+        return (this.form.get('assignedPersonIds')?.value ?? []).length;
+    }
+
+    get selectedPlace(): PlaceDoc | null {
+        const id = this.form.get('placeId')?.value;
+        if (!id) return null;
+        return this.places.find((p) => p.id === id) ?? null;
+    }
+
+    get selectedPlaceMaxPersons(): number | null {
+        const max = this.selectedPlace?.capacity?.maxPersons;
+        return typeof max === 'number' && max > 0 ? max : null;
+    }
+
+    get isOverPlaceCapacity(): boolean {
+        const max = this.selectedPlaceMaxPersons;
+        if (!max) return false;
+        return this.selectedPersonsCount > max;
     }
 
     ngOnInit(): void {

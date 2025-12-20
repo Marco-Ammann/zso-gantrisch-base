@@ -40,7 +40,7 @@ import { ZsoStateMessage } from '@shared/ui/zso-state-message/zso-state-message'
 
         <div class="glass-card p-4 sm:p-6">
           <h2 class="text-lg font-semibold text-white mb-3">Sichtbarkeit</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <label class="flex items-center gap-2 text-sm text-gray-300">
               <input
                 type="checkbox"
@@ -70,6 +70,16 @@ import { ZsoStateMessage } from '@shared/ui/zso-state-message/zso-state-message'
               />
               AdZS
             </label>
+
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input
+                type="checkbox"
+                class="form-checkbox"
+                [checked]="prefs?.showPlanning ?? true"
+                (change)="setEnabled('planning', $any($event.target).checked)"
+              />
+              Einsatz
+            </label>
           </div>
         </div>
 
@@ -91,12 +101,12 @@ import { ZsoStateMessage } from '@shared/ui/zso-state-message/zso-state-message'
                 }
               </div>
             } @else {
-              @if ((prefs && !prefs.showUsers && !prefs.showPlaces && !prefs.showAdzs)) {
+              @if ((prefs && !prefs.showUsers && !prefs.showPlaces && !prefs.showAdzs && !prefs.showPlanning)) {
                 <zso-state-message
                   icon="tune"
                   tone="info"
                   title="Keine Quellen ausgewählt"
-                  text="Aktiviere mindestens eine Kategorie (Benutzer, Orte oder AdZS)."
+                  text="Aktiviere mindestens eine Kategorie (Benutzer, Orte, AdZS oder Einsatz)."
                 />
               } @else {
                 @if ((activities?.length ?? 0) === 0) {

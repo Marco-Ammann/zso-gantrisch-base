@@ -12,16 +12,17 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div
-      class="glass-card p-4 flex items-center gap-4 hover:bg-white/20 transition-all cursor-pointer"
+    <button
+      type="button"
+      class="glass-card w-full text-left p-4 flex items-center gap-4 hover:bg-white/15 active:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
       (click)="select.emit()"
     >
-      <span class="material-symbols-outlined text-4xl" [ngClass]="color">{{ icon }}</span>
-      <div class="flex flex-col">
-        <span class="text-2xl font-semibold text-white leading-none">{{ value }}</span>
-        <span class="text-sm text-gray-400">{{ label }}</span>
+      <span class="material-symbols-outlined text-3xl shrink-0" [ngClass]="color">{{ icon }}</span>
+      <div class="flex flex-col min-w-0">
+        <span class="text-2xl font-semibold text-white leading-tight whitespace-pre-line">{{ value }}</span>
+        <span class="text-sm text-white/70 truncate">{{ label }}</span>
       </div>
-    </div>
+    </button>
   `,
   styles: [`
     :host {

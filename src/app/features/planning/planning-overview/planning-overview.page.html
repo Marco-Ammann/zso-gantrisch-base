@@ -88,14 +88,19 @@
                 </span>
               </div>
 
-              <p class="text-xs sm:text-sm text-gray-400 mt-1">
+              <p
+                class="text-xs sm:text-sm mt-1"
+                [ngClass]="row.isOverPlaceCapacity ? 'text-rose-400' : 'text-gray-400'"
+              >
                 {{ row.placeName }}
                 <span class="opacity-60">•</span>
                 {{ row.mission.startAt | date:'dd.MM.yyyy HH:mm' }}
                 <span class="opacity-60">→</span>
                 {{ row.mission.endAt | date:'dd.MM.yyyy HH:mm' }}
                 <span class="opacity-60">•</span>
-                {{ row.assignedPersonsCount }} AdZS
+                @if (row.placeMaxPersons) { {{ row.assignedPersonsCount }} / {{
+                row.placeMaxPersons }} AdZS } @else { {{
+                row.assignedPersonsCount }} AdZS }
               </p>
             </div>
 

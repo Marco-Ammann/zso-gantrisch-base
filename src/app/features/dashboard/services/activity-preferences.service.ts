@@ -7,6 +7,7 @@ export interface ActivityPreferences {
     showUsers: boolean;
     showPlaces: boolean;
     showAdzs: boolean;
+    showPlanning: boolean;
 }
 
 const STORAGE_KEY = 'zso.activityPreferences.v1';
@@ -15,6 +16,7 @@ const DEFAULT_PREFERENCES: ActivityPreferences = {
     showUsers: true,
     showPlaces: true,
     showAdzs: true,
+    showPlanning: true,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +39,7 @@ export class ActivityPreferencesService {
             ...(source === 'users' ? { showUsers: enabled } : {}),
             ...(source === 'places' ? { showPlaces: enabled } : {}),
             ...(source === 'adsz' ? { showAdzs: enabled } : {}),
+            ...(source === 'planning' ? { showPlanning: enabled } : {}),
         };
 
         this.setPreferences(next);

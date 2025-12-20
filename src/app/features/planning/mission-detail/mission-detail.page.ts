@@ -158,6 +158,17 @@ export class MissionDetailPage implements OnInit, OnDestroy {
         this.router.navigate(['/planning', this.missionId, 'edit']);
     }
 
+    get placeMaxPersons(): number | null {
+        const max = this.place?.capacity?.maxPersons;
+        return typeof max === 'number' && max > 0 ? max : null;
+    }
+
+    get isOverPlaceCapacity(): boolean {
+        const max = this.placeMaxPersons;
+        if (!max) return false;
+        return this.assignedPersons.length > max;
+    }
+
     statusLabel(status: MissionStatus): string {
         return (
             {
