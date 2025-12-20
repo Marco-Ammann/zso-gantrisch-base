@@ -1,0 +1,188 @@
+<div class="min-h-[calc(100vh-64px)] py-3 sm:py-4 md:py-6 lg:py-8 text-white">
+  <div class="layout-container space-y-4 sm:space-y-6">
+    <div class="glass-card p-4 sm:p-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <button
+          (click)="cancel()"
+          class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white text-xs transition-colors"
+        >
+          <span class="material-symbols-outlined text-base">arrow_back</span>
+          Zurück
+        </button>
+        <h1 class="text-base sm:text-lg font-semibold">
+          {{ isNew ? 'Neuer Einsatz' : 'Einsatz bearbeiten' }}
+        </h1>
+      </div>
+    </div>
+
+    @if (isLoading) {
+    <div class="glass-card p-6">
+      <div class="flex items-center gap-2 text-gray-300">
+        <span class="material-symbols-outlined animate-spin"
+          >progress_activity</span
+        >
+        <span>Lade Daten…</span>
+      </div>
+    </div>
+    } @else {
+    <div class="glass-card p-6">
+      <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6 max-w-4xl">
+        <zso-input-field
+          label="Titel"
+          formControlName="title"
+        ></zso-input-field>
+
+        <div>
+          <label class="input-label">Beschreibung</label>
+          <textarea
+            class="form-input mt-1 min-h-[96px]"
+            formControlName="description"
+            placeholder="Optional…"
+          ></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <zso-input-field
+            label="Status"
+            [select]="true"
+            [options]="statusOptions"
+            formControlName="status"
+          ></zso-input-field>
+
+          <zso-input-field
+            label="Ort"
+            [select]="true"
+            [options]="placeOptions"
+            formControlName="placeId"
+          ></zso-input-field>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="glass-card p-4">
+            <h2 class="text-sm font-semibold mb-3">Einrücken</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <zso-input-field
+                label="Datum"
+                type="date"
+                formControlName="startDate"
+              ></zso-input-field>
+              <div>
+                <label class="input-label">Zeit</label>
+                <input
+                  class="form-input mt-1"
+                  type="time"
+                  formControlName="startTime"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card p-4">
+            <h2 class="text-sm font-semibold mb-3">Ausrücken</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <zso-input-field
+                label="Datum"
+                type="date"
+                formControlName="endDate"
+              ></zso-input-field>
+              <div>
+                <label class="input-label">Zeit</label>
+                <input
+                  class="form-input mt-1"
+                  type="time"
+                  formControlName="endTime"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card p-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <h2 class="text-sm font-semibold">AdZS Zuteilung</h2>
+            <span class="text-xs text-gray-400">
+              {{ (form.get('assignedPersonIds')?.value?.length ?? 0) }}
+              ausgewählt
+            </span>
+          </div>
+
+          <div class="mt-3">
+            <label class="text-xs text-gray-400">Suche</label>
+            <input
+              class="form-input mt-1"
+              placeholder="Name…"
+              [value]="personSearch"
+              (input)="onPersonSearch(($any($event.target).value))"
+            />
+          </div>
+
+          <div
+            class="mt-3 max-h-[320px] overflow-auto rounded-lg border border-white/10"
+          >
+            @if (filteredPersons.length === 0) {
+            <div class="p-4 text-sm text-gray-400">Keine Treffer</div>
+            } @else {
+            <div class="divide-y divide-white/10">
+              @for (p of filteredPersons; track p.id) {
+              <label
+                class="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4"
+                  [checked]="isAssigned(p.id)"
+                  (change)="togglePerson(p.id)"
+                />
+                <div class="min-w-0">
+                  <div class="text-sm text-white truncate">
+                    {{ p.grunddaten.vorname }} {{ p.grunddaten.nachname }}
+                  </div>
+                  <div class="text-xs text-gray-400 truncate">
+                    {{ p.zivilschutz.einteilung.zug }}. Zug • Gruppe {{
+                    p.zivilschutz.einteilung.gruppe || '—' }}
+                  </div>
+                </div>
+              </label>
+              }
+            </div>
+            }
+          </div>
+        </div>
+
+        <div class="flex gap-3 flex-wrap">
+          <zso-button
+            type="primary"
+            htmlType="submit"
+            [loading]="isSaving"
+            [disabled]="isSaving || isDeleting"
+          >
+            {{ isSaving ? 'Speichern…' : 'Speichern' }}
+          </zso-button>
+
+          <zso-button
+            type="neutral"
+            htmlType="button"
+            (click)="cancel()"
+            [disabled]="isSaving || isDeleting"
+          >
+            Abbrechen
+          </zso-button>
+
+          <zso-button
+            *ngIf="!isNew"
+            type="danger"
+            htmlType="button"
+            [loading]="isDeleting"
+            (click)="delete()"
+            [disabled]="isSaving || isDeleting"
+          >
+            {{ isDeleting ? 'Löschen…' : 'Löschen' }}
+          </zso-button>
+        </div>
+
+        <p *ngIf="errorMsg" class="text-rose-400 mt-2">{{ errorMsg }}</p>
+      </form>
+    </div>
+    }
+  </div>
+</div>

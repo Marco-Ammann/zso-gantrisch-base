@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES = [
     {
+        version: '0.6.0',
+        title: 'Einsatzplanung (Admin)',
+        items: [
+            'Neu: Einsatzplanung (Admin-only) mit Einsätzen, Ort-Zuordnung und AdZS-Zuteilung.',
+            'Einsätze: Einrück-/Ausrückzeit mit Start-/Enddatum inkl. Uhrzeit (wie im Aufgebot).',
+            'Übersicht: Liste mit Status-Filter und Suche.',
+        ],
+    },
+    {
         version: '0.5.5',
         title: 'Ladezeiten & Skeletons',
         items: [

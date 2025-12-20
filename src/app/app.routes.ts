@@ -13,6 +13,7 @@ import { adminRoutes } from './features/admin/admin.routes';
 import { placesRoutes } from './features/places/places.routes';
 import { adzsRoutes } from './features/adsz/adsz.routes';
 import { legalRoutes } from './features/legal/legal.routes';
+import { planningRoutes } from './features/planning/planning.routes';
 
 export const appRoutes: Routes = [
   // 1. Redirect root to auth/login
@@ -60,6 +61,12 @@ export const appRoutes: Routes = [
         data: { featureFlag: 'places' },
         children: placesRoutes,
       }, // Orte-Routen
+      {
+        path: 'planning',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin'], fallback: '/dashboard' },
+        children: planningRoutes,
+      },
       { path: 'admin', canActivate: [RoleGuard], data: { roles: ['admin'] }, children: adminRoutes },
     ],
   },

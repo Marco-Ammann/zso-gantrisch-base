@@ -1,6 +1,6 @@
 {
   "name": "zso-gantrisch-base",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

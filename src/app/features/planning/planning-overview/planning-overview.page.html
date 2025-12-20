@@ -1,0 +1,111 @@
+<div class="min-h-[calc(100vh-64px)] py-3 sm:py-4 md:py-6 lg:py-8 text-white">
+  <div class="layout-container space-y-4 sm:space-y-6">
+    <div
+      class="glass-card p-4 sm:p-6 flex items-center justify-between gap-4 flex-wrap"
+    >
+      <div class="space-y-1">
+        <h1 class="text-lg sm:text-xl font-semibold">Einsatzplanung</h1>
+        <p class="text-xs sm:text-sm text-gray-400">
+          Einsätze verwalten und AdZS/Orte zuweisen.
+        </p>
+      </div>
+
+      <zso-button type="primary" routerLink="/planning/new">
+        <span class="material-symbols-outlined text-base mr-1">add</span>
+        Neuer Einsatz
+      </zso-button>
+    </div>
+
+    <div class="glass-card p-4 sm:p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs text-gray-400">Suche</label>
+          <input
+            class="form-input mt-1"
+            placeholder="Titel…"
+            (input)="setSearch(($any($event.target).value))"
+          />
+        </div>
+
+        <div>
+          <label class="text-xs text-gray-400">Status</label>
+          <select
+            class="form-input sort-select mt-1"
+            (change)="setStatus($any($event.target).value)"
+          >
+            @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex items-end">
+          <p class="text-xs text-gray-500">&nbsp;</p>
+        </div>
+      </div>
+    </div>
+
+    @let rows = rows$ | async; @if (rows === null) {
+    <div class="glass-card p-6">
+      <div class="space-y-3">
+        @for (i of [0,1,2,3,4]; track i) {
+        <div class="flex items-center justify-between gap-4 p-3 rounded-lg">
+          <div class="flex-1 min-w-0 space-y-2">
+            <zso-skeleton width="55%" height="1rem" />
+            <zso-skeleton width="75%" height="0.75rem" className="opacity-70" />
+          </div>
+          <zso-skeleton width="6rem" height="1.5rem" className="opacity-60" />
+        </div>
+        }
+      </div>
+    </div>
+    } @else { @if (rows.length === 0) {
+    <zso-state-message
+      icon="event_busy"
+      tone="neutral"
+      title="Keine Einsätze"
+      text="Es sind noch keine Einsätze vorhanden."
+    />
+    } @else {
+    <div class="glass-card p-4 sm:p-6">
+      <div class="space-y-2">
+        @for (row of rows; track trackRow($index, row)) {
+        <a
+          [routerLink]="['/planning', row.mission.id]"
+          class="block glass-card hover:bg-white/10 transition-all p-4 rounded-lg"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-sm sm:text-base font-semibold truncate">
+                  {{ row.mission.title }}
+                </h2>
+                <span
+                  class="text-[10px] sm:text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-gray-200"
+                >
+                  {{ row.mission.status }}
+                </span>
+              </div>
+
+              <p class="text-xs sm:text-sm text-gray-400 mt-1">
+                {{ row.placeName }}
+                <span class="opacity-60">•</span>
+                {{ row.mission.startAt | date:'dd.MM.yyyy HH:mm' }}
+                <span class="opacity-60">→</span>
+                {{ row.mission.endAt | date:'dd.MM.yyyy HH:mm' }}
+                <span class="opacity-60">•</span>
+                {{ row.assignedPersonsCount }} AdZS
+              </p>
+            </div>
+
+            <span class="material-symbols-outlined text-gray-400"
+              >chevron_right</span
+            >
+          </div>
+        </a>
+        }
+      </div>
+    </div>
+    } }
+  </div>
+</div>

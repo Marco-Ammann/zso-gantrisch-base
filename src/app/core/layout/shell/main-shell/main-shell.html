@@ -65,6 +65,16 @@
           </a>
 
           <a
+            *ngIf="isAdmin$ | async"
+            routerLink="/planning"
+            routerLinkActive="nav-active"
+            class="nav-link"
+          >
+            <span class="material-symbols-outlined text-lg">event_note</span>
+            Einsatzplanung
+          </a>
+
+          <a
             *ngIf="showAdminUsers$ | async"
             routerLink="/admin/users"
             routerLinkActive="nav-active"
@@ -228,6 +238,16 @@
           >
             <span class="material-symbols-outlined text-lg">place</span>
             Orte
+          </a>
+
+          <a
+            *ngIf="isAdmin$ | async"
+            routerLink="/planning"
+            (click)="toggleMobile()"
+            class="mobile-nav-link"
+          >
+            <span class="material-symbols-outlined text-lg">event_note</span>
+            Einsatzplanung
           </a>
 
           <a
