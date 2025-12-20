@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES = [
     {
+        version: '0.5.4',
+        title: 'Dashboard & Aktivitäten',
+        items: [
+            'Dashboard: Widgets werden jetzt über eine Registry pro Feature registriert (AdZS/Places/Admin).',
+            'Dashboard: „Alle anzeigen“ bei Aktivitäten führt neu auf eine dedizierte Aktivitäten-Ansicht.',
+            'Aktivitäten: Anzeige kann nach Quelle gefiltert werden (z.B. Benutzer/Orte/AdZS).',
+        ],
+    },
+    {
         version: '0.5.3',
         title: 'Notizen & Darstellung',
         items: [

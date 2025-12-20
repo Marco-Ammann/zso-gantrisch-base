@@ -1,22 +1,34 @@
 // src/app/features/dashboard/dashboard.page.ts
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, NgComponentOutlet } from '@angular/common';
 import { StatHintComponent } from './components/stat-hint/stat-hint';
-import { ActivityWidgetComponent } from './components/activity-widget/activity-widget';
 import { RouterModule, Router } from '@angular/router';
-import { Subject, interval, takeUntil, combineLatest, startWith, catchError, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {
+  Subject,
+  interval,
+  takeUntil,
+  combineLatest,
+  startWith,
+  catchError,
+  of,
+  from,
+} from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
 
 import { UserService } from '@core/services/user.service';
-import { PlacesService } from '../places/services/places.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { PersonService } from '@core/services/person.service';
 import { LoggerService } from '@core/services/logger.service';
-import { UserDoc } from '@core/models/user-doc';
 import { Stats } from './dashboard.model';
 import { FeatureFlagKey, FeatureFlagsService } from '@core/services/feature-flags.service';
 import { APP_SETTINGS } from '@config/app-settings';
+import {
+  DASHBOARD_WIDGETS,
+  DashboardWidgetDefinition,
+} from '@core/dashboard/dashboard-widgets';
+import { ActivityFeedItem } from './activity-feed.model';
+import { ActivityFeedService } from './services/activity-feed.service';
 
 interface QuickLink {
   icon: string;
@@ -33,22 +45,10 @@ interface ExtendedStats extends Stats {
   activePersons?: number;
 }
 
-// Unified item for activity feed entries
-export interface ActivityFeedItem {
-  id: string;
-  name: string;
-  text: string;
-  icon: string;
-  color: string;
-  timestamp: number;
-  route: string;
-  avatarText?: string; // e.g. user initials or first letter of place
-}
-
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
-  imports: [AsyncPipe, RouterModule, DatePipe, StatHintComponent, ActivityWidgetComponent],
+  imports: [AsyncPipe, RouterModule, DatePipe, NgComponentOutlet, StatHintComponent],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   animations: [
@@ -74,10 +74,10 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly personService = inject(PersonService);
-  private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly featureFlags = inject(FeatureFlagsService);
+  private readonly activityFeed = inject(ActivityFeedService);
   readonly settings = inject(APP_SETTINGS);
   private readonly destroy$ = new Subject<void>();
 
@@ -91,6 +91,40 @@ export class DashboardPage implements OnInit, OnDestroy {
   // Observables
   appUser$ = this.authService.appUser$;
   featureFlags$ = this.featureFlags.flags$;
+
+  private readonly widgetDefs: DashboardWidgetDefinition[] =
+    ((inject(DASHBOARD_WIDGETS, { optional: true }) as unknown) as
+      | DashboardWidgetDefinition[]
+      | null) ?? [];
+
+  widgets$ = combineLatest([this.appUser$, this.featureFlags$]).pipe(
+    map(([appUser, flags]) => {
+      const roles = appUser?.doc.roles ?? [];
+
+      return this.widgetDefs
+        .filter((w) => {
+          if (w.featureFlag && flags?.[w.featureFlag] === false) return false;
+          if (w.roles && w.roles.length > 0) {
+            return w.roles.some((r) => roles.includes(r));
+          }
+          return true;
+        })
+        .sort((a, b) => a.order - b.order);
+    }),
+    switchMap((defs) => {
+      if (defs.length === 0) return of([] as Array<{ id: string; title: string; component: any }>);
+
+      return from(Promise.all(defs.map((d) => d.loadComponent()))).pipe(
+        map((components) =>
+          defs.map((def, i) => ({
+            id: def.id,
+            title: def.title,
+            component: components[i],
+          }))
+        )
+      );
+    })
+  );
 
   stats$ = combineLatest([
     this.userService.getStats().pipe(
@@ -114,57 +148,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     startWith({ total: 0, active: 0, pending: 0, blocked: 0, persons: 0, activePersons: 0 })
   );
 
-  latestUsers$ = this.userService.getAll().pipe(
-    map(users => users
-      .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
-      .slice(0, 5)
-    ),
-    catchError(err => {
-      this.logger.error('Dashboard', 'Failed to load latest users', err);
-      return of([]);
-    })
-  );
-
-  recentPlaces$ = this.placesService.getAll().pipe(
-    map(places => places
-      .sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt))
-      .slice(0, 5)
-    ),
-    catchError(err => {
-      this.logger.error('Dashboard', 'Failed to load recent places', err);
-      return of([]);
-    })
-  );
-
-  latestActivities$ = combineLatest([this.latestUsers$, this.recentPlaces$]).pipe(
-    map(([users, places]) => {
-      const userItems: ActivityFeedItem[] = users.map(u => ({
-        id: u.uid,
-        name: `${u.firstName} ${u.lastName}`,
-        text: this.getActivityText(u),
-        icon: this.getActivityIcon(u),
-        color: this.getActivityColor(u),
-        timestamp: u.updatedAt ?? u.createdAt,
-        route: '/admin/users',
-        avatarText: this.getUserInitials(u),
-      }));
-
-      const placeItems: ActivityFeedItem[] = places.map(p => ({
-        id: p.id,
-        name: p.name,
-        text: p.updatedAt && p.updatedAt > p.createdAt ? 'Ort aktualisiert' : 'Neuer Ort',
-        icon: 'place',
-        color: 'text-emerald-400',
-        timestamp: p.updatedAt ?? p.createdAt,
-        route: `/places/${p.id}`,
-        avatarText: p.name.charAt(0).toUpperCase(),
-      }));
-
-      return [...userItems, ...placeItems]
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 5);
-    })
-  );
+  latestActivities$ = this.activityFeed.activities$(5);
 
   // Quick Links Configuration
   quickLinks: QuickLink[] = [
@@ -227,10 +211,6 @@ export class DashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  getUserInitials(user: UserDoc): string {
-    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
-  }
-
   getRelativeTime(timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp;
@@ -242,27 +222,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     return 'vor wenigen Minuten';
   }
 
-  getActivityText(user: UserDoc): string {
-    if (!user.approved) return 'Registrierung ausstehend';
-    if (user.blocked) return 'Benutzer gesperrt';
-    if (user.updatedAt && user.updatedAt > user.createdAt) return 'Profil aktualisiert';
-    return 'Neu registriert';
-  }
-
-  getActivityIcon(user: UserDoc): string {
-    if (!user.approved) return 'schedule';
-    if (user.blocked) return 'block';
-    if (user.updatedAt && user.updatedAt > user.createdAt) return 'edit';
-    return 'person_add';
-  }
-
   navigate(path: string) {
     this.router.navigate([path]);
-  }
-
-  getActivityColor(user: UserDoc): string {
-    if (!user.approved) return 'text-amber-400';
-    if (user.blocked) return 'text-rose-400';
-    return 'text-green-400';
   }
 }

@@ -31,6 +31,9 @@ import { environment } from '../environments/environment';
 // eigene Dateien
 import { appRoutes } from './app.routes';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { ADZS_DASHBOARD_WIDGET_PROVIDER } from './features/adsz/adsz.dashboard-widgets';
+import { PLACES_DASHBOARD_WIDGET_PROVIDER } from './features/places/places.dashboard-widgets';
+import { ADMIN_USERS_DASHBOARD_WIDGET_PROVIDER } from './features/admin/admin.dashboard-widgets';
 
 // Register German locale
 registerLocaleData(localeDE, 'de', localeDeExtra);
@@ -86,5 +89,9 @@ export const appConfig: ApplicationConfig = {
     // Firebase Setup with cleanup
     ...provideFirebase(),
     provideAnimations(),
+
+    ADZS_DASHBOARD_WIDGET_PROVIDER,
+    PLACES_DASHBOARD_WIDGET_PROVIDER,
+    ADMIN_USERS_DASHBOARD_WIDGET_PROVIDER,
   ],
 };

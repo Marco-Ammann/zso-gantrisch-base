@@ -12,4 +12,11 @@ export const dashboardRoutes: Routes = [
     canActivate: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
     canLoad: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
   },
+  {
+    path: 'activities',
+    loadComponent: () =>
+      import('./activities/activities.page').then((m) => m.ActivitiesPage),
+    canActivate: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
+    canLoad: [SessionGuard, UserDocGuard, VerifiedGuard, ApprovedGuard],
+  },
 ];

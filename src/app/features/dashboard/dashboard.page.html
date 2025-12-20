@@ -147,18 +147,16 @@
               >
               Aktivitäten
             </h2>
-            @if ((appUser$ | async)?.doc?.roles?.includes('admin')) {
             <a
-              routerLink="/admin/users"
+              routerLink="/dashboard/activities"
               class="text-xs sm:text-sm text-gray-400 hover:text-cp-orange transition-colors"
             >
               Alle anzeigen
             </a>
-            }
           </div>
 
           <div class="space-y-2 sm:space-y-3">
-            @for (activity of (latestActivities$ | async); track activity.id;
+            @for (activity of (latestActivities$ | async); track activity.key;
             let i = $index) {
             <div
               @fadeIn
@@ -206,34 +204,22 @@
         </div>
       </div>
 
-      <!-- Activity Widgets - Zweite Reihe, linke 2 Spalten -->
+      <!-- Feature Widgets (Registry) -->
       <div class="lg:col-span-2">
         <div @fadeIn class="glass-card p-4 sm:p-6">
           <div
             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
           >
-            @let stats = stats$ | async;
-            <zso-activity-widget
-              icon="person_add"
-              [value]="stats?.pending ?? 0"
-              label="Neue Anmeldungen"
-              (select)="navigate('/admin/users')"
-              color="text-amber-400"
-            ></zso-activity-widget>
-            <zso-activity-widget
-              icon="block"
-              [value]="stats?.blocked ?? 0"
-              label="Gesperrt"
-              (select)="navigate('/admin/users')"
-              color="text-rose-400"
-            ></zso-activity-widget>
-            <zso-activity-widget
-              icon="military_tech"
-              [value]="stats?.activePersons ?? 0"
-              label="Im Dienst"
-              (select)="navigate('/adsz')"
-              color="text-cyan-400"
-            ></zso-activity-widget>
+            @for (w of ((widgets$ | async) ?? []); track w.id) {
+            <ng-container [ngComponentOutlet]="w.component"></ng-container>
+            } @empty {
+            <div class="text-center py-6 sm:py-8 text-gray-500 col-span-full">
+              <span class="material-symbols-outlined text-3xl sm:text-4xl mb-2"
+                >widgets</span
+              >
+              <p class="text-sm">Keine Widgets aktiv</p>
+            </div>
+            }
           </div>
         </div>
       </div>
