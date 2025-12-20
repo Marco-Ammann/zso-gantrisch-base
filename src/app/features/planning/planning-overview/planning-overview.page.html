@@ -4,7 +4,7 @@
       class="glass-card p-4 sm:p-6 flex items-center justify-between gap-4 flex-wrap"
     >
       <div class="space-y-1">
-        <h1 class="text-lg sm:text-xl font-semibold">Einsatzplanung</h1>
+        <h1 class="text-lg sm:text-xl font-semibold">Einsatz</h1>
         <p class="text-xs sm:text-sm text-gray-400">
           Einsätze verwalten und AdZS/Orte zuweisen.
         </p>
@@ -72,7 +72,7 @@
         @for (row of rows; track trackRow($index, row)) {
         <a
           [routerLink]="['/planning', row.mission.id]"
-          class="block glass-card hover:bg-white/10 transition-all p-4 rounded-lg"
+          class="block glass-card p-4 hover-card cursor-pointer"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
@@ -81,9 +81,10 @@
                   {{ row.mission.title }}
                 </h2>
                 <span
-                  class="text-[10px] sm:text-xs px-2 py-0.5 rounded border border-white/10 bg-white/5 text-gray-200"
+                  class="badge"
+                  [ngClass]="statusBadgeClass(row.mission.status)"
                 >
-                  {{ row.mission.status }}
+                  {{ statusLabel(row.mission.status) }}
                 </span>
               </div>
 

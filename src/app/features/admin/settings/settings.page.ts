@@ -38,6 +38,11 @@ export class SettingsPage {
             description: 'AdZS Verwaltung (Personen, Gruppen, Notfallkontakte)',
         },
         {
+            key: 'planning',
+            label: 'Einsatz',
+            description: 'Einsätze planen (Ort-Zuordnung, AdZS-Zuteilung)',
+        },
+        {
             key: 'places',
             label: 'Orte',
             description: 'Orte / WK-Heime / Anlagen verwalten',

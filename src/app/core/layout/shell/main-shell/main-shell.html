@@ -65,13 +65,13 @@
           </a>
 
           <a
-            *ngIf="isAdmin$ | async"
+            *ngIf="showPlanning$ | async"
             routerLink="/planning"
             routerLinkActive="nav-active"
             class="nav-link"
           >
             <span class="material-symbols-outlined text-lg">event_note</span>
-            Einsatzplanung
+            Einsatz
           </a>
 
           <a
@@ -241,13 +241,13 @@
           </a>
 
           <a
-            *ngIf="isAdmin$ | async"
+            *ngIf="showPlanning$ | async"
             routerLink="/planning"
             (click)="toggleMobile()"
             class="mobile-nav-link"
           >
             <span class="material-symbols-outlined text-lg">event_note</span>
-            Einsatzplanung
+            Einsatz
           </a>
 
           <a

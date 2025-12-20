@@ -1,14 +1,15 @@
 // src/app/features/admin/users/users.page.scss
-:host { 
-  display: block; 
+:host {
+  display: block;
 }
 
 // User card hover effect
 .user-card {
   transition: all 0.2s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px var(--orange-15);
+    border-color: var(--orange-30);
   }
 }

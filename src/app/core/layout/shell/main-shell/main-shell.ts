@@ -52,6 +52,10 @@ export class MainShell implements OnInit, OnDestroy {
   initials$ = this.auth.appUser$.pipe(map(u => u?.doc.email?.[0].toUpperCase() ?? 'U'));
   showAdzs$ = this.featureFlags.isEnabled$('adsz');
   showPlaces$ = this.featureFlags.isEnabled$('places');
+  showPlanning$ = combineLatest([
+    this.isAdmin$,
+    this.featureFlags.isEnabled$('planning'),
+  ]).pipe(map(([isAdmin, enabled]) => isAdmin && enabled));
   showAdminUsers$ = combineLatest([
     this.isAdmin$,
     this.featureFlags.isEnabled$('adminUsers'),

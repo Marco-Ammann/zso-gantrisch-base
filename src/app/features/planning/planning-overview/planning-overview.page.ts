@@ -89,4 +89,28 @@ export class PlanningOverviewPage {
     trackRow(_: number, row: MissionRow) {
         return row.mission.id;
     }
+
+    statusLabel(status: MissionStatus): string {
+        return (
+            {
+                draft: 'Entwurf',
+                planned: 'Geplant',
+                active: 'Aktiv',
+                done: 'Erledigt',
+                cancelled: 'Abgesagt',
+            } as const
+        )[status];
+    }
+
+    statusBadgeClass(status: MissionStatus): string {
+        return (
+            {
+                draft: 'badge--unverified',
+                planned: 'badge--pending',
+                active: 'badge--approved',
+                done: 'badge--verified',
+                cancelled: 'badge--blocked',
+            } as const
+        )[status];
+    }
 }

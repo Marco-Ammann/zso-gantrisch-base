@@ -7,7 +7,7 @@ export const planningRoutes: Routes = [
             import('./planning-overview/planning-overview.page').then(
                 (m) => m.PlanningOverviewPage
             ),
-        title: 'Einsatzplanung',
+        title: 'Einsatz',
     },
     {
         path: 'new',

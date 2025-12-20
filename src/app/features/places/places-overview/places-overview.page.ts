@@ -108,7 +108,7 @@ interface Section {
               <zso-place-card
                 *ngFor="let place of sec.items; trackBy: trackById"
                 [place]="place"
-                class="w-full max-w-[320px] hover:scale-[1.01] transition-transform"
+                class="w-full max-w-[320px]"
                 (click)="viewDetails(place)"
               ></zso-place-card>
             </div>

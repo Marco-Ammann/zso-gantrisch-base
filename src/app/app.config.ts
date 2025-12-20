@@ -34,6 +34,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ADZS_DASHBOARD_WIDGET_PROVIDER } from './features/adsz/adsz.dashboard-widgets';
 import { PLACES_DASHBOARD_WIDGET_PROVIDER } from './features/places/places.dashboard-widgets';
 import { ADMIN_USERS_DASHBOARD_WIDGET_PROVIDER } from './features/admin/admin.dashboard-widgets';
+import { PLANNING_DASHBOARD_WIDGET_PROVIDER } from './features/planning/planning.dashboard-widgets';
 
 // Register German locale
 registerLocaleData(localeDE, 'de', localeDeExtra);
@@ -92,6 +93,7 @@ export const appConfig: ApplicationConfig = {
 
     ADZS_DASHBOARD_WIDGET_PROVIDER,
     PLACES_DASHBOARD_WIDGET_PROVIDER,
+    PLANNING_DASHBOARD_WIDGET_PROVIDER,
     ADMIN_USERS_DASHBOARD_WIDGET_PROVIDER,
   ],
 };

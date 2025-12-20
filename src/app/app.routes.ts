@@ -63,8 +63,8 @@ export const appRoutes: Routes = [
       }, // Orte-Routen
       {
         path: 'planning',
-        canActivate: [RoleGuard],
-        data: { roles: ['admin'], fallback: '/dashboard' },
+        canActivate: [FeatureFlagGuard, RoleGuard],
+        data: { featureFlag: 'planning', roles: ['admin'], fallback: '/dashboard' },
         children: planningRoutes,
       },
       { path: 'admin', canActivate: [RoleGuard], data: { roles: ['admin'] }, children: adminRoutes },

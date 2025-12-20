@@ -163,6 +163,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   // Quick Links Configuration
   quickLinks: QuickLink[] = [
     {
+      icon: 'event_note',
+      label: 'Einsatz',
+      description: 'Einsätze planen und verwalten',
+      route: '/planning',
+      color: 'bg-gray-500/20 hover:bg-gray-500/30 text-orange-400',
+      requiresAdmin: true,
+      featureFlag: 'planning',
+    },
+    {
       icon: 'group',
       label: 'AdZS Verwaltung',
       description: 'Angehörige des Zivilschutzes verwalten',
@@ -235,6 +244,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   private prefetchRoutes(): void {
     const run = () => {
+      void import('../planning/planning-overview/planning-overview.page');
       void import('../adsz/adsz-overview/adsz-overview.page');
       void import('../places/places-overview/places-overview.page');
       void import('../admin/users/users.page');

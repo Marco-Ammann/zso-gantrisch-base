@@ -12,7 +12,7 @@ import { catchError, map, shareReplay, takeUntil } from 'rxjs/operators';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from './logger.service';
 
-export type FeatureFlagKey = 'adsz' | 'places' | 'adminUsers';
+export type FeatureFlagKey = 'adsz' | 'places' | 'adminUsers' | 'planning';
 
 export type FeatureFlags = Record<FeatureFlagKey, boolean>;
 
@@ -20,6 +20,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
     adsz: true,
     places: true,
     adminUsers: true,
+    planning: true,
 };
 
 @Injectable({ providedIn: 'root' })

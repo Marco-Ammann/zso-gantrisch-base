@@ -11,7 +11,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { MissionDoc } from '@core/models/mission.model';
+import { Location } from '@angular/common';
+import { MissionDoc, MissionStatus } from '@core/models/mission.model';
 import { PlaceDoc } from '@core/models/place.model';
 import { PersonDoc } from '@core/models/person.model';
 import { LoggerService } from '@core/services/logger.service';
@@ -47,6 +48,7 @@ interface AssignedPersonVm {
 export class MissionDetailPage implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly location = inject(Location);
     private readonly missionsService = inject(MissionsService);
     private readonly placesService = inject(PlacesService);
     private readonly personService = inject(PersonService);
@@ -140,11 +142,44 @@ export class MissionDetailPage implements OnInit, OnDestroy {
     }
 
     back(): void {
+        const navId = (window.history.state as any)?.navigationId ?? 0;
+        if (navId > 1) {
+            this.location.back();
+            return;
+        }
+        this.goOverview();
+    }
+
+    goOverview(): void {
         this.router.navigate(['/planning']);
     }
 
     edit(): void {
         this.router.navigate(['/planning', this.missionId, 'edit']);
+    }
+
+    statusLabel(status: MissionStatus): string {
+        return (
+            {
+                draft: 'Entwurf',
+                planned: 'Geplant',
+                active: 'Aktiv',
+                done: 'Erledigt',
+                cancelled: 'Abgesagt',
+            } as const
+        )[status];
+    }
+
+    statusBadgeClass(status: MissionStatus): string {
+        return (
+            {
+                draft: 'badge--unverified',
+                planned: 'badge--pending',
+                active: 'badge--approved',
+                done: 'badge--verified',
+                cancelled: 'badge--blocked',
+            } as const
+        )[status];
     }
 
     openPlace(): void {

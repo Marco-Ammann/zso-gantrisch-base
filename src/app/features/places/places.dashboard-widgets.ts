@@ -7,7 +7,7 @@ export const PLACES_DASHBOARD_WIDGET_PROVIDER: Provider = {
     multi: true,
     useValue: {
         id: 'places',
-        title: 'Places',
+        title: 'Orte',
         order: 20,
         featureFlag: 'places',
         loadComponent: () =>

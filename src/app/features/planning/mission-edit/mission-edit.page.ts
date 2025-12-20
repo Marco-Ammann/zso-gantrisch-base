@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
@@ -36,6 +36,7 @@ export class MissionEditPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly location = inject(Location);
     private readonly missionsService = inject(MissionsService);
     private readonly placesService = inject(PlacesService);
     private readonly personService = inject(PersonService);
@@ -254,11 +255,16 @@ export class MissionEditPage implements OnInit {
     }
 
     cancel(): void {
-        if (this.isNew) {
-            this.router.navigate(['/planning']);
-        } else if (this.missionId) {
-            this.router.navigate(['/planning', this.missionId]);
+        const navId = (window.history.state as any)?.navigationId ?? 0;
+        if (navId > 1) {
+            this.location.back();
+            return;
         }
+        this.goOverview();
+    }
+
+    goOverview(): void {
+        this.router.navigate(['/planning']);
     }
 
     private toDateInputValue(ts: number): string {
