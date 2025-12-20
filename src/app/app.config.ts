@@ -6,7 +6,7 @@ import {
   APP_INITIALIZER,
   LOCALE_ID,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { PreloadAllModules, provideRouter, withPreloading } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localeDE from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
@@ -73,7 +73,7 @@ export function provideFirebase() {
 export const appConfig: ApplicationConfig = {
   providers: [
     // Routing
-    provideRouter(appRoutes),
+    provideRouter(appRoutes, withPreloading(PreloadAllModules)),
 
     // Locale Support
     { provide: LOCALE_ID, useValue: 'de' },

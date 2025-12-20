@@ -29,6 +29,8 @@ import {
 } from '@core/dashboard/dashboard-widgets';
 import { ActivityFeedItem } from './activity-feed.model';
 import { ActivityFeedService } from './services/activity-feed.service';
+import { ZsoSkeleton } from '@shared/ui/zso-skeleton/zso-skeleton';
+import { ZsoStateMessage } from '@shared/ui/zso-state-message/zso-state-message';
 
 interface QuickLink {
   icon: string;
@@ -48,7 +50,15 @@ interface ExtendedStats extends Stats {
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
-  imports: [AsyncPipe, RouterModule, DatePipe, NgComponentOutlet, StatHintComponent],
+  imports: [
+    AsyncPipe,
+    RouterModule,
+    DatePipe,
+    NgComponentOutlet,
+    StatHintComponent,
+    ZsoSkeleton,
+    ZsoStateMessage,
+  ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   animations: [
@@ -82,8 +92,6 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   // State
-  loading = true;
-  error: string | null = null;
   currentDate = new Date();
 
 
@@ -148,7 +156,9 @@ export class DashboardPage implements OnInit, OnDestroy {
     startWith({ total: 0, active: 0, pending: 0, blocked: 0, persons: 0, activePersons: 0 })
   );
 
-  latestActivities$ = this.activityFeed.activities$(5);
+  latestActivities$ = this.activityFeed
+    .activities$(5)
+    .pipe(startWith(null as ActivityFeedItem[] | null));
 
   // Quick Links Configuration
   quickLinks: QuickLink[] = [
@@ -187,10 +197,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       this.currentDate = new Date();
     });
 
-    // Simulate loading
-    setTimeout(() => {
-      this.loading = false;
-    }, 800);
+    this.prefetchRoutes();
   }
 
   ngOnDestroy(): void {
@@ -224,5 +231,21 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   navigate(path: string) {
     this.router.navigate([path]);
+  }
+
+  private prefetchRoutes(): void {
+    const run = () => {
+      void import('../adsz/adsz-overview/adsz-overview.page');
+      void import('../places/places-overview/places-overview.page');
+      void import('../admin/users/users.page');
+      void import('./activities/activities.page');
+    };
+
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void) => void)
+      | undefined;
+
+    if (ric) ric(run);
+    else setTimeout(run, 1200);
   }
 }

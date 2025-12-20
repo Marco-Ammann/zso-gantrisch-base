@@ -118,18 +118,45 @@
 
   <!-- Loading State -->
   @if (isLoading) {
-  <div class="glass-card p-8 text-center" [@itemFade]>
-    <div class="inline-flex items-center gap-3">
-      <div
-        class="w-5 h-5 border-2 border-cp-orange border-t-transparent rounded-full animate-spin"
-      ></div>
-      <span class="text-gray-300">Lade Benutzerdaten...</span>
+  <div class="glass-card p-6" [@itemFade]>
+    <div class="flex items-center gap-2 mb-4">
+      <zso-skeleton width="10rem" height="1rem" />
+      <zso-skeleton width="3rem" height="1rem" className="opacity-60" />
+    </div>
+
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      @for (i of skeletonCards; track i) {
+      <div class="glass-card p-5 user-card">
+        <div class="flex items-center gap-3 mb-4">
+          <zso-skeleton shape="circle" width="3rem" height="3rem" />
+          <div class="flex-1 min-w-0 space-y-2">
+            <zso-skeleton width="60%" height="0.95rem" />
+            <zso-skeleton width="45%" height="0.8rem" className="opacity-70" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <zso-skeleton
+            width="5.5rem"
+            height="1.25rem"
+            className="rounded-full"
+          />
+          <zso-skeleton
+            width="4.25rem"
+            height="1.25rem"
+            className="rounded-full opacity-70"
+          />
+        </div>
+
+        <zso-skeleton width="55%" height="0.75rem" className="opacity-60" />
+      </div>
+      }
     </div>
   </div>
   }
 
   <!-- Pending Users Section -->
-  @if (pendingUsers.length > 0) {
+  @if (!isLoading && pendingUsers.length > 0) {
   <div class="glass-card p-6">
     <div class="flex items-center gap-2 mb-4">
       <span class="material-symbols-outlined text-lg text-amber-400"
@@ -266,7 +293,7 @@
   }
 
   <!-- Approved Users Section -->
-  @if (approvedUsers.length > 0) {
+  @if (!isLoading && approvedUsers.length > 0) {
   <div class="glass-card p-6">
     <div class="flex items-center gap-2 mb-4">
       <span class="material-symbols-outlined text-lg text-green-400"

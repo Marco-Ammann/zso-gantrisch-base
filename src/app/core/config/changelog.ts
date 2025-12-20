@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES = [
     {
+        version: '0.5.5',
+        title: 'Ladezeiten & Skeletons',
+        items: [
+            'Dashboard: Keine künstliche „Dashboard wird geladen…“ Anzeige mehr (sofort sichtbar).',
+            'Übersichten: Skeletons statt Spinner bei Benutzer/Orte/AdZS für bessere wahrgenommene Ladezeit.',
+            'Routing: Lazy-Routes werden im Hintergrund vorgeladen (Preloading + gezieltes Prefetch).',
+        ],
+    },
+    {
         version: '0.5.4',
         title: 'Dashboard & Aktivitäten',
         items: [

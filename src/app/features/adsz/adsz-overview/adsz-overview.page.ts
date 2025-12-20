@@ -27,6 +27,7 @@ import { AuthService } from '@core/auth/services/auth.service';
 import { PersonDoc } from '@core/models/person.model';
 import { AdzsCreateModal } from '@shared/components/adzs-create-modal/adzs-create-modal';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { ZsoSkeleton } from '@shared/ui/zso-skeleton/zso-skeleton';
 
 interface FilterState {
   status: 'all' | 'aktiv' | 'neu' | 'inaktiv';
@@ -52,6 +53,7 @@ interface Stats {
     FormsModule,
     RouterModule,
     ZsoButton,
+    ZsoSkeleton,
     AdzsCreateModal  // Neue Modal-Komponente
   ],
   templateUrl: './adzs-overview.page.html',
@@ -115,6 +117,8 @@ export class AdzsOverviewPage implements OnInit, OnDestroy {
   // Modal State - NEU
   createModalVisible = false;
   successMsg: string | null = null;
+
+  readonly skeletonCards = [0, 1, 2, 3, 4, 5];
 
   // Computed properties
   get hasResults(): boolean {

@@ -11,6 +11,7 @@ import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
 import { UserDoc } from '@core/models/user-doc';
 import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog';
+import { ZsoSkeleton } from '@shared/ui/zso-skeleton/zso-skeleton';
 
 @Component({
   selector: 'zso-users-page',
@@ -19,7 +20,8 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
     CommonModule,
     FormsModule,
     RouterModule,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    ZsoSkeleton
   ],
   templateUrl: './users.page.html',
   styleUrls: ['./users.page.scss'],
@@ -51,9 +53,11 @@ export class UsersPage implements OnInit, OnDestroy {
   isLoading = false;
   errorMsg: string | null = null;
 
+  readonly skeletonCards = [0, 1, 2, 3, 4, 5];
+
   // Current user UID for highlighting
   currentUid: string | null = null;
-  
+
   ngOnInit(): void {
     this.logger.log('UsersPage', 'Initializing');
 
@@ -85,10 +89,10 @@ export class UsersPage implements OnInit, OnDestroy {
 
   private loadUsers(): void {
     if (this.isLoading) return;
-    
+
     this.isLoading = true;
     this.errorMsg = null;
-    
+
     this.userService.getAll().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
@@ -144,7 +148,7 @@ export class UsersPage implements OnInit, OnDestroy {
   approve(user: UserDoc): void {
     const originalApproved = user.approved;
     user.approved = true;
-    
+
     this.showConfirmation(
       `Zugang für ${user.firstName} ${user.lastName} gewähren?`,
       'Der Benutzer kann die Anwendung verwenden.',
@@ -154,7 +158,7 @@ export class UsersPage implements OnInit, OnDestroy {
         this.pendingUsers = this.pendingUsers.filter(u => u.uid !== user.uid);
         this.approvedUsers = [...this.approvedUsers, user];
         this.cdr.markForCheck();
-        
+
         this.userService.approve(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
@@ -182,7 +186,7 @@ export class UsersPage implements OnInit, OnDestroy {
   unapprove(user: UserDoc): void {
     const originalApproved = user.approved;
     user.approved = false;
-    
+
     this.showConfirmation(
       `Zugang für ${user.firstName} ${user.lastName} entziehen?`,
       'Der Benutzer kann die Anwendung nicht mehr verwenden.',
@@ -193,7 +197,7 @@ export class UsersPage implements OnInit, OnDestroy {
         user.approved = false;
         this.pendingUsers = [...this.pendingUsers, user];
         this.cdr.markForCheck();
-        
+
         this.userService.unapprove(user.uid).pipe(
           takeUntil(this.destroy$)
         ).subscribe({

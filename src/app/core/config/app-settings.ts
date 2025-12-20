@@ -17,7 +17,7 @@ export const APP_SETTINGS = new InjectionToken<AppSettings>(
     providedIn: 'root',
     factory: (): AppSettings => ({
       appName: 'ZSO Gantrisch Base',
-      appVersion: '0.5.4',
+      appVersion: '0.5.5',
       firestoreDbId: 'zso-base',
       verifyRedirect: `${location.origin}/auth/verify-email-success`,
       resetRedirect: `${location.origin}/auth/login?reset=1`

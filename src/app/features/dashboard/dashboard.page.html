@@ -1,15 +1,6 @@
 <!-- src/app/features/dashboard/dashboard.page.html -->
 <div class="py-3 sm:py-4 md:py-6 lg:py-8">
   <div class="layout-container space-y-4 sm:space-y-6">
-    <!-- Loading State -->
-    @if (loading) {
-    <div class="flex items-center justify-center min-h-[60vh]">
-      <div class="text-center">
-        <div class="spinner-lg mb-4"></div>
-        <p class="text-gray-400">Dashboard wird geladen...</p>
-      </div>
-    </div>
-    } @else {
     <!-- Welcome Header -->
     <div @fadeIn class="glass-card p-4 sm:p-6 md:p-8">
       <div
@@ -156,7 +147,32 @@
           </div>
 
           <div class="space-y-2 sm:space-y-3">
-            @for (activity of (latestActivities$ | async); track activity.key;
+            @let activities = latestActivities$ | async; @if (activities ===
+            null) { @for (i of [0,1,2,3,4]; track i) {
+            <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg">
+              <zso-skeleton shape="circle" width="2.5rem" height="2.5rem" />
+              <div class="flex-1 min-w-0 space-y-2">
+                <zso-skeleton width="70%" height="0.9rem" />
+                <zso-skeleton
+                  width="45%"
+                  height="0.7rem"
+                  className="opacity-70"
+                />
+              </div>
+              <zso-skeleton
+                width="3.5rem"
+                height="0.7rem"
+                className="opacity-60"
+              />
+            </div>
+            } } @else { @if ((activities?.length ?? 0) === 0) {
+            <zso-state-message
+              icon="inbox"
+              tone="neutral"
+              title="Keine Aktivitäten"
+              text="Momentan sind keine Aktivitäten sichtbar."
+            />
+            } @else { @for (activity of (activities ?? []); track activity.key;
             let i = $index) {
             <div
               @fadeIn
@@ -192,14 +208,7 @@
                 {{ getRelativeTime(activity.timestamp) }}
               </span>
             </div>
-            } @empty {
-            <div class="text-center py-6 sm:py-8 text-gray-500">
-              <span class="material-symbols-outlined text-3xl sm:text-4xl mb-2"
-                >inbox</span
-              >
-              <p class="text-sm">Keine Aktivitäten</p>
-            </div>
-            }
+            } } }
           </div>
         </div>
       </div>
@@ -265,6 +274,5 @@
         </div>
       </div>
     </div>
-    }
   </div>
 </div>

@@ -12,6 +12,7 @@ import { RouterModule, Router } from '@angular/router';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ZsoButton } from '@shared/ui/zso-button/zso-button';
+import { ZsoSkeleton } from '@shared/ui/zso-skeleton/zso-skeleton';
 
 import { PlacesService } from '../services/places.service';
 import { PlaceDoc, PlaceType } from '@core/models/place.model';
@@ -28,7 +29,14 @@ interface Section {
 @Component({
   selector: 'zso-places-overview',
   standalone: true,
-  imports: [CommonModule, RouterModule, ZsoButton, PlaceCard, PlaceCreateModal],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ZsoButton,
+    ZsoSkeleton,
+    PlaceCard,
+    PlaceCreateModal,
+  ],
   template: `
     <div class="min-h-[calc(100vh-64px)] text-white">
       <div class="layout-container py-6 sm:py-8 space-y-6">
@@ -108,8 +116,24 @@ interface Section {
           </ng-container>
         </ng-container>
         <ng-template #loading>
-          <div class="flex justify-center py-10">
-            <div class="spinner-lg"></div>
+          <div class="glass-card p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <zso-skeleton width="8rem" height="1rem" />
+              <zso-skeleton width="3rem" height="1rem" className="opacity-60" />
+            </div>
+
+            <div class="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div *ngFor="let _ of skeletonCards" class="glass-card p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <zso-skeleton shape="circle" width="2.75rem" height="2.75rem" />
+                  <div class="flex-1 space-y-2">
+                    <zso-skeleton width="65%" height="0.95rem" />
+                    <zso-skeleton width="45%" height="0.8rem" className="opacity-70" />
+                  </div>
+                </div>
+                <zso-skeleton width="90%" height="0.75rem" className="opacity-60" />
+              </div>
+            </div>
           </div>
         </ng-template>
       </div>
@@ -128,6 +152,8 @@ interface Section {
 export class PlacesOverviewPage implements OnInit {
   private readonly placesService = inject(PlacesService);
   private readonly router = inject(Router);
+
+  readonly skeletonCards = [0, 1, 2, 3, 4, 5];
 
   sections$!: Observable<Section[]>;
   showCreateModal = false;
