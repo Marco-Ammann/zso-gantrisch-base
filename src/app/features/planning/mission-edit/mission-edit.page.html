@@ -49,7 +49,7 @@
           ></textarea>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <zso-input-field
             label="Status"
             [select]="true"
@@ -62,6 +62,13 @@
             [select]="true"
             [options]="placeOptions"
             formControlName="placeId"
+          ></zso-input-field>
+
+          <zso-input-field
+            label="Einsatzverantwortlich"
+            [select]="true"
+            [options]="responsiblePersonOptions"
+            formControlName="responsiblePersonId"
           ></zso-input-field>
         </div>
 

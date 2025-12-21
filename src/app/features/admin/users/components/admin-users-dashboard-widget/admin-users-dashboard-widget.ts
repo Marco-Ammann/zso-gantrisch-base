@@ -11,6 +11,7 @@ import { UserService } from '@core/services/user.service';
   selector: 'zso-admin-users-dashboard-widget',
   standalone: true,
   imports: [AsyncPipe, ActivityWidgetComponent],
+  host: { class: 'lg:col-span-2' },
   template: `
     <zso-activity-widget
       icon="person_add"

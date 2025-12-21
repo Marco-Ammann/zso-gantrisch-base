@@ -73,15 +73,6 @@ export class ActivityFeedService {
         const timestamp = mission.updatedAt ?? mission.createdAt;
         const isUpdated = !!mission.updatedAt && mission.updatedAt > mission.createdAt;
 
-        const statusText =
-            {
-                draft: 'Entwurf',
-                planned: 'Geplant',
-                active: 'Aktiv',
-                done: 'Erledigt',
-                cancelled: 'Abgesagt',
-            } as const;
-
         const text =
             mission.status === 'active'
                 ? 'Einsatz aktiv'
@@ -90,8 +81,8 @@ export class ActivityFeedService {
                     : mission.status === 'cancelled'
                         ? 'Einsatz abgesagt'
                         : isUpdated
-                            ? `Einsatz aktualisiert (Status: ${statusText[mission.status]})`
-                            : `Neuer Einsatz (Status: ${statusText[mission.status]})`;
+                            ? 'Einsatz aktualisiert'
+                            : 'Neuer Einsatz';
 
         const icon =
             mission.status === 'active'

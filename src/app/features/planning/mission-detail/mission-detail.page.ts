@@ -30,6 +30,12 @@ interface AssignedPersonVm {
     gruppe: string;
 }
 
+interface ResponsiblePersonVm {
+    id: string;
+    name: string;
+    grad: string;
+}
+
 @Component({
     selector: 'zso-mission-detail',
     standalone: true,
@@ -62,6 +68,7 @@ export class MissionDetailPage implements OnInit, OnDestroy {
     mission: MissionDoc | null = null;
     place: PlaceDoc | null = null;
     assignedPersons: AssignedPersonVm[] = [];
+    responsiblePerson: ResponsiblePersonVm | null = null;
 
     isLoading = true;
     errorMsg: string | null = null;
@@ -123,6 +130,16 @@ export class MissionDetailPage implements OnInit, OnDestroy {
             this.place = (place ?? null) as PlaceDoc | null;
 
             const personById = new Map((persons ?? []).map((p) => [p.id, p] as const));
+
+            const rp = m.responsiblePersonId ? personById.get(m.responsiblePersonId) : null;
+            this.responsiblePerson = rp
+                ? {
+                    id: rp.id,
+                    name: `${rp.grunddaten.vorname} ${rp.grunddaten.nachname}`,
+                    grad: rp.grunddaten.grad || '—',
+                }
+                : null;
+
             this.assignedPersons = (m.assignedPersonIds ?? [])
                 .map((pid) => personById.get(pid))
                 .filter((p): p is PersonDoc => !!p)
@@ -163,10 +180,14 @@ export class MissionDetailPage implements OnInit, OnDestroy {
         return typeof max === 'number' && max > 0 ? max : null;
     }
 
+    get assignedPersonsCount(): number {
+        return this.mission?.assignedPersonIds?.length ?? 0;
+    }
+
     get isOverPlaceCapacity(): boolean {
         const max = this.placeMaxPersons;
         if (!max) return false;
-        return this.assignedPersons.length > max;
+        return this.assignedPersonsCount > max;
     }
 
     statusLabel(status: MissionStatus): string {

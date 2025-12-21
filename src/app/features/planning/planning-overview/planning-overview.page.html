@@ -98,6 +98,8 @@
                 <span class="opacity-60">→</span>
                 {{ row.mission.endAt | date:'dd.MM.yyyy HH:mm' }}
                 <span class="opacity-60">•</span>
+                Verantw.: {{ row.responsibleLabel }}
+                <span class="opacity-60">•</span>
                 @if (row.placeMaxPersons) { {{ row.assignedPersonsCount }} / {{
                 row.placeMaxPersons }} AdZS } @else { {{
                 row.assignedPersonsCount }} AdZS }

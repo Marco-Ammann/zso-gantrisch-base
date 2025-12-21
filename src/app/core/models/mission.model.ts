@@ -7,6 +7,7 @@ export interface MissionDoc {
     description?: string;
 
     placeId: string;
+    responsiblePersonId?: string;
     assignedPersonIds: string[];
 
     startAt: number;

@@ -1,16 +1,35 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
+import { PersonDoc } from '@core/models/person.model';
+import { MissionDoc } from '@core/models/mission.model';
+import { PersonService } from '@core/services/person.service';
+import { PlaceDoc } from '@core/models/place.model';
+import { PlacesService } from '@features/places/services/places.service';
 import { MissionsService } from '../../services/missions.service';
+
+interface MissionWidgetItemVm {
+  title: string;
+  when: string;
+  placeName: string;
+  responsibleName: string;
+  capacityText: string;
+  isOverCapacity: boolean;
+}
+
+interface PlanningWidgetVm {
+  current: MissionWidgetItemVm | null;
+  next: MissionWidgetItemVm | null;
+}
 
 @Component({
   selector: 'zso-planning-dashboard-widget',
   standalone: true,
-  imports: [AsyncPipe],
-  host: { class: 'sm:row-span-2' },
+  imports: [AsyncPipe, NgClass],
+  host: { class: 'lg:row-span-2' },
   template: `
     <button
       type="button"
@@ -29,16 +48,48 @@ import { MissionsService } from '../../services/missions.service';
       <div class="grid grid-cols-1 gap-2">
         <div class="rounded-lg bg-white/5 px-3 py-2">
           <div class="text-[10px] uppercase tracking-wide text-white/60">Aktuell</div>
-          <div class="text-sm font-semibold text-white whitespace-pre-line leading-tight">
-            {{ vm?.currentValue ?? '—' }}
+          @if (vm?.current; as current) {
+          <div class="flex items-start justify-between gap-2">
+            <div class="text-sm font-semibold text-white truncate">{{ current.title }}</div>
+            <div class="text-xs text-white/60 whitespace-pre-line text-right leading-tight shrink-0">
+              {{ current.when }}
+            </div>
           </div>
+          <div class="text-xs text-white/60 truncate mt-1">
+            {{ current.placeName }} <span class="opacity-60">•</span> {{ current.responsibleName }}
+          </div>
+          <div
+            class="text-xs mt-1"
+            [ngClass]="current.isOverCapacity ? 'text-rose-400' : 'text-white/60'"
+          >
+            {{ current.capacityText }}
+          </div>
+          } @else {
+          <div class="text-sm font-semibold text-white whitespace-pre-line leading-tight">—</div>
+          }
         </div>
 
         <div class="rounded-lg bg-white/5 px-3 py-2">
           <div class="text-[10px] uppercase tracking-wide text-white/60">Nächster</div>
-          <div class="text-sm font-semibold text-white whitespace-pre-line leading-tight">
-            {{ vm?.nextValue ?? '—' }}
+          @if (vm?.next; as next) {
+          <div class="flex items-start justify-between gap-2">
+            <div class="text-sm font-semibold text-white truncate">{{ next.title }}</div>
+            <div class="text-xs text-white/60 whitespace-pre-line text-right leading-tight shrink-0">
+              {{ next.when }}
+            </div>
           </div>
+          <div class="text-xs text-white/60 truncate mt-1">
+            {{ next.placeName }} <span class="opacity-60">•</span> {{ next.responsibleName }}
+          </div>
+          <div
+            class="text-xs mt-1"
+            [ngClass]="next.isOverCapacity ? 'text-rose-400' : 'text-white/60'"
+          >
+            {{ next.capacityText }}
+          </div>
+          } @else {
+          <div class="text-sm font-semibold text-white whitespace-pre-line leading-tight">—</div>
+          }
         </div>
       </div>
     </button>
@@ -47,27 +98,71 @@ import { MissionsService } from '../../services/missions.service';
 })
 export class PlanningDashboardWidget {
   private readonly missions = inject(MissionsService);
+  private readonly places = inject(PlacesService);
+  private readonly persons = inject(PersonService);
   private readonly router = inject(Router);
 
-  readonly vm$ = this.missions.getAll().pipe(
-    map((missions) => {
+  readonly vm$ = combineLatest([
+    this.missions.getAll(),
+    this.places.getAll(),
+    this.persons.getAll(),
+  ]).pipe(
+    map(([missions, places, persons]): PlanningWidgetVm => {
       const now = Date.now();
 
-      const active = missions
+      const placeById = new Map((places ?? []).map((p) => [p.id, p] as const));
+      const personById = new Map((persons ?? []).map((p) => [p.id, p] as const));
+
+      const active = (missions ?? [])
         .filter((m) => m.status === 'active' || (m.startAt <= now && m.endAt >= now && m.status !== 'cancelled'))
         .sort((a, b) => a.startAt - b.startAt)[0];
 
-      const next = missions
+      const next = (missions ?? [])
         .filter((m) => m.startAt >= now && m.status !== 'cancelled' && m.status !== 'done')
         .sort((a, b) => a.startAt - b.startAt)[0];
 
       return {
-        currentValue: active ? this.formatTs(active.startAt) : '—',
-        nextValue: next ? this.formatTs(next.startAt) : '—',
+        current: active ? this.toItemVm(active, placeById, personById) : null,
+        next: next ? this.toItemVm(next, placeById, personById) : null,
       };
     }),
-    catchError(() => of({ currentValue: '—', nextValue: '—' }))
+    catchError(() => of({ current: null, next: null } satisfies PlanningWidgetVm))
   );
+
+  private toItemVm(
+    mission: MissionDoc,
+    placeById: Map<string, PlaceDoc>,
+    personById: Map<string, PersonDoc>
+  ): MissionWidgetItemVm {
+    const place = placeById.get(mission.placeId);
+    const placeName = place?.name ?? '—';
+
+    const max = place?.capacity?.maxPersons;
+    const placeMaxPersons = typeof max === 'number' && max > 0 ? max : null;
+    const assignedCount = (mission.assignedPersonIds ?? []).length;
+    const isOverCapacity = !!placeMaxPersons && assignedCount > placeMaxPersons;
+
+    const capacityText = placeMaxPersons
+      ? `${assignedCount}/${placeMaxPersons} AdZS`
+      : `${assignedCount} AdZS`;
+
+    const responsible = mission.responsiblePersonId
+      ? personById.get(mission.responsiblePersonId)
+      : null;
+
+    const responsibleName = responsible
+      ? `${responsible.grunddaten.nachname} ${responsible.grunddaten.vorname}`
+      : '—';
+
+    return {
+      title: mission.title || '—',
+      when: this.formatTs(mission.startAt),
+      placeName,
+      responsibleName,
+      capacityText,
+      isOverCapacity,
+    };
+  }
 
   private formatTs(ts: number): string {
     try {

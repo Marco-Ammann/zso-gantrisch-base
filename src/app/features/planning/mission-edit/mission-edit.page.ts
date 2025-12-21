@@ -64,11 +64,22 @@ export class MissionEditPage implements OnInit {
         { value: 'draft', label: 'Entwurf' },
     ];
 
+    private readonly gradOrder = [
+        'Soldat',
+        'Korporal',
+        'Wachtmeister',
+        'Oberwachtmeister',
+        'Leutnant',
+        'Oberleutnant',
+        'Hauptmann',
+    ];
+
     form = this.fb.group({
         title: ['', Validators.required],
         description: [''],
         status: ['planned' as MissionStatus, Validators.required],
         placeId: ['', Validators.required],
+        responsiblePersonId: [''],
         startDate: ['', Validators.required],
         startTime: ['08:00', Validators.required],
         endDate: ['', Validators.required],
@@ -82,6 +93,23 @@ export class MissionEditPage implements OnInit {
             const cap = typeof max === 'number' && max > 0 ? ` (max ${max})` : '';
             return { value: p.id, label: `${p.name}${cap}` };
         });
+    }
+
+    private gradRank(grad: string | null | undefined): number {
+        const v = (grad ?? '').trim();
+        const idx = this.gradOrder.indexOf(v);
+        return idx >= 0 ? idx : -1;
+    }
+
+    get responsiblePersonOptions(): Array<{ value: string; label: string }> {
+        const options = this.persons
+            .filter((p) => this.gradRank(p.grunddaten?.grad) > 0)
+            .map((p) => ({
+                value: p.id,
+                label: `${p.grunddaten.nachname} ${p.grunddaten.vorname} (${p.grunddaten.grad})`,
+            }));
+
+        return [{ value: '', label: '—' }, ...options];
     }
 
     get selectedPersonsCount(): number {
@@ -163,6 +191,7 @@ export class MissionEditPage implements OnInit {
             description: m.description ?? '',
             status: m.status,
             placeId: m.placeId,
+            responsiblePersonId: m.responsiblePersonId ?? '',
             startDate: this.toDateInputValue(m.startAt),
             startTime: this.toTimeInputValue(m.startAt),
             endDate: this.toDateInputValue(m.endAt),
@@ -237,6 +266,7 @@ export class MissionEditPage implements OnInit {
             description: (v.description as string) || undefined,
             status: v.status as MissionStatus,
             placeId: v.placeId as string,
+            responsiblePersonId: (v.responsiblePersonId as string) || undefined,
             startAt,
             endAt,
             assignedPersonIds: (v.assignedPersonIds as string[]) ?? [],

@@ -13,7 +13,9 @@ export const CHANGELOG_ENTRIES = [
         items: [
             'Neu: Einsatz (Admin-only) mit Einsätzen, Ort-Zuordnung und AdZS-Zuteilung.',
             'Einsätze: Einrück-/Ausrückzeit mit Start-/Enddatum inkl. Uhrzeit (wie im Aufgebot).',
-            'Übersicht: Liste mit Status-Filter und Suche.',
+            'Übersicht: Liste mit Status-Filter und Suche inkl. Kapazitätshinweis (max. Teilnehmer Ort).',
+            'Einsatzverantwortlich: Verantwortliche Person kann definiert werden (nur Rang > Soldat).',
+            'Dashboard: Einsatz-Widget zeigt aktuellen und nächsten Einsatz kompakt an.',
         ],
     },
     {
