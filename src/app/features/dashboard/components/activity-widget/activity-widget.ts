@@ -1,5 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
+
+export type ActivityWidgetDetail = {
+  label: string;
+  value: number | string;
+};
 
 /**
  * ActivityWidgetComponent
@@ -10,7 +15,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'zso-activity-widget',
   standalone: true,
-  imports: [CommonModule],
+  imports: [NgClass],
   template: `
     <button
       type="button"
@@ -21,6 +26,16 @@ import { CommonModule } from '@angular/common';
       <div class="flex flex-col min-w-0">
         <span class="text-2xl font-semibold text-white leading-tight whitespace-pre-line">{{ value }}</span>
         <span class="text-sm text-white/70 truncate">{{ label }}</span>
+        @if (displayDetails.length) {
+          <div class="mt-2 grid grid-cols-3 gap-2">
+            @for (d of displayDetails; track d.label) {
+              <div class="min-w-0">
+                <div class="text-[10px] uppercase tracking-wide text-white/50">{{ d.label }}</div>
+                <div class="text-xs text-white/80 truncate">{{ d.value }}</div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </button>
   `,
@@ -40,6 +55,12 @@ export class ActivityWidgetComponent {
   @Input() label: string = '';
   /** Tailwind / custom text-color utility (e.g., 'text-green-400') */
   @Input() color: string = 'text-cp-orange';
+
+  @Input() details: ActivityWidgetDetail[] | null = null;
+
+  get displayDetails(): ActivityWidgetDetail[] {
+    return (this.details ?? []).slice(0, 3);
+  }
 
   /** Emits when the card is clicked */
   @Output() readonly select = new EventEmitter<void>();

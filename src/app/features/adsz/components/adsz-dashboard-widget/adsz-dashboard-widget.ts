@@ -12,10 +12,16 @@ import { PersonService } from '@core/services/person.service';
   standalone: true,
   imports: [AsyncPipe, ActivityWidgetComponent],
   template: `
+    @let vm = vm$ | async;
     <zso-activity-widget
       icon="badge"
-      [value]="(active$ | async) ?? 0"
+      [value]="vm?.active ?? 0"
       label="AdZS aktiv"
+      [details]="[
+        { label: 'Total', value: vm?.total ?? 0 },
+        { label: 'Neu', value: vm?.neu ?? 0 },
+        { label: 'Inaktiv', value: vm?.inactive ?? 0 }
+      ]"
       (select)="navigate()"
       color="text-cyan-400"
     ></zso-activity-widget>
@@ -26,9 +32,21 @@ export class AdzsDashboardWidget {
   private readonly personService = inject(PersonService);
   private readonly router = inject(Router);
 
-  readonly active$ = this.personService.getStats().pipe(
-    map((s) => s.active ?? 0),
-    catchError(() => of(0))
+  readonly vm$ = this.personService.getStats().pipe(
+    map((s: any) => ({
+      active: s.active ?? 0,
+      total: s.total ?? 0,
+      neu: s.new ?? 0,
+      inactive: s.inactive ?? 0,
+    })),
+    catchError(() =>
+      of({
+        active: 0,
+        total: 0,
+        neu: 0,
+        inactive: 0,
+      })
+    )
   );
 
   navigate(): void {

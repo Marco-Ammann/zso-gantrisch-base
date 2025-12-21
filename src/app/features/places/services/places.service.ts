@@ -30,6 +30,7 @@ import {
 import { FirestoreService } from '@core/services/firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
+import { ActivityLogService, applyDeepPatch } from '@core/services/activity-log.service';
 import { User } from '@angular/fire/auth';
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +38,7 @@ export class PlacesService implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly logger = inject(LoggerService);
   private readonly authService = inject(AuthService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly destroy$ = new Subject<void>();
 
   constructor(private firestoreService: FirestoreService) { }
@@ -97,7 +99,19 @@ export class PlacesService implements OnDestroy {
             })
           )
         ),
-        map((docRef) => docRef.id),
+        switchMap((docRef) =>
+          this.activityLog
+            .logCreate(`places:${docRef.id}`, {
+              ...(placeData as any),
+              id: docRef.id,
+              notes: placeData.notes ?? [],
+              createdBy: '***',
+              updatedBy: '***',
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            })
+            .pipe(map(() => docRef.id))
+        ),
         takeUntil(this.destroy$)
       );
     });
@@ -107,13 +121,24 @@ export class PlacesService implements OnDestroy {
   update(id: string, updates: Partial<PlaceDoc>): Observable<void> {
     return runInInjectionContext(this.injector, () => {
       const placeDoc = doc(this.firestoreService.db, `places/${id}`);
+      const now = Date.now();
       return this.requireUser().pipe(
         switchMap((user) =>
-          from(
-            updateDoc(placeDoc, {
-              ...updates,
-              updatedAt: Date.now(),
-              updatedBy: user.uid,
+          this.firestoreService.getDoc<PlaceDoc>(`places/${id}`).pipe(
+            take(1),
+            switchMap((before) => {
+              const payload = {
+                ...updates,
+                updatedAt: now,
+                updatedBy: user.uid,
+              } as any;
+
+              const after = applyDeepPatch((before ?? ({} as any)) as any, payload);
+
+              return from(updateDoc(placeDoc, payload)).pipe(
+                switchMap(() => this.activityLog.logUpdate(`places:${id}`, before, after)),
+                map(() => void 0)
+              );
             })
           )
         ),
@@ -126,7 +151,17 @@ export class PlacesService implements OnDestroy {
   delete(id: string): Observable<void> {
     return runInInjectionContext(this.injector, () => {
       const placeDocRef = doc(this.firestoreService.db, `places/${id}`);
-      return from(deleteDoc(placeDocRef)).pipe(takeUntil(this.destroy$));
+
+      return this.firestoreService.getDoc<PlaceDoc>(`places/${id}`).pipe(
+        take(1),
+        switchMap((before) =>
+          from(deleteDoc(placeDocRef)).pipe(
+            switchMap(() => this.activityLog.logDelete(`places:${id}`, before)),
+            map(() => void 0)
+          )
+        ),
+        takeUntil(this.destroy$)
+      );
     });
   }
 

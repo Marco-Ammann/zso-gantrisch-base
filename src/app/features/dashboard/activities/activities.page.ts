@@ -1,8 +1,8 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, combineLatest, startWith } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 
 import { ActivityFeedService } from '../services/activity-feed.service';
 import { ActivityPreferencesService } from '../services/activity-preferences.service';
@@ -11,6 +11,7 @@ import { ActivityFeedItem, ActivitySource } from '../activity-feed.model';
 import { ZsoSkeleton } from '@shared/ui/zso-skeleton/zso-skeleton';
 import { ZsoStateMessage } from '@shared/ui/zso-state-message/zso-state-message';
 import { ScrollLockService } from '@core/services/scroll-lock.service';
+import { ActivityLogEntry, ActivityLogService } from '@core/services/activity-log.service';
 
 type ActivitiesVm = {
   prefs: any;
@@ -306,8 +307,56 @@ type ActivitiesVm = {
               </div>
 
               <div class="mt-5">
-                <div class="text-[10px] text-gray-400 mb-2">Rohdaten</div>
-                <pre class="text-[11px] text-gray-200 whitespace-pre-wrap break-words rounded-lg border border-white/10 bg-black/30 p-3 max-h-[240px] overflow-auto">{{ selectedActivity | json }}</pre>
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <div class="text-[10px] text-gray-400">Änderungen</div>
+                  @if (selectedLogEntry) {
+                    <div class="text-[10px] text-gray-500 truncate">
+                      {{ formatLogAction(selectedLogEntry.action) }}
+                      @if (formatActor(selectedLogEntry) !== '—') {
+                        · {{ formatActor(selectedLogEntry) }}
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (selectedLogLoading) {
+                  <div class="rounded-lg border border-white/10 bg-black/20 p-3">
+                    <div class="text-xs text-gray-300">Lade Änderungsdetails…</div>
+                  </div>
+                } @else {
+                  @if (selectedLogEntry?.changes?.length) {
+                    <div class="space-y-2 max-h-[240px] overflow-auto pr-1">
+                      @for (c of (selectedLogEntry?.changes ?? []); track c.path) {
+                        <div class="rounded-lg border border-white/10 bg-black/20 p-3">
+                          <div class="text-xs text-white font-medium truncate">
+                            {{ formatChangePath(c.path) }}
+                          </div>
+                          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div class="rounded-md border border-white/10 bg-black/30 p-2">
+                              <div class="text-[10px] text-gray-400">Vorher</div>
+                              <div class="text-[11px] text-gray-200 whitespace-pre-wrap break-words">
+                                {{ formatChangeValue(c.before) }}
+                              </div>
+                            </div>
+                            <div class="rounded-md border border-white/10 bg-black/30 p-2">
+                              <div class="text-[10px] text-gray-400">Nachher</div>
+                              <div class="text-[11px] text-gray-200 whitespace-pre-wrap break-words">
+                                {{ formatChangeValue(c.after) }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="rounded-lg border border-white/10 bg-black/20 p-3">
+                      <div class="text-xs text-gray-300">Keine Änderungsdetails verfügbar.</div>
+                      <div class="text-[11px] text-gray-500 mt-1">
+                        Bei neuen Änderungen wird hier automatisch „Vorher → Nachher“ angezeigt.
+                      </div>
+                    </div>
+                  }
+                }
               </div>
 
               <div class="mt-6 flex justify-end gap-2">
@@ -340,6 +389,8 @@ export class ActivitiesPage implements OnDestroy {
   private readonly feed = inject(ActivityFeedService);
   private readonly prefs = inject(ActivityPreferencesService);
   private readonly scrollLock = inject(ScrollLockService);
+  private readonly activityLog = inject(ActivityLogService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly searchSubject = new BehaviorSubject<string>('');
   private readonly pageSubject = new BehaviorSubject<number>(1);
@@ -348,6 +399,8 @@ export class ActivitiesPage implements OnDestroy {
   selectedActivity: ActivityFeedItem | null = null;
   detailsVisible = false;
   private detailsScrollLocked = false;
+  selectedLogEntry: ActivityLogEntry | null = null;
+  selectedLogLoading = false;
 
   readonly prefs$ = this.prefs.preferences$;
 
@@ -436,6 +489,25 @@ export class ActivitiesPage implements OnDestroy {
     this.selectedActivity = activity;
     this.detailsVisible = true;
 
+    this.selectedLogEntry = null;
+    this.selectedLogLoading = true;
+
+    this.activityLog
+      .latestEntry(activity.key)
+      .pipe(take(1))
+      .subscribe({
+        next: (entry) => {
+          this.selectedLogEntry = entry;
+          this.selectedLogLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.selectedLogEntry = null;
+          this.selectedLogLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
+
     if (!this.detailsScrollLocked) {
       this.scrollLock.lock();
       this.detailsScrollLocked = true;
@@ -445,6 +517,8 @@ export class ActivitiesPage implements OnDestroy {
   closeDetails(): void {
     this.detailsVisible = false;
     this.selectedActivity = null;
+    this.selectedLogEntry = null;
+    this.selectedLogLoading = false;
 
     if (this.detailsScrollLocked) {
       this.scrollLock.unlock();
@@ -461,5 +535,58 @@ export class ActivitiesPage implements OnDestroy {
 
   navigate(path: string): void {
     this.router.navigate([path]);
+  }
+
+  formatLogAction(action: string | undefined): string {
+    if (action === 'create') return 'Erstellt';
+    if (action === 'update') return 'Aktualisiert';
+    if (action === 'delete') return 'Gelöscht';
+    return 'Änderung';
+  }
+
+  formatActor(entry: ActivityLogEntry | null): string {
+    if (!entry) return '—';
+    return entry.actorName || entry.actorEmail || '—';
+  }
+
+  formatChangePath(path: string): string {
+    const p = (path ?? '').trim();
+    if (!p) return '—';
+
+    const leaf = p.split('.').pop() ?? p;
+    const mapLeaf: Record<string, string> = {
+      title: 'Titel',
+      status: 'Status',
+      placeId: 'Ort',
+      responsiblePersonId: 'Einsatzleitung',
+      startAt: 'Start',
+      endAt: 'Ende',
+      name: 'Name',
+      firstName: 'Vorname',
+      lastName: 'Nachname',
+      approved: 'Freigegeben',
+      blocked: 'Gesperrt',
+      roles: 'Rollen',
+      capacity: 'Kapazität',
+      maxPersons: 'Max. Personen',
+      assignedPersonIds: 'Zugewiesen',
+    };
+
+    return mapLeaf[leaf] ?? p.replaceAll('.', ' › ');
+  }
+
+  formatChangeValue(value: unknown): string {
+    if (value === null || value === undefined) return '—';
+    if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
+    if (typeof value === 'number') return `${value}`;
+    if (typeof value === 'string') return value.trim() || '—';
+
+    try {
+      const text = JSON.stringify(value);
+      if (!text) return '—';
+      return text.length > 120 ? `${text.slice(0, 117)}...` : text;
+    } catch {
+      return '—';
+    }
   }
 }

@@ -22,6 +22,7 @@ import { User } from '@angular/fire/auth';
 import { FirestoreService } from '@core/services/firestore.service';
 import { LoggerService } from '@core/services/logger.service';
 import { AuthService } from '@core/auth/services/auth.service';
+import { ActivityLogService, applyDeepPatch } from '@core/services/activity-log.service';
 import { MissionDoc, MissionStatus } from '@core/models/mission.model';
 
 @Injectable({ providedIn: 'root' })
@@ -29,6 +30,7 @@ export class MissionsService implements OnDestroy {
     private readonly injector = inject(Injector);
     private readonly logger = inject(LoggerService);
     private readonly authService = inject(AuthService);
+    private readonly activityLog = inject(ActivityLogService);
     private readonly destroy$ = new Subject<void>();
 
     constructor(private firestoreService: FirestoreService) { }
@@ -80,20 +82,25 @@ export class MissionsService implements OnDestroy {
             const now = Date.now();
 
             return this.requireUser().pipe(
-                switchMap((user) =>
-                    from(
-                        addDoc(colRef, {
-                            ...data,
-                            status: data.status ?? 'planned',
-                            assignedPersonIds: data.assignedPersonIds ?? [],
-                            createdAt: now,
-                            updatedAt: now,
-                            createdBy: user.uid,
-                            updatedBy: user.uid,
-                        })
-                    )
-                ),
-                map((docRef) => docRef.id),
+                switchMap((user) => {
+                    const payload = {
+                        ...data,
+                        status: data.status ?? 'planned',
+                        assignedPersonIds: data.assignedPersonIds ?? [],
+                        createdAt: now,
+                        updatedAt: now,
+                        createdBy: user.uid,
+                        updatedBy: user.uid,
+                    };
+
+                    return from(addDoc(colRef, payload)).pipe(
+                        switchMap((docRef) =>
+                            this.activityLog
+                                .logCreate(`planning:${docRef.id}`, { ...payload, id: docRef.id })
+                                .pipe(map(() => docRef.id))
+                        )
+                    );
+                }),
                 takeUntil(this.destroy$)
             );
         });
@@ -104,15 +111,28 @@ export class MissionsService implements OnDestroy {
 
         return runInInjectionContext(this.injector, () => {
             const docRef = doc(this.firestoreService.db, `missions/${id}`);
+            const now = Date.now();
 
             return this.requireUser().pipe(
                 switchMap((user) =>
-                    from(
-                        updateDoc(docRef, {
-                            ...updates,
-                            updatedAt: Date.now(),
-                            updatedBy: user.uid,
-                        } as any)
+                    this.firestoreService.getDoc<MissionDoc>(`missions/${id}`).pipe(
+                        take(1),
+                        switchMap((before) => {
+                            const payload = {
+                                ...updates,
+                                updatedAt: now,
+                                updatedBy: user.uid,
+                            } as any;
+
+                            const after = applyDeepPatch((before ?? ({} as any)) as any, payload);
+
+                            return from(updateDoc(docRef, payload)).pipe(
+                                switchMap(() =>
+                                    this.activityLog.logUpdate(`planning:${id}`, before, after)
+                                ),
+                                map(() => void 0)
+                            );
+                        })
                     )
                 ),
                 takeUntil(this.destroy$)
@@ -125,7 +145,17 @@ export class MissionsService implements OnDestroy {
 
         return runInInjectionContext(this.injector, () => {
             const docRef = doc(this.firestoreService.db, `missions/${id}`);
-            return from(deleteDoc(docRef)).pipe(takeUntil(this.destroy$));
+
+            return this.firestoreService.getDoc<MissionDoc>(`missions/${id}`).pipe(
+                take(1),
+                switchMap((before) =>
+                    from(deleteDoc(docRef)).pipe(
+                        switchMap(() => this.activityLog.logDelete(`planning:${id}`, before)),
+                        map(() => void 0)
+                    )
+                ),
+                takeUntil(this.destroy$)
+            );
         });
     }
 }

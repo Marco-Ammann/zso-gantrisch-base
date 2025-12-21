@@ -28,6 +28,7 @@ import {
 } from '@core/models/person.model';
 import { FirestoreService } from './firestore.service';
 import { LoggerService } from '@core/services/logger.service';
+import { ActivityLogService, applyDeepPatch } from '@core/services/activity-log.service';
 
 interface PersonStats {
   total: number;
@@ -44,6 +45,7 @@ interface PersonStats {
 export class PersonService implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly logger = inject(LoggerService);
+  private readonly activityLog = inject(ActivityLogService);
   private readonly destroy$ = new Subject<void>();
 
   constructor(private firestoreService: FirestoreService) { }
@@ -243,14 +245,20 @@ export class PersonService implements OnDestroy {
     return runInInjectionContext(this.injector, () => {
       const personsCollection = collection(this.firestoreService.db, 'persons');
 
-      return from(
-        addDoc(personsCollection, {
-          ...personData,
-          erstelltAm: Date.now(),
-          aktualisiertAm: Date.now(),
-        })
-      ).pipe(
-        map((docRef) => docRef.id),
+      const now = Date.now();
+
+      const payload = {
+        ...personData,
+        erstelltAm: now,
+        aktualisiertAm: now,
+      };
+
+      return from(addDoc(personsCollection, payload)).pipe(
+        switchMap((docRef) =>
+          this.activityLog
+            .logCreate(`adsz:${docRef.id}`, { ...(payload as any), id: docRef.id })
+            .pipe(map(() => docRef.id))
+        ),
         catchError((error) => {
           this.logger.error('PersonService', 'Error creating person:', error);
           return throwError(() => error);
@@ -269,12 +277,22 @@ export class PersonService implements OnDestroy {
     return runInInjectionContext(this.injector, () => {
       const personDoc = doc(this.firestoreService.db, `persons/${id}`);
 
-      return from(
-        updateDoc(personDoc, {
-          ...updates,
-          aktualisiertAm: Date.now(),
-        })
-      ).pipe(
+      const now = Date.now();
+      return this.firestoreService.getDoc<PersonDoc>(`persons/${id}`).pipe(
+        take(1),
+        switchMap((before) => {
+          const payload = {
+            ...updates,
+            aktualisiertAm: now,
+          } as any;
+
+          const after = applyDeepPatch((before ?? ({} as any)) as any, payload);
+
+          return from(updateDoc(personDoc, payload)).pipe(
+            switchMap(() => this.activityLog.logUpdate(`adsz:${id}`, before, after)),
+            map(() => void 0)
+          );
+        }),
         catchError((error) => {
           this.logger.error(
             'PersonService',
@@ -450,7 +468,14 @@ export class PersonService implements OnDestroy {
     return runInInjectionContext(this.injector, () => {
       const personDoc = doc(this.firestoreService.db, `persons/${id}`);
 
-      return from(deleteDoc(personDoc)).pipe(
+      return this.firestoreService.getDoc<PersonDoc>(`persons/${id}`).pipe(
+        take(1),
+        switchMap((before) =>
+          from(deleteDoc(personDoc)).pipe(
+            switchMap(() => this.activityLog.logDelete(`adsz:${id}`, before)),
+            map(() => void 0)
+          )
+        ),
         catchError((error) => {
           this.logger.error(
             'PersonService',

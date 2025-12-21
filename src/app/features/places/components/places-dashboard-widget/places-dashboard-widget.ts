@@ -12,10 +12,16 @@ import { PlacesService } from '@features/places/services/places.service';
   standalone: true,
   imports: [AsyncPipe, ActivityWidgetComponent],
   template: `
+    @let vm = vm$ | async;
     <zso-activity-widget
       icon="place"
-      [value]="(total$ | async) ?? 0"
+      [value]="vm?.total ?? 0"
       label="Orte"
+      [details]="[
+        { label: 'Mit Kap.', value: vm?.withCapacity ?? 0 },
+        { label: 'Verfügbar', value: vm?.available ?? 0 },
+        { label: 'Heime', value: vm?.accommodations ?? 0 }
+      ]"
       (select)="navigate()"
       color="text-emerald-400"
     ></zso-activity-widget>
@@ -26,9 +32,21 @@ export class PlacesDashboardWidget {
   private readonly placesService = inject(PlacesService);
   private readonly router = inject(Router);
 
-  readonly total$ = this.placesService.getStats().pipe(
-    map((s) => s.total),
-    catchError(() => of(0))
+  readonly vm$ = this.placesService.getStats().pipe(
+    map((s) => ({
+      total: s.total ?? 0,
+      available: s.available ?? 0,
+      withCapacity: s.withCapacity ?? 0,
+      accommodations: s.byType?.accommodation ?? 0,
+    })),
+    catchError(() =>
+      of({
+        total: 0,
+        available: 0,
+        withCapacity: 0,
+        accommodations: 0,
+      })
+    )
   );
 
   navigate(): void {

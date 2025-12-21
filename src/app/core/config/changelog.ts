@@ -16,6 +16,9 @@ export const CHANGELOG_ENTRIES = [
             'Übersicht: Liste mit Status-Filter und Suche inkl. Kapazitätshinweis (max. Teilnehmer Ort).',
             'Einsatzverantwortlich: Verantwortliche Person kann definiert werden (nur Rang > Soldat).',
             'Dashboard: Einsatz-Widget zeigt aktuellen und nächsten Einsatz kompakt an.',
+            'Dashboard: Widgets zeigen neu mehrere Kennzahlen (statt nur eine Zahl).',
+            'Aktivitäten: Details zeigen neu Änderungen als „Vorher → Nachher“ statt Roh-JSON (inkl. Maskierung sensibler Daten).',
+            'Technisch: Änderungen werden protokolliert (Einsatz/Orte/AdZS/Benutzer) für nachvollziehbare Änderungsdetails.',
         ],
     },
     {
