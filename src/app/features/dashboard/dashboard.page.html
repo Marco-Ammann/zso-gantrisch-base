@@ -37,56 +37,6 @@
       </div>
     </div>
 
-    <!-- Glance Stats (horizontal scrollable chips) -->
-    <section
-      class="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-thin px-1"
-      @staggerIn
-    >
-      @let s = stats$ | async;
-      <zso-stat-hint
-        icon="group"
-        [value]="s?.total ?? 0"
-        (select)="navigate('/admin/users')"
-        color="text-blue-400"
-        title="Alle Benutzer"
-      ></zso-stat-hint>
-      <zso-stat-hint
-        icon="verified"
-        [value]="s?.active ?? 0"
-        (select)="navigate('/admin/users')"
-        color="text-green-400"
-        title="Aktive Benutzer"
-      ></zso-stat-hint>
-      <zso-stat-hint
-        icon="schedule"
-        [value]="s?.pending ?? 0"
-        (select)="navigate('/admin/users')"
-        color="text-amber-400"
-        title="Wartend"
-      ></zso-stat-hint>
-      <zso-stat-hint
-        icon="block"
-        [value]="s?.blocked ?? 0"
-        (select)="navigate('/admin/users')"
-        color="text-rose-400"
-        title="Gesperrt"
-      ></zso-stat-hint>
-      <zso-stat-hint
-        icon="badge"
-        [value]="s?.persons ?? 0"
-        (select)="navigate('/adsz')"
-        color="text-purple-400"
-        title="AdZS"
-      ></zso-stat-hint>
-      <zso-stat-hint
-        icon="military_tech"
-        [value]="s?.activePersons ?? 0"
-        (select)="navigate('/adsz')"
-        color="text-cyan-400"
-        title="Im Dienst"
-      ></zso-stat-hint>
-    </section>
-
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
       <!-- Quick Links -->
@@ -103,7 +53,7 @@
           </h2>
 
           <div
-            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"
+            class="quick-links-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"
           >
             @for (link of getFilteredQuickLinks( (appUser$ |
             async)?.doc?.roles?.includes('admin') ?? false, (featureFlags$ |

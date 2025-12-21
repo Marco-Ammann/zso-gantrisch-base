@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { Subject, of, takeUntil, switchMap, finalize } from 'rxjs';
 
@@ -46,6 +46,7 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   // injections
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly personService = inject(PersonService);
   private readonly logger = inject(LoggerService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -179,10 +180,19 @@ export class AdzsDetailPage implements OnInit, OnDestroy {
   }
 
   back(): void {
-  this.router.navigate(['/adsz']);
-}
+    const navId = (window.history.state as any)?.navigationId ?? 0;
+    if (navId > 1) {
+      this.location.back();
+      return;
+    }
+    this.goOverview();
+  }
 
-openEdit(): void {
+  goOverview(): void {
+    this.router.navigate(['/adsz']);
+  }
+
+  openEdit(): void {
     this.modalVisible = true;
   }
 

@@ -9,7 +9,7 @@ import {
   inject,
   ChangeDetectorRef,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
@@ -31,6 +31,7 @@ import { PlaceNotesWidget } from '../components/place-notes-widget/place-notes-w
 export class PlaceDetailViewPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly placesService = inject(PlacesService);
   private readonly logger = inject(LoggerService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -103,8 +104,18 @@ export class PlaceDetailViewPage implements OnInit {
 
   /** Navigation */
   back(): void {
+    const navId = (window.history.state as any)?.navigationId ?? 0;
+    if (navId > 1) {
+      this.location.back();
+      return;
+    }
+    this.goOverview();
+  }
+
+  goOverview(): void {
     this.router.navigate(['/places']);
   }
+
   edit(): void {
     this.router.navigate(['/places', this.placeId, 'edit']);
   }

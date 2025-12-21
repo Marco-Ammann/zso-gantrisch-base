@@ -1,5 +1,5 @@
 // src/app/features/admin/users/user-detail/user-detail.page.ts
-import { CommonModule, DatePipe, NgIf, AsyncPipe } from '@angular/common';
+import { CommonModule, DatePipe, NgIf, AsyncPipe, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OverlayModule, ConnectedPosition } from '@angular/cdk/overlay';
 import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
@@ -23,15 +23,15 @@ import { LoggerService } from '@core/services/logger.service';
   selector: 'zso-user-detail-page',
   standalone: true,
   imports: [
-    CommonModule, 
-    NgIf, 
-    AsyncPipe, 
-    RouterModule, 
-    DatePipe, 
-    OverlayModule, 
-    FormsModule, 
-    ZsoRoleSelect, 
-    UserEditDialogComponent, 
+    CommonModule,
+    NgIf,
+    AsyncPipe,
+    RouterModule,
+    DatePipe,
+    OverlayModule,
+    FormsModule,
+    ZsoRoleSelect,
+    UserEditDialogComponent,
     SwissPhonePipe
   ],
   templateUrl: './user-detail.page.html',
@@ -54,6 +54,7 @@ export class UserDetailPage implements OnDestroy {
   private readonly userService = inject(UserService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly authService = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
 
@@ -204,13 +205,13 @@ export class UserDetailPage implements OnDestroy {
     this.editUser = null;
   }
 
-  onDialogSaved(payload: { 
-    uid: string; 
-    firstName: string; 
-    lastName: string; 
-    email: string; 
-    phoneNumber: string; 
-    birthDate: number | null 
+  onDialogSaved(payload: {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    birthDate: number | null
   }): void {
     // Update all profile fields
     const updates = [
@@ -354,7 +355,16 @@ export class UserDetailPage implements OnDestroy {
 
   // Navigation
   back(): void {
-    this.router.navigate(['../'], { relativeTo: this.route });
+    const navId = (window.history.state as any)?.navigationId ?? 0;
+    if (navId > 1) {
+      this.location.back();
+      return;
+    }
+    this.goOverview();
+  }
+
+  goOverview(): void {
+    this.router.navigate(['/admin/users']);
   }
 
   // Utility methods

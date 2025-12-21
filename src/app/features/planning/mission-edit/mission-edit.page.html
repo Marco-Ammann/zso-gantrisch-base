@@ -77,8 +77,8 @@
           class="text-xs"
           [ngClass]="isOverPlaceCapacity ? 'text-rose-400' : 'text-gray-400'"
         >
-          Kapazität Ort: {{ selectedPersonsCount }} / {{ selectedPlaceMaxPersons
-          }} AdZS
+          Kapazität {{ selectedPlace?.name ?? 'Ort' }}: {{ selectedPersonsCount
+          }} / {{ selectedPlaceMaxPersons }} AdZS
         </div>
         }
 
@@ -138,9 +138,18 @@
           </div>
 
           @if (isOverPlaceCapacity) {
-          <p class="text-xs text-rose-400 mt-2">
-            Maximale Teilnehmerzahl für den gewählten Ort überschritten.
-          </p>
+          <div
+            class="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-200"
+          >
+            {{ selectedPlace?.name ?? 'Ort' }} nimmt maximal {{
+            selectedPlaceMaxPersons }} Teilnehmer auf. Aktuell: {{
+            selectedPersonsCount }} (Überbuchung: +{{ selectedPersonsCount -
+            (selectedPlaceMaxPersons ?? 0) }}).
+            <div class="mt-2 text-rose-100/80">
+              Hinweis: Eine kleine Überbuchung (z.B. 1–2 Personen) kann bewusst
+              sinnvoll sein, falls jemand krank wird.
+            </div>
+          </div>
           }
 
           <div class="mt-3">

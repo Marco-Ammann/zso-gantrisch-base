@@ -1,7 +1,6 @@
 // src/app/features/dashboard/dashboard.page.ts
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { AsyncPipe, DatePipe, NgComponentOutlet } from '@angular/common';
-import { StatHintComponent } from './components/stat-hint/stat-hint';
 import { RouterModule, Router } from '@angular/router';
 import {
   Subject,
@@ -9,18 +8,14 @@ import {
   takeUntil,
   combineLatest,
   startWith,
-  catchError,
   of,
   from,
 } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
 
-import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/auth/services/auth.service';
-import { PersonService } from '@core/services/person.service';
 import { LoggerService } from '@core/services/logger.service';
-import { Stats } from './dashboard.model';
 import { FeatureFlagKey, FeatureFlagsService } from '@core/services/feature-flags.service';
 import { APP_SETTINGS } from '@config/app-settings';
 import {
@@ -42,11 +37,6 @@ interface QuickLink {
   featureFlag?: FeatureFlagKey;
 }
 
-interface ExtendedStats extends Stats {
-  persons?: number;
-  activePersons?: number;
-}
-
 @Component({
   selector: 'zso-dashboard',
   standalone: true,
@@ -55,7 +45,6 @@ interface ExtendedStats extends Stats {
     RouterModule,
     DatePipe,
     NgComponentOutlet,
-    StatHintComponent,
     ZsoSkeleton,
     ZsoStateMessage,
   ],
@@ -81,9 +70,7 @@ interface ExtendedStats extends Stats {
   ]
 })
 export class DashboardPage implements OnInit, OnDestroy {
-  private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
-  private readonly personService = inject(PersonService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly featureFlags = inject(FeatureFlagsService);
@@ -132,28 +119,6 @@ export class DashboardPage implements OnInit, OnDestroy {
         )
       );
     })
-  );
-
-  stats$ = combineLatest([
-    this.userService.getStats().pipe(
-      catchError(err => {
-        this.logger.error('Dashboard', 'Failed to load user stats', err);
-        return of({ total: 0, active: 0, pending: 0, blocked: 0 });
-      })
-    ),
-    this.personService.getStats().pipe(
-      catchError(err => {
-        this.logger.error('Dashboard', 'Failed to load person stats', err);
-        return of({ total: 0, active: 0, new: 0, inactive: 0 });
-      })
-    )
-  ]).pipe(
-    map(([userStats, personStats]) => ({
-      ...userStats,
-      persons: personStats.total,
-      activePersons: personStats.active
-    } as ExtendedStats)),
-    startWith({ total: 0, active: 0, pending: 0, blocked: 0, persons: 0, activePersons: 0 })
   );
 
   latestActivities$ = this.activityFeed

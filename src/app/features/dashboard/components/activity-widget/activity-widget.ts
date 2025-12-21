@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <button
       type="button"
-      class="glass-card w-full text-left p-4 flex items-center gap-4 hover:bg-white/15 active:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+      class="glass-card w-full h-full min-h-[120px] sm:min-h-[140px] text-left p-4 flex items-center gap-4 hover:bg-white/15 active:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
       (click)="select.emit()"
     >
       <span class="material-symbols-outlined text-3xl shrink-0" [ngClass]="color">{{ icon }}</span>
